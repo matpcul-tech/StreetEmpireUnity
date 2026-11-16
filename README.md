@@ -65,7 +65,7 @@ This project was scaffolded by hand, without running the Editor, so there are no
 
 ## CI
 
-`.github/workflows/unity-ci.yml` runs EditMode tests, then builds Android (APK) and WebGL. It needs repo secrets before it can pass; see [docs/CI-LICENSE.md](docs/CI-LICENSE.md). Until then it fails at license activation, which is expected.
+`.github/workflows/unity-ci.yml` runs EditMode tests, then builds Android (APK) and WebGL. It needs two repo secrets, UNITY_EMAIL and UNITY_PASSWORD, before it can pass; see [docs/CI-LICENSE.md](docs/CI-LICENSE.md). Until then it fails at license activation, which is expected.
 
 ## Git LFS
 

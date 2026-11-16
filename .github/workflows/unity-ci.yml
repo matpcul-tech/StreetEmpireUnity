@@ -1,7 +1,7 @@
 # GameCI: EditMode tests, then Android (APK) and WebGL builds.
-# Needs repo secrets (Settings > Secrets and variables > Actions):
-#   UNITY_EMAIL, UNITY_PASSWORD, and UNITY_LICENSE (contents of a Unity_lic.ulf)
-#   or UNITY_SERIAL instead of UNITY_LICENSE. See docs/CI-LICENSE.md.
+# Needs two repo secrets (Settings > Secrets and variables > Actions):
+#   UNITY_EMAIL and UNITY_PASSWORD. GameCI v4 activates a Personal seat with just these.
+#   No .ulf needed. See docs/CI-LICENSE.md.
 # Until they exist this workflow fails at license activation. That is expected.
 name: Unity CI
 
@@ -16,10 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
   UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
   UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-  UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
 
 jobs:
   test:
