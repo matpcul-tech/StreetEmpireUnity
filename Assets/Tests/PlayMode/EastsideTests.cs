@@ -28,6 +28,13 @@ namespace StreetEmpire.Tests
             {
                 var rs = b.GetComponentsInChildren<Renderer>();
                 Assert.Greater(rs.Length, 0, $"{b.name} has meshes");
+                foreach (var m in rs.SelectMany(r => r.sharedMaterials))
+                {
+                    Assert.IsNotNull(m, $"{b.name} material");
+                    // URP players skip Built-in shaders, so the building would be invisible in the APK and WebGL
+                    Assert.IsFalse(m.shader.name.StartsWith("glTF/") || m.shader.name == "Standard" || m.shader.name == "Hidden/InternalErrorShader",
+                        $"{b.name} uses a URP shader (got {m.shader.name})");
+                }
                 // the collider is fitted to the model when the scene is built; renderer bounds are not
                 // reliable at runtime once static batching has merged the meshes
                 var col = b.GetComponent<BoxCollider>();
