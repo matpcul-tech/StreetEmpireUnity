@@ -1,4 +1,3 @@
-using System.Linq;
 // This repo was scaffolded without opening the Editor. On first open (and before every CI build or
 // play mode test) this creates what a normal "New Project" would have and rebuilds the scenes from code.
 using System.IO;
@@ -26,32 +25,12 @@ namespace StreetEmpire.EditorTools
         {
             EnsurePlayerSettings();
             EnsurePipeline();
-            EnsureModelsForPipeline();
             EnsureDatabase();
             AssetDatabase.SaveAssets();
             SceneBuilder.BuildEastside();
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(SceneBuilder.EastsideScene, true) };
             AssetDatabase.SaveAssets();
         }
-
-        // glTFast picks its shader when a .glb is imported. On a fresh CI checkout the models import before
-        // URP is assigned, so they get the Built-in glTF shader, which URP players skip (invisible buildings).
-        // Reimport any model whose materials are not on a URP-compatible shader.
-        static void EnsureModelsForPipeline()
-        {
-            foreach (var guid in AssetDatabase.FindAssets("glob:\"Assets/Art/Models/**/*.glb\""))
-            {
-                var path = AssetDatabase.GUIDToAssetPath(guid);
-                bool stale = AssetDatabase.LoadAllAssetsAtPath(path).OfType<Material>()
-                    .Any(m => m.shader == null || !IsUrpShader(m.shader));
-                if (!stale) continue;
-                Debug.Log($"[ProjectBootstrap] reimporting {path} for URP");
-                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
-            }
-        }
-
-        public static bool IsUrpShader(Shader sh) =>
-            sh != null && !sh.name.StartsWith("glTF/") && sh.name != "Hidden/InternalErrorShader" && sh.name != "Standard";
 
         static void EnsurePlayerSettings()
         {

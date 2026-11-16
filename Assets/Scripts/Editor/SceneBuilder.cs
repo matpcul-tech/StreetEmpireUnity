@@ -110,6 +110,7 @@ namespace StreetEmpire.EditorTools
             // kit.js prepBuilding(): fit the widest side to the 13 m lot, feet on the ground, centered
             var inst = (GameObject)PrefabUtility.InstantiatePrefab(model);
             inst.transform.SetParent(holder.transform, false);
+            UrpMaterials.Apply(inst, name);
             var bounds = WorldBounds(inst);
             float k = spot.w / Mathf.Max(bounds.size.x, bounds.size.z, 1e-4f);
             // multiply, not set: glTFast folds a lone root node (and its scale) into the prefab root
