@@ -42,7 +42,7 @@ namespace StreetEmpire.Tests
             Assert.That(r.bounds.size.y, Is.InRange(1.4f, 2.2f), "about 1.8 m tall");
             Assert.IsTrue(player.Grounded, "standing on the street");
             Assert.IsNotNull(Object.FindFirstObjectByType<CinemachineBrain>(), "cinemachine brain");
-            Assert.IsNotNull(Object.FindFirstObjectByType<OnScreenStick>(true), "phone stick");
+            Assert.IsNotNull(Object.FindFirstObjectByType<OnScreenStick>(FindObjectsInactive.Include), "phone stick");
             Assert.GreaterOrEqual(Object.FindObjectsByType<OnScreenButton>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length, 3, "phone buttons");
         }
 
