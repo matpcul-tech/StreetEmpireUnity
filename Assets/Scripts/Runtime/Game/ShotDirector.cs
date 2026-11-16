@@ -4,6 +4,8 @@
 //   shot=bag     Bag Back running, standing by the bag
 //   shot=police  two stars, officers on the way
 //   shot=car     in the sedan
+//   shot=overview high view over the whole district
+//   shot=cruiser two stars, standing still while a cruiser drives in
 using System.Collections;
 using StreetEmpire.Player;
 using StreetEmpire.Vehicles;
@@ -35,6 +37,17 @@ namespace StreetEmpire.Game
                     break;
                 case "police":
                     s.AddHeat(45f);
+                    break;
+                case "cruiser":
+                    s.AddHeat(45f);
+                    break;
+                case "overview":
+                    var cam = Camera.main;
+                    var brain = cam.GetComponent<Unity.Cinemachine.CinemachineBrain>(); if (brain) brain.enabled = false;
+                    float cx = (s.spanX.x + s.spanX.y) / 2, cz = (s.spanZ.x + s.spanZ.y) / 2;
+                    cam.transform.position = new Vector3(cx + 70f, 120f, cz - 150f);
+                    cam.transform.LookAt(new Vector3(cx, 0, cz - 5f));
+                    cam.farClipPlane = 800f;
                     break;
                 case "car":
                     var car = FindFirstObjectByType<CarController>();
