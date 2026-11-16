@@ -20,7 +20,8 @@ namespace StreetEmpire.Game
         public float SpawnDistance { get; set; }
         public readonly List<Cop> crew = new();
 
-        CarController car; float planT, stuckT, leaveT, stillT; bool direct = true; Vector3 waypoint;
+        CarController car; float planT, stuckT, backT, leaveT, stillT; int stuckCount;
+        public int StuckCount => stuckCount; bool direct = true; Vector3 waypoint;
 
         void Awake() { car = GetComponent<CarController>(); car.aiDriven = true; }
 
@@ -66,13 +67,19 @@ namespace StreetEmpire.Game
             float thr = Mathf.Abs(diff) < 1.3f ? 1f : 0.35f;
             // slow for a corner: no faster than it can turn in the distance left
             if (!direct && to.magnitude < 25f && Mathf.Abs(car.Speed) > 13f) thr = -0.6f;
-            stuckT = Mathf.Abs(car.Speed) < 1f ? stuckT + dt : 0;
-            if (!going && stuckT > 1.5f) { thr = -1; diff = -diff; if (stuckT > 3f) stuckT = 0; }
+            // jammed against a wall or a car: back up for a second with the wheel the other way, then replan
+            // (the JS backs up only until it is moving, which is a few centimeters here)
+            stuckT = Mathf.Abs(car.Speed) < 1f && backT <= 0 ? stuckT + dt : 0;
+            if (stuckT > 1.2f) { stuckT = 0; backT = 1.1f; stuckCount++; planT = 0; }
+            if (backT > 0) { backT -= dt; thr = -1; diff = -diff; }
             if (!going && d < 16f && !pCar) thr = car.Speed > 2f ? -1f : 0f;
             if (!going && pCar && d < 8f) thr = 0.6f;
             car.aiThrottle = thr; car.aiSteer = Mathf.Clamp(diff * 2f, -1f, 1f);
 
             if (!going && d < 16f && Mathf.Abs(car.Speed) < 3f && !pCar) Unload(s);
+            // a cruiser that keeps jamming lets its officers out to run the rest (not in the JS, where its
+            // path finding gets it through; the corner routing here is simpler)
+            else if (!going && !pCar && stuckCount >= 3 && Mathf.Abs(car.Speed) < 3f) Unload(s);
             if (going)
             {
                 leaveT += dt; stillT = Mathf.Abs(car.Speed) < 1f ? stillT + dt : 0;

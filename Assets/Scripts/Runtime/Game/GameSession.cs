@@ -87,8 +87,13 @@ namespace StreetEmpire.Game
             policeT = level.spawnInterval;
             if (!SpawnPoint(out var at, police.spawnRingMin, police.spawnRingMax, 2.6f)) return;
             int n = Mathf.Min(level.officersPerCar, level.maxUnits - active);
+            // face along the street it is on, the way that heads toward the player (pointing straight at the player
+            // from a cross street drives it into the corner building)
             var p = player.transform.position; var face = p - at; face.y = 0;
-            var go = Instantiate(cruiserTemplate, at, Quaternion.LookRotation(face.sqrMagnitude > 0.01f ? face : Vector3.forward));
+            bool onX = streetX.Any(x => Mathf.Abs(x - at.x) < 0.5f), onZ = streetZ.Any(z => Mathf.Abs(z - at.z) < 0.5f);
+            Vector3 along = onX && !onZ ? new Vector3(0, 0, Mathf.Sign(face.z)) : onZ && !onX ? new Vector3(Mathf.Sign(face.x), 0, 0) : face;
+            if (along.sqrMagnitude < 0.01f) along = Vector3.forward;
+            var go = Instantiate(cruiserTemplate, at, Quaternion.LookRotation(along));
             go.name = $"Cruiser {++CruisersSent}"; go.SetActive(true);
             var car = go.GetComponent<StreetEmpire.Vehicles.CarController>(); car.hp = level.cruiserHp;
             var cr = go.GetComponent<PoliceCruiser>(); cr.riders = n; cr.riderHp = level.officerHp;
