@@ -19,9 +19,9 @@ namespace StreetEmpire.EditorTools
 {
     public static class PlayerBuilder
     {
-        const string PlayerFbx = "Assets/Art/Models/Characters/Player/player.fbx";
+        public const string PlayerFbx = "Assets/Art/Models/Characters/Player/player.fbx";
         const string ClipsFbx = "Assets/Art/Animations/ual-clips.fbx";
-        const string ControllerPath = "Assets/Art/Animations/Player.controller";
+        public const string ControllerPath = "Assets/Art/Animations/Player.controller";
 
         public static GameObject Build(WorldFile w, Block start)
         {
@@ -103,7 +103,7 @@ namespace StreetEmpire.EditorTools
             return ac;
         }
 
-        static Material PlayerMaterial()
+        public static Material PlayerMaterial()
         {
             const string p = "Assets/Art/Materials/Player.mat";
             Directory.CreateDirectory("Assets/Art/Materials");
@@ -154,7 +154,7 @@ namespace StreetEmpire.EditorTools
             var hints = Rect("KeyHints", canvasGo.transform, Vector2.zero, Vector2.zero, new Vector2(24, 20), new Vector2(900, 40));
             hints.pivot = Vector2.zero;
             var ht = hints.gameObject.AddComponent<Text>(); ht.font = font; ht.fontSize = 22; ht.color = new Color(1, 1, 1, 0.8f);
-            ht.text = "WASD move   Mouse look (click to lock, Esc to free)   Shift sprint   Space jump   E use";
+            ht.text = "WASD move   Mouse look (click to lock, Esc to free)   Shift sprint   Space jump   E use   J hit";
 
             hud.touchControls = touch.gameObject; hud.keyHints = hints.gameObject;
         }
@@ -168,7 +168,7 @@ namespace StreetEmpire.EditorTools
             t.font = font; t.text = label.ToUpperInvariant(); t.fontSize = 26; t.alignment = TextAnchor.MiddleCenter; t.color = Color.white; t.raycastTarget = false;
         }
 
-        static RectTransform Rect(string name, Transform parent, Vector2 aMin, Vector2 aMax, Vector2 pos, Vector2 size)
+        public static RectTransform Rect(string name, Transform parent, Vector2 aMin, Vector2 aMax, Vector2 pos, Vector2 size)
         {
             var go = new GameObject(name, typeof(RectTransform)); var r = (RectTransform)go.transform;
             r.SetParent(parent, false); r.anchorMin = aMin; r.anchorMax = aMax; r.anchoredPosition = pos; r.sizeDelta = size;

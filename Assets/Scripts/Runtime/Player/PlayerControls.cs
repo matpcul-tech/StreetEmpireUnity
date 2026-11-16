@@ -32,5 +32,6 @@ namespace StreetEmpire.Player
         public bool Sprint => sprint.IsPressed();
         public bool JumpPressed => jump.WasPressedThisFrame();
         public bool UsePressed => use.WasPressedThisFrame();
+        public bool AttackPressed => attack.WasPressedThisFrame();
     }
 }

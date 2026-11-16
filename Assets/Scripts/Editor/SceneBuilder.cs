@@ -89,8 +89,9 @@ namespace StreetEmpire.EditorTools
             }
 
             Lighting(root.transform);
-            PlayerBuilder.Build(w, s.blocks[0]);
+            var player = PlayerBuilder.Build(w, s.blocks[0]);
             VehicleBuilder.BuildSedan(data, s.blocks[0]);
+            GameBuilder.Build(data, s, player);
 
             Directory.CreateDirectory("Assets/Scenes");
             EditorSceneManager.SaveScene(scene, EastsideScene);
