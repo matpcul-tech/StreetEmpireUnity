@@ -1,0 +1,170 @@
+{
+  "source": "matpcul-tech/StreetEmpire src/state.js",
+  "maxHeat": 100,
+  "levels": [
+    {
+      "stars": 1,
+      "minHeat": 10,
+      "maxUnits": 2,
+      "spawnInterval": 5,
+      "officersPerCar": 2,
+      "officerHp": 80,
+      "cruiserHp": 150,
+      "officerWeapon": "fists",
+      "tactical": false,
+      "helicopter": false,
+      "roadblocks": false
+    },
+    {
+      "stars": 2,
+      "minHeat": 30,
+      "maxUnits": 4,
+      "spawnInterval": 5,
+      "officersPerCar": 2,
+      "officerHp": 80,
+      "cruiserHp": 150,
+      "officerWeapon": "fists",
+      "tactical": false,
+      "helicopter": false,
+      "roadblocks": false
+    },
+    {
+      "stars": 3,
+      "minHeat": 50,
+      "maxUnits": 6,
+      "spawnInterval": 5,
+      "officersPerCar": 2,
+      "officerHp": 80,
+      "cruiserHp": 150,
+      "officerWeapon": "pistol",
+      "tactical": false,
+      "helicopter": false,
+      "roadblocks": false
+    },
+    {
+      "stars": 4,
+      "minHeat": 70,
+      "maxUnits": 10,
+      "spawnInterval": 3.5,
+      "officersPerCar": 3,
+      "officerHp": 120,
+      "cruiserHp": 220,
+      "officerWeapon": "pistol",
+      "tactical": true,
+      "helicopter": true,
+      "roadblocks": false
+    },
+    {
+      "stars": 5,
+      "minHeat": 90,
+      "maxUnits": 12,
+      "spawnInterval": 3.5,
+      "officersPerCar": 3,
+      "officerHp": 120,
+      "cruiserHp": 220,
+      "officerWeapon": "pistol",
+      "tactical": true,
+      "helicopter": true,
+      "roadblocks": true
+    }
+  ],
+  "helicopter": {
+    "speed": 24,
+    "sight": 45,
+    "fuel": 45,
+    "cooldownAfterFuelOut": 30,
+    "cooldownAfterLeave": 8,
+    "leavesBelowStars": 3,
+    "orbitRadius": 14
+  },
+  "decay": {
+    "copNearRadius": 30,
+    "calmAfter": 8,
+    "calmRate": 5,
+    "longCalmAfter": 20,
+    "longCalmRate": 3,
+    "safehouseRate": 14
+  },
+  "spawnRingMin": 60,
+  "spawnRingMax": 110,
+  "bustedHeat": 10,
+  "bailBusted": 0.4,
+  "bailWasted": 0.25,
+  "downTime": 1.1,
+  "clearTime": 1.6,
+  "heatSources": [
+    {
+      "id": "jackCar",
+      "heat": 6
+    },
+    {
+      "id": "jackPoliceCar",
+      "heat": 25
+    },
+    {
+      "id": "driveByShot",
+      "heat": 8
+    },
+    {
+      "id": "gunshot",
+      "heat": 8
+    },
+    {
+      "id": "shotgunShot",
+      "heat": 10
+    },
+    {
+      "id": "hitPed",
+      "heat": 7
+    },
+    {
+      "id": "hitCop",
+      "heat": 18
+    },
+    {
+      "id": "hitOtherGun",
+      "heat": 3
+    },
+    {
+      "id": "hitOtherMelee",
+      "heat": 2
+    },
+    {
+      "id": "koPed",
+      "heat": 8
+    },
+    {
+      "id": "koCop",
+      "heat": 15
+    },
+    {
+      "id": "koOtherGun",
+      "heat": 5
+    },
+    {
+      "id": "koOtherMelee",
+      "heat": 4
+    },
+    {
+      "id": "runOverPed",
+      "heat": 10
+    },
+    {
+      "id": "runOverOther",
+      "heat": 3
+    },
+    {
+      "id": "carExplodes",
+      "heat": 14
+    },
+    {
+      "id": "witnessCall",
+      "heat": 12
+    },
+    {
+      "id": "streetCallDeal",
+      "heat": 6
+    }
+  ],
+  "notes": "Heat source call sites are in state.js addHeat(). Verify any change against the JS before tuning."
+}

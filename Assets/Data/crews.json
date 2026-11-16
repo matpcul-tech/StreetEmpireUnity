@@ -1,0 +1,68 @@
+{
+  "source": "matpcul-tech/StreetEmpire src/state.js",
+  "crews": [
+    {
+      "id": "neutral",
+      "name": "Locals",
+      "color": "#9a9a9a",
+      "uiColor": "#aaa",
+      "shirt": "#6b6458",
+      "pants": "#3a3a40",
+      "legacyModel": "Casual_Female"
+    },
+    {
+      "id": "player",
+      "name": "You",
+      "color": "#ff8a1a",
+      "uiColor": "#ff8a1a",
+      "shirt": "#d9741c",
+      "pants": "#2a3550",
+      "legacyModel": "Casual_Male"
+    },
+    {
+      "id": "reds",
+      "name": "Red Kings",
+      "color": "#dd3333",
+      "uiColor": "#e33",
+      "shirt": "#a82222",
+      "pants": "#1a1a1a",
+      "legacyModel": "Casual2_Male"
+    },
+    {
+      "id": "blues",
+      "name": "Blue Hand",
+      "color": "#3377ee",
+      "uiColor": "#48f",
+      "shirt": "#2850a8",
+      "pants": "#3a4a66",
+      "legacyModel": "Casual3_Male"
+    },
+    {
+      "id": "golds",
+      "name": "Gold Line",
+      "color": "#b8925a",
+      "uiColor": "#b8925a",
+      "shirt": "#9a7438",
+      "pants": "#3a3028",
+      "legacyModel": "Casual2_Male"
+    },
+    {
+      "id": "police",
+      "name": "Police",
+      "color": "#2244aa",
+      "uiColor": "#24a",
+      "shirt": "#1a2a55",
+      "pants": "#14182a",
+      "legacyModel": "BlueSoldier_Male"
+    },
+    {
+      "id": "civ",
+      "name": "Citizens",
+      "color": "#cccccc",
+      "uiColor": "#ccc",
+      "shirt": "#777777",
+      "pants": "#333333",
+      "legacyModel": "Casual_Female"
+    }
+  ]
+}

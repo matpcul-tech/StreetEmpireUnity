@@ -1,0 +1,193 @@
+{
+  "source": "matpcul-tech/StreetEmpire src/state.js",
+  "block": 40,
+  "street": 18,
+  "pitch": 58,
+  "grid": 9,
+  "zoneRadius": 7,
+  "lane": 3,
+  "daySeconds": 480,
+  "signalCycle": 20,
+  "captureTime": 6,
+  "raidGather": 10,
+  "recruitCost": 100,
+  "upgradeCost": 80,
+  "upgradeHp": 40,
+  "buildCost": 200,
+  "buildBoost": 2,
+  "armorMax": 60,
+  "driveByRange": 22,
+  "backup": {
+    "range": 80,
+    "run": 8.5,
+    "near": 30
+  },
+  "districts": [
+    "Eastside",
+    "Downtown",
+    "Harbor",
+    "Midtown"
+  ],
+  "hustles": [
+    "Corner Store Deals",
+    "Car Wash",
+    "Sneaker Resale",
+    "Bootleg DVDs",
+    "Barbershop Bets",
+    "Chop Shop",
+    "Pawn Counter",
+    "Food Truck",
+    "Card Games",
+    "Phone Repair",
+    "Laundromat",
+    "Tire Shop",
+    "Pool Hall",
+    "Record Store",
+    "Check Cashing",
+    "Taco Stand",
+    "Scrap Yard",
+    "Gym",
+    "Arcade",
+    "Night Club",
+    "Liquor Store",
+    "Dice Games",
+    "Bodega",
+    "Wing Spot",
+    "Tattoo Parlor",
+    "Swap Meet",
+    "Hubcap Stand",
+    "Smoke Shop",
+    "Nail Salon",
+    "Donut Shop",
+    "Flower Stall",
+    "Fight Gym",
+    "Burger Window",
+    "Stereo Shop",
+    "Thrift Store",
+    "Bail Bonds",
+    "Juice Bar",
+    "Tow Yard",
+    "Body Shop",
+    "Fish Market",
+    "Print Shop",
+    "Dry Cleaner",
+    "Used Tires",
+    "Bike Shop",
+    "Mattress Outlet",
+    "Parking Lot",
+    "Billiards Back Room",
+    "Karaoke Bar",
+    "Noodle Cart",
+    "Ticket Resale",
+    "Furniture Rental",
+    "Storage Units",
+    "Rim Shop",
+    "Corner Bar",
+    "Lotto Counter",
+    "Paint Shop",
+    "Video Rental",
+    "Jewelry Counter",
+    "Coin Laundry",
+    "Fruit Stand",
+    "Loading Dock",
+    "Cold Storage",
+    "Bait Shop",
+    "Boat Yard",
+    "Freight Office",
+    "Net Loft",
+    "Fuel Dock",
+    "Crab Shack",
+    "Customs Shed",
+    "Ice House",
+    "Salvage Yard",
+    "Welding Shop",
+    "Truck Stop",
+    "Pier Cafe",
+    "Rope Works",
+    "Container Lot",
+    "Union Hall",
+    "Dockside Bar",
+    "Ship Chandler",
+    "Canning Line",
+    "Dry Dock"
+  ],
+  "shopItems": [
+    {
+      "id": "pistol",
+      "name": "Pistol, 24 rounds",
+      "cost": 150
+    },
+    {
+      "id": "shotgun",
+      "name": "Shotgun, 10 shells",
+      "cost": 220
+    },
+    {
+      "id": "bat",
+      "name": "Bat",
+      "cost": 80
+    },
+    {
+      "id": "knuckles",
+      "name": "Brass knuckles",
+      "cost": 60
+    },
+    {
+      "id": "patch",
+      "name": "Patch up (full health)",
+      "cost": 40
+    },
+    {
+      "id": "armor",
+      "name": "Body armor (soaks 60 damage)",
+      "cost": 200
+    }
+  ],
+  "shops": [
+    {
+      "name": "Pawn Counter",
+      "gx": 1,
+      "gz": 1
+    },
+    {
+      "name": "Back Room Supply",
+      "gx": 4,
+      "gz": 3
+    },
+    {
+      "name": "Dockside Locker",
+      "gx": 6,
+      "gz": 6
+    }
+  ],
+  "houses": [
+    {
+      "name": "Eastside walk-up",
+      "gx": 1,
+      "gz": 0,
+      "price": 800,
+      "car": "sedan"
+    },
+    {
+      "name": "Midtown apartment",
+      "gx": 2,
+      "gz": 3,
+      "price": 1600,
+      "car": "lowrider"
+    },
+    {
+      "name": "Downtown loft",
+      "gx": 5,
+      "gz": 3,
+      "price": 2800,
+      "car": "muscle"
+    },
+    {
+      "name": "Harbor bunk room",
+      "gx": 5,
+      "gz": 7,
+      "price": 3600,
+      "car": "suv"
+    }
+  ]
+}

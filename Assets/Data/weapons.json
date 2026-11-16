@@ -1,0 +1,51 @@
+{
+  "source": "matpcul-tech/StreetEmpire src/state.js",
+  "aimAssist": 1.35,
+  "weapons": [
+    {
+      "id": "fists",
+      "range": 2.7,
+      "damage": 18,
+      "cooldown": 0.34,
+      "swing": 0.26,
+      "knockback": 3.6,
+      "ranged": false
+    },
+    {
+      "id": "knuckles",
+      "range": 2.8,
+      "damage": 30,
+      "cooldown": 0.46,
+      "swing": 0.3,
+      "knockback": 8,
+      "ranged": false
+    },
+    {
+      "id": "bat",
+      "range": 3.4,
+      "damage": 34,
+      "cooldown": 0.74,
+      "swing": 0.5,
+      "knockback": 11,
+      "ranged": false
+    },
+    {
+      "id": "pistol",
+      "range": 28,
+      "damage": 26,
+      "cooldown": 0.38,
+      "swing": 0.22,
+      "knockback": 5,
+      "ranged": true
+    },
+    {
+      "id": "shotgun",
+      "range": 12,
+      "damage": 22,
+      "cooldown": 0.95,
+      "swing": 0.32,
+      "knockback": 13,
+      "ranged": true
+    }
+  ]
+}

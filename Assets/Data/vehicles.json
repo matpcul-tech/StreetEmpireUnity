@@ -1,0 +1,164 @@
+{
+  "source": "matpcul-tech/StreetEmpire src/state.js",
+  "vehicles": [
+    {
+      "id": "sedan",
+      "kind": "car",
+      "maxSpeed": 28,
+      "accel": 16,
+      "hp": 100,
+      "wheelbase": 2.7
+    },
+    {
+      "id": "muscle",
+      "kind": "car",
+      "maxSpeed": 36,
+      "accel": 21,
+      "hp": 100,
+      "wheelbase": 2.7
+    },
+    {
+      "id": "suv",
+      "kind": "car",
+      "maxSpeed": 26,
+      "accel": 15,
+      "hp": 140,
+      "wheelbase": 2.7
+    },
+    {
+      "id": "van",
+      "kind": "car",
+      "maxSpeed": 22,
+      "accel": 12,
+      "hp": 160,
+      "wheelbase": 2.7
+    },
+    {
+      "id": "taxi",
+      "kind": "car",
+      "maxSpeed": 28,
+      "accel": 16,
+      "hp": 100,
+      "wheelbase": 2.7
+    },
+    {
+      "id": "police",
+      "kind": "car",
+      "maxSpeed": 34,
+      "accel": 20,
+      "hp": 150,
+      "wheelbase": 2.7
+    },
+    {
+      "id": "lowrider",
+      "kind": "car",
+      "maxSpeed": 26,
+      "accel": 15,
+      "hp": 110,
+      "wheelbase": 2.7
+    },
+    {
+      "id": "pickup",
+      "kind": "car",
+      "maxSpeed": 27,
+      "accel": 15,
+      "hp": 135,
+      "wheelbase": 2.7
+    },
+    {
+      "id": "bike",
+      "kind": "bike",
+      "maxSpeed": 39,
+      "accel": 25,
+      "hp": 90,
+      "wheelbase": 2.7
+    },
+    {
+      "id": "sportbike",
+      "kind": "bikeModel",
+      "maxSpeed": 39,
+      "accel": 25,
+      "hp": 90,
+      "wheelbase": 2.7
+    },
+    {
+      "id": "cruiser",
+      "kind": "bikeModel",
+      "maxSpeed": 34,
+      "accel": 19,
+      "hp": 115,
+      "wheelbase": 2.7
+    },
+    {
+      "id": "dirtbike",
+      "kind": "bikeModel",
+      "maxSpeed": 31,
+      "accel": 27,
+      "hp": 75,
+      "wheelbase": 1.9
+    }
+  ],
+  "garageCost": 150,
+  "garages": [
+    {
+      "name": "Midtown Garage",
+      "x": -80.5,
+      "z": -58
+    },
+    {
+      "name": "Harbor Body Shop",
+      "x": 93.5,
+      "z": 174
+    },
+    {
+      "name": "Eastside Spray",
+      "x": -196.5,
+      "z": -116
+    }
+  ],
+  "burnTime": 4.5,
+  "blastRadius": 8,
+  "wreckClear": 18,
+  "ramps": [
+    {
+      "x": -203,
+      "z": 0,
+      "ry": 0
+    },
+    {
+      "x": 203,
+      "z": 0,
+      "ry": 3.141592653589793
+    },
+    {
+      "x": -232,
+      "z": -29,
+      "ry": -1.5707963267948966
+    },
+    {
+      "x": 232,
+      "z": -29,
+      "ry": 1.5707963267948966
+    },
+    {
+      "x": -87,
+      "z": -116,
+      "ry": 0
+    },
+    {
+      "x": 87,
+      "z": 116,
+      "ry": 3.141592653589793
+    },
+    {
+      "x": 116,
+      "z": -145,
+      "ry": 1.5707963267948966
+    },
+    {
+      "x": -116,
+      "z": 145,
+      "ry": -1.5707963267948966
+    }
+  ]
+}

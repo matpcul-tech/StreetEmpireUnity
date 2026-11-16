@@ -1,0 +1,781 @@
+{
+  "source": "matpcul-tech/StreetEmpire src/state.js",
+  "contacts": [
+    {
+      "name": "Unc",
+      "gx": 0,
+      "gz": 0,
+      "slot": "",
+      "female": false,
+      "look": 0,
+      "pass": [
+        "That is how your father did it. Quieter, but that is how.",
+        "Good. Eat something. Then come back.",
+        "I knew it. Do not tell anybody I said that."
+      ],
+      "fail": [
+        "It happens. Do not let it happen twice.",
+        "Sit. Breathe. Then go again."
+      ]
+    },
+    {
+      "name": "Dee",
+      "gx": 3,
+      "gz": 2,
+      "slot": "crew",
+      "female": true,
+      "look": 0,
+      "pass": [
+        "On time and in one piece. I could cry.",
+        "Money is counted. You are officially my favorite today.",
+        "Not a scratch I can bill you for. Shame."
+      ],
+      "fail": [
+        "That is coming out of your cut. All of it.",
+        "My grandmother drives better, and she is not allowed to."
+      ]
+    },
+    {
+      "name": "Rook",
+      "gx": 5,
+      "gz": 4,
+      "slot": "locals",
+      "female": false,
+      "look": 1,
+      "pass": [
+        "Done. Good.",
+        "They got the message.",
+        "You are useful. Stay that way."
+      ],
+      "fail": [
+        "No.",
+        "Again. Properly."
+      ]
+    },
+    {
+      "name": "Sal",
+      "gx": 6,
+      "gz": 7,
+      "slot": "locals",
+      "female": false,
+      "look": 5,
+      "pass": [
+        "Forty years on these docks, and you still surprised me.",
+        "Clean work. The tide owes you one.",
+        "Good. Now nobody saw you here."
+      ],
+      "fail": [
+        "The harbor is full of men who almost did it.",
+        "Go dry off and try again."
+      ]
+    }
+  ],
+  "missions": [
+    {
+      "index": 0,
+      "title": "Bag Back",
+      "by": "Unc",
+      "kind": "hook",
+      "time": 90,
+      "reward": 120,
+      "rep": 12,
+      "brief": [
+        "Unc: \"You still got your feet under you. Sit down.\"",
+        "Unc: \"A mugger went for your bag, then his boys, then a Red Kings car.\"",
+        "You: \"I saw the car.\""
+      ],
+      "intro": "Unc: \"He dropped your bag up the street. Grab it and bring it back. Then we talk real work.\"",
+      "gift": "follower",
+      "need": 0,
+      "district": -1,
+      "car": "",
+      "handoff": "",
+      "minHp": 0,
+      "crew": "",
+      "heat": 0,
+      "who": "",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 1,
+      "title": "Corner Collection",
+      "by": "Unc",
+      "kind": "collect",
+      "time": 150,
+      "reward": 200,
+      "rep": 15,
+      "brief": [
+        "Unc: \"Three corners on the Eastside owe me an envelope.\"",
+        "You: \"And if they are short?\"",
+        "Unc: \"They will not be short. Not today.\""
+      ],
+      "intro": "Unc: \"Three envelopes, three corners. Back here before the clock runs out.\"",
+      "gift": "",
+      "need": 3,
+      "district": 0,
+      "car": "",
+      "handoff": "",
+      "minHp": 0,
+      "crew": "",
+      "heat": 0,
+      "who": "",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 2,
+      "title": "Chop Job",
+      "by": "Unc",
+      "kind": "chop",
+      "time": 0,
+      "reward": 400,
+      "rep": 30,
+      "brief": [
+        "Unc: \"My guy at the chop shop is short one muscle car.\"",
+        "You: \"Any color?\"",
+        "Unc: \"Fast is the only color that matters.\""
+      ],
+      "intro": "Unc: \"Find a muscle car and drop it at the chop shop on the marker.\"",
+      "gift": "",
+      "need": 0,
+      "district": -1,
+      "car": "muscle",
+      "handoff": "",
+      "minHp": 0,
+      "crew": "",
+      "heat": 0,
+      "who": "",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 3,
+      "title": "Take Over",
+      "by": "Unc",
+      "kind": "take",
+      "time": 0,
+      "reward": 600,
+      "rep": 50,
+      "brief": [
+        "Unc: \"Look around. This block is ours because we hold it.\"",
+        "Unc: \"Now we hold one more.\""
+      ],
+      "intro": "Unc: \"Time to grow. Take the block on the marker.\"",
+      "gift": "",
+      "need": 0,
+      "district": -1,
+      "car": "",
+      "handoff": "",
+      "minHp": 0,
+      "crew": "",
+      "heat": 0,
+      "who": "",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 4,
+      "title": "Package Run",
+      "by": "Dee",
+      "kind": "fetch",
+      "time": 150,
+      "reward": 300,
+      "rep": 20,
+      "brief": [
+        "Dee: \"So you are the one Unc keeps talking about.\"",
+        "Dee: \"A package came in on the Harbor side. Nobody touches it but you.\""
+      ],
+      "intro": "Dee: \"Harbor drop, then straight back to me. You got 150 seconds.\"",
+      "gift": "",
+      "need": 0,
+      "district": -1,
+      "car": "",
+      "handoff": "Unc: \"Go see Dee in Midtown. She runs the garage, and she needs a driver.\"",
+      "minHp": 0,
+      "crew": "",
+      "heat": 0,
+      "who": "",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 5,
+      "title": "Clean Delivery",
+      "by": "Dee",
+      "kind": "deliver",
+      "time": 0,
+      "reward": 450,
+      "rep": 25,
+      "brief": [
+        "Dee: \"That lowrider out front took me six weeks.\"",
+        "Dee: \"The buyer is Downtown. He pays for paint, not dents.\""
+      ],
+      "intro": "Dee: \"Drive the lowrider to the marker Downtown. Keep it clean.\"",
+      "gift": "",
+      "need": 0,
+      "district": 1,
+      "car": "lowrider",
+      "handoff": "",
+      "minHp": 0.7,
+      "crew": "",
+      "heat": 0,
+      "who": "",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 6,
+      "title": "Shadow",
+      "by": "Dee",
+      "kind": "tail",
+      "time": 0,
+      "reward": 500,
+      "rep": 25,
+      "brief": [
+        "Dee: \"Somebody is moving product through my streets and not paying.\"",
+        "Dee: \"Do not stop him. Just see where he goes.\""
+      ],
+      "intro": "Dee: \"Follow the marked car. Stay back, but do not lose it.\"",
+      "gift": "",
+      "need": 35,
+      "district": -1,
+      "car": "",
+      "handoff": "",
+      "minHp": 0,
+      "crew": "",
+      "heat": 0,
+      "who": "",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 7,
+      "title": "Loop Time",
+      "by": "Dee",
+      "kind": "race",
+      "time": 170,
+      "reward": 550,
+      "rep": 30,
+      "brief": [
+        "Dee: \"You want the fast jobs, I need to know you are fast.\"",
+        "Dee: \"One lap of the Loop. The whole ring.\""
+      ],
+      "intro": "Dee: \"Get a car, hit every marker around the Loop. 170 seconds.\"",
+      "gift": "",
+      "need": 0,
+      "district": -1,
+      "car": "",
+      "handoff": "",
+      "minHp": 0,
+      "crew": "",
+      "heat": 0,
+      "who": "",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 8,
+      "title": "Repo",
+      "by": "Dee",
+      "kind": "chase",
+      "time": 0,
+      "reward": 600,
+      "rep": 35,
+      "brief": [
+        "Dee: \"A customer just drove off without paying.\"",
+        "Dee: \"Stop that car. Ram it or take it at a light, I do not care which.\""
+      ],
+      "intro": "Dee: \"Stop the marked car before it gets away.\"",
+      "gift": "",
+      "need": 0,
+      "district": -1,
+      "car": "",
+      "handoff": "",
+      "minHp": 0,
+      "crew": "",
+      "heat": 0,
+      "who": "",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 9,
+      "title": "Send a Message",
+      "by": "Rook",
+      "kind": "beat",
+      "time": 0,
+      "reward": 500,
+      "rep": 30,
+      "brief": [
+        "Rook: \"You hear what the Red Kings been saying about your people?\"",
+        "You: \"I heard.\"",
+        "Rook: \"Then go make them stop saying it.\""
+      ],
+      "intro": "Rook: \"Knock out 3 Red Kings.\"",
+      "gift": "",
+      "need": 3,
+      "district": -1,
+      "car": "",
+      "handoff": "Dee: \"You drive fine. Rook wants you Downtown. That is the real work.\"",
+      "minHp": 0,
+      "crew": "reds",
+      "heat": 0,
+      "who": "",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 10,
+      "title": "Blue Notice",
+      "by": "Rook",
+      "kind": "beat",
+      "time": 0,
+      "reward": 550,
+      "rep": 30,
+      "brief": [
+        "Rook: \"Blue Hand thinks the Red Kings were a one off.\"",
+        "Rook: \"Show them it is a policy.\""
+      ],
+      "intro": "Rook: \"Knock out 4 Blue Hand.\"",
+      "gift": "",
+      "need": 4,
+      "district": -1,
+      "car": "",
+      "handoff": "",
+      "minHp": 0,
+      "crew": "blues",
+      "heat": 0,
+      "who": "",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 11,
+      "title": "Hold the Line",
+      "by": "Rook",
+      "kind": "defend",
+      "time": 0,
+      "reward": 700,
+      "rep": 40,
+      "brief": [
+        "Rook: \"They are coming for one of your blocks. Tonight.\"",
+        "Rook: \"Lose it and everybody in this city knows you can be pushed.\""
+      ],
+      "intro": "Rook: \"Get to your block on the marker and hold it.\"",
+      "gift": "",
+      "need": 4,
+      "district": -1,
+      "car": "",
+      "handoff": "",
+      "minHp": 0,
+      "crew": "reds",
+      "heat": 0,
+      "who": "",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 12,
+      "title": "Lose Them",
+      "by": "Rook",
+      "kind": "escape",
+      "time": 0,
+      "reward": 600,
+      "rep": 35,
+      "brief": [
+        "Rook: \"Somebody gave the police your name.\"",
+        "Rook: \"They are already looking. Disappear.\""
+      ],
+      "intro": "Rook: \"You are wanted. Shake the police.\"",
+      "gift": "",
+      "need": 0,
+      "district": -1,
+      "car": "",
+      "handoff": "",
+      "minHp": 0,
+      "crew": "",
+      "heat": 55,
+      "who": "",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 13,
+      "title": "The Lieutenant",
+      "by": "Rook",
+      "kind": "hit",
+      "time": 0,
+      "reward": 900,
+      "rep": 60,
+      "brief": [
+        "Rook: \"The Red Kings have a lieutenant who plans every raid.\"",
+        "Rook: \"Put him on the ground and the raids get stupid.\""
+      ],
+      "intro": "Rook: \"Knock out the Red Kings lieutenant on the marker.\"",
+      "gift": "",
+      "need": 0,
+      "district": -1,
+      "car": "",
+      "handoff": "",
+      "minHp": 0,
+      "crew": "reds",
+      "heat": 0,
+      "who": "Red Kings lieutenant",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 14,
+      "title": "Dock Pickup",
+      "by": "Sal",
+      "kind": "collect",
+      "time": 170,
+      "reward": 700,
+      "rep": 35,
+      "brief": [
+        "Sal: \"Rook says you are useful. We will see.\"",
+        "Sal: \"Four crates on the docks. Gold Line does not know they are there yet.\""
+      ],
+      "intro": "Sal: \"Four crates, then back to me. 170 seconds.\"",
+      "gift": "",
+      "need": 4,
+      "district": 2,
+      "car": "",
+      "handoff": "Rook: \"Sal runs the freight at the Harbor. Tell him I sent you.\"",
+      "minHp": 0,
+      "crew": "",
+      "heat": 0,
+      "who": "",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 15,
+      "title": "Hot Cargo",
+      "by": "Sal",
+      "kind": "deliver",
+      "time": 0,
+      "reward": 900,
+      "rep": 45,
+      "brief": [
+        "Sal: \"The van is loaded and the police know the plate.\"",
+        "Sal: \"Get it to your side of town anyway.\""
+      ],
+      "intro": "Sal: \"Drive the van to your home block. They will be on you.\"",
+      "gift": "",
+      "need": 0,
+      "district": -1,
+      "car": "van",
+      "handoff": "",
+      "minHp": 0,
+      "crew": "",
+      "heat": 50,
+      "who": "",
+      "home": true,
+      "rival": false
+    },
+    {
+      "index": 16,
+      "title": "Gold Standard",
+      "by": "Sal",
+      "kind": "hit",
+      "time": 0,
+      "reward": 1000,
+      "rep": 70,
+      "brief": [
+        "Sal: \"Gold Line has a captain on these docks. He taxes every load.\"",
+        "Sal: \"I am done paying.\""
+      ],
+      "intro": "Sal: \"Knock out the Gold Line captain on the marker.\"",
+      "gift": "",
+      "need": 0,
+      "district": -1,
+      "car": "",
+      "handoff": "",
+      "minHp": 0,
+      "crew": "golds",
+      "heat": 0,
+      "who": "Gold Line captain",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 17,
+      "title": "Six Blocks",
+      "by": "Sal",
+      "kind": "own",
+      "time": 0,
+      "reward": 1200,
+      "rep": 80,
+      "brief": [
+        "Sal: \"You fight well. Holding ground is different.\"",
+        "Sal: \"Come back when six blocks answer to you.\""
+      ],
+      "intro": "Sal: \"Hold six blocks at once.\"",
+      "gift": "",
+      "need": 6,
+      "district": -1,
+      "car": "",
+      "handoff": "",
+      "minHp": 0,
+      "crew": "",
+      "heat": 0,
+      "who": "",
+      "home": false,
+      "rival": false
+    },
+    {
+      "index": 18,
+      "title": "Run the City",
+      "by": "Unc",
+      "kind": "take",
+      "time": 0,
+      "reward": 2000,
+      "rep": 150,
+      "brief": [
+        "Unc: \"One block. That is what we had.\"",
+        "Unc: \"Now look at the map. One more, and nobody tells you no.\""
+      ],
+      "intro": "Unc: \"Take the rival block on the marker. This is the one that counts.\"",
+      "gift": "",
+      "need": 0,
+      "district": -1,
+      "car": "",
+      "handoff": "Sal: \"Go home. Unc has one more thing to say to you.\"",
+      "minHp": 0,
+      "crew": "",
+      "heat": 0,
+      "who": "",
+      "home": false,
+      "rival": true
+    }
+  ],
+  "fare": {
+    "wait": 60,
+    "gap": 14,
+    "basePay": 40,
+    "perMeter": 0.5,
+    "tipMax": 60
+  },
+  "courier": {
+    "wait": 75,
+    "gap": 12,
+    "basePay": 50,
+    "perMeter": 0.5,
+    "bonusMax": 80,
+    "builtMultiplier": 1.5
+  },
+  "races": [
+    {
+      "name": "Eastside Sprint",
+      "start": {
+        "x": -203,
+        "z": -174
+      },
+      "points": [
+        {
+          "x": -203,
+          "z": -87
+        },
+        {
+          "x": -87,
+          "z": -87
+        },
+        {
+          "x": -87,
+          "z": -203
+        },
+        {
+          "x": -203,
+          "z": -203
+        }
+      ],
+      "length": 435,
+      "gold": 26,
+      "silver": 31,
+      "bronze": 40
+    },
+    {
+      "name": "Midtown Circuit",
+      "start": {
+        "x": 0,
+        "z": -29
+      },
+      "points": [
+        {
+          "x": 87,
+          "z": -29
+        },
+        {
+          "x": 87,
+          "z": 87
+        },
+        {
+          "x": -29,
+          "z": 87
+        },
+        {
+          "x": -29,
+          "z": -87
+        },
+        {
+          "x": 87,
+          "z": -87
+        }
+      ],
+      "length": 609,
+      "gold": 36,
+      "silver": 44,
+      "bronze": 55
+    },
+    {
+      "name": "Harbor Dash",
+      "start": {
+        "x": 145,
+        "z": 58
+      },
+      "points": [
+        {
+          "x": 145,
+          "z": 203
+        },
+        {
+          "x": 29,
+          "z": 203
+        },
+        {
+          "x": 29,
+          "z": 87
+        },
+        {
+          "x": 203,
+          "z": 87
+        },
+        {
+          "x": 203,
+          "z": -29
+        }
+      ],
+      "length": 667,
+      "gold": 39,
+      "silver": 48,
+      "bronze": 61
+    }
+  ],
+  "racePay": {
+    "gold": 400,
+    "silver": 250,
+    "bronze": 120,
+    "none": 40
+  },
+  "streetCalls": {
+    "first": 36,
+    "cooldown": 46,
+    "offer": 14,
+    "fight": 28,
+    "cap": 5,
+    "maxNpc": 3,
+    "minDist": 14,
+    "strikeCap": 2,
+    "kinds": [
+      "incursion",
+      "ambush",
+      "deal"
+    ]
+  },
+  "stashPay": 100,
+  "stashAll": 2500,
+  "stashes": [
+    {
+      "x": -116,
+      "z": -219
+    },
+    {
+      "x": 129,
+      "z": -232
+    },
+    {
+      "x": -174,
+      "z": -187
+    },
+    {
+      "x": 45,
+      "z": -174
+    },
+    {
+      "x": -232,
+      "z": -103
+    },
+    {
+      "x": 13,
+      "z": -116
+    },
+    {
+      "x": 232,
+      "z": -129
+    },
+    {
+      "x": -71,
+      "z": -58
+    },
+    {
+      "x": 174,
+      "z": -45
+    },
+    {
+      "x": -103,
+      "z": 0
+    },
+    {
+      "x": 116,
+      "z": -13
+    },
+    {
+      "x": -187,
+      "z": 58
+    },
+    {
+      "x": 58,
+      "z": 71
+    },
+    {
+      "x": -219,
+      "z": 116
+    },
+    {
+      "x": 0,
+      "z": 103
+    },
+    {
+      "x": 219,
+      "z": 116
+    },
+    {
+      "x": -58,
+      "z": 187
+    },
+    {
+      "x": 187,
+      "z": 174
+    },
+    {
+      "x": -116,
+      "z": 219
+    },
+    {
+      "x": 103,
+      "z": 232
+    }
+  ],
+  "dice": {
+    "bets": [
+      5,
+      10,
+      25,
+      50
+    ],
+    "reach": 3.4,
+    "leave": 6.5
+  }
+}
