@@ -89,6 +89,12 @@ namespace StreetEmpire.Tests
                     Assert.IsFalse(inside, $"{l.name} crosses the intersection at ({x:F0}, {z:F0})");
                 }
             }
+            // M5 buildings: the new Eastside models are in, and no block repeats one
+            var bs = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None);
+            foreach (var g in bs.GroupBy(b => b.blockId))
+                Assert.AreEqual(g.Count(), g.Select(b => b.model).Distinct().Count(), $"block {g.Key} repeats a model: {string.Join(", ", g.Select(b => b.model))}");
+            Assert.GreaterOrEqual(bs.Select(b => b.model).Distinct().Count(), 18, "most of the 20 Eastside models are placed");
+            Assert.IsTrue(bs.Any(b => b.model == "store-barber") && bs.Any(b => b.model == "civic-church") && bs.Any(b => b.model == "apt-motel-style"));
             var sedan = Object.FindObjectsByType<CarController>(FindObjectsSortMode.None).First(c => c.name == "Sedan");
             Assert.IsTrue(sedan.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials).Any(m => m != null && m.name.EndsWith("_painted")), "sedan wears the painted atlas");
         }

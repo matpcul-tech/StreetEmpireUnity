@@ -21,7 +21,7 @@ namespace StreetEmpire.Game
         public readonly List<Cop> crew = new();
 
         CarController car; float planT, stuckT, backT, leaveT, stillT; int stuckCount;
-        public int StuckCount => stuckCount; bool direct = true; Vector3 waypoint;
+        public int StuckCount => stuckCount; bool direct = true; List<Vector3> path = new();
 
         void Awake() { car = GetComponent<CarController>(); car.aiDriven = true; }
 
@@ -52,21 +52,25 @@ namespace StreetEmpire.Game
             Vector3 goal = p;
             if (going) { var away = Flat(transform.position - p); goal = transform.position + (away.sqrMagnitude > 0.01f ? away.normalized : transform.forward) * 60f; }
 
+            // follow the streets: a path over the crossings to the street point nearest the goal, then straight in
             planT -= dt;
-            if (planT <= 0)
+            if (planT <= 0 || path.Count == 0)
             {
-                planT = 0.25f;
-                direct = Flat(goal - transform.position).magnitude < 6f || StreetRoute.Clear(transform.position, goal, 1.1f);
-                if (!direct) waypoint = StreetRoute.Corner(s, transform.position, goal, 1.1f, 4f);
+                planT = 1f;
+                path = StreetRoute.Path(s, transform.position, goal);
+                // drop crossings already reached or behind (it is driving away from them)
+                while (path.Count > 1 && Flat(path[0] - transform.position).magnitude < 7f) path.RemoveAt(0);
             }
-            var wp = direct ? goal : waypoint;
+            while (path.Count > 1 && Flat(path[0] - transform.position).magnitude < 7f) path.RemoveAt(0);
+            direct = path.Count <= 1 && (Flat(goal - transform.position).magnitude < 20f || StreetRoute.Clear(transform.position, goal, 1.1f));
+            var wp = direct ? goal : path[0];
             var to = Flat(wp - transform.position);
-            if (!direct && to.magnitude < 6f) planT = 0;
+            bool turnAhead = path.Count > 1;
             float want = Mathf.Atan2(to.x, to.z), yaw = car.state.yaw;
             float diff = Mathf.Atan2(Mathf.Sin(want - yaw), Mathf.Cos(want - yaw));
             float thr = Mathf.Abs(diff) < 1.3f ? 1f : 0.35f;
             // slow for a corner: no faster than it can turn in the distance left
-            if (!direct && to.magnitude < 25f && Mathf.Abs(car.Speed) > 13f) thr = -0.6f;
+            if (turnAhead && to.magnitude < 25f && Mathf.Abs(car.Speed) > 13f) thr = -0.6f;
             // jammed against a wall or a car: back up for a second with the wheel the other way, then replan
             // (the JS backs up only until it is moving, which is a few centimeters here)
             stuckT = Mathf.Abs(car.Speed) < 1f && backT <= 0 ? stuckT + dt : 0;

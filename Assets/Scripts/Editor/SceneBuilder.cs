@@ -20,13 +20,17 @@ namespace StreetEmpire.EditorTools
         const string Mats = "Assets/Art/Materials";
         const string Models = "Assets/Art/Models/Buildings";
 
-        // kit.json "buildings" for the Eastside kinds, same order as the JS manifest
+        // kit.json "buildings" for the Eastside kinds, plus (M5) the 14 new Eastside buildings v2. Eastside has
+        // 9 stores, 4 apartments and 23 houses: one store and one apartment model each, and the 7 houses dealt
+        // in turn so no block repeats a model. Every model faces +Z, which the lot turns to its street; the backs
+        // face the middle of the block (store-barber's back wall is the rough one).
         static readonly Dictionary<string, string[]> Kit = new()
         {
-            ["store"] = new[] { "store-liquor-blank" },
-            ["house"] = new[] { "house-01-bungalow", "house-02-two-story", "house-03-duplex" },
-            ["apt"] = new[] { "apt-01-stucco", "apt-02-brick" },
+            ["store"] = new[] { "store-liquor-blank", "store-bodega", "store-laundromat", "store-barber", "store-pawn", "store-takeout", "shop-auto-garage", "shop-gas-station", "civic-church" },
+            ["house"] = new[] { "house-01-bungalow", "house-rowhouse-pair", "house-02-two-story", "house-wood-duplex", "house-03-duplex", "house-shotgun", "house-boarded" },
+            ["apt"] = new[] { "apt-01-stucco", "apt-mixed-use", "apt-02-brick", "apt-motel-style" },
         };
+        static readonly Dictionary<string, int> dealt = new();
 
         public static readonly int[] EastsideBlocks = { 0, 1, 2, 9, 10, 11, 18, 19, 20 };
 
@@ -77,7 +81,7 @@ namespace StreetEmpire.EditorTools
                     }
             }
 
-            int placed = 0;
+            int placed = 0; dealt.Clear();
             foreach (int id in EastsideBlocks)
             {
                 var b = s.blocks[id];
@@ -110,7 +114,8 @@ namespace StreetEmpire.EditorTools
         static bool PlaceBuilding(BuildingSpot spot, Transform parent)
         {
             var variants = Kit[spot.kind];
-            string name = variants[spot.variantSeed % variants.Length];
+            dealt.TryGetValue(spot.kind, out int n); dealt[spot.kind] = n + 1;
+            string name = variants[n % variants.Length];
             var model = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/{name}.glb");
             var holder = new GameObject($"{spot.kind} {spot.index} ({name})");
             var marker = holder.AddComponent<BuildingMarker>();
@@ -131,8 +136,9 @@ namespace StreetEmpire.EditorTools
             bounds = WorldBounds(inst);
             var col = holder.AddComponent<BoxCollider>(); col.center = bounds.center; col.size = bounds.size;
             foreach (var r in inst.GetComponentsInChildren<Renderer>()) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
-            GameObjectUtility.SetStaticEditorFlags(holder, StaticEditorFlags.BatchingStatic);
-            foreach (Transform t in inst.GetComponentsInChildren<Transform>()) GameObjectUtility.SetStaticEditorFlags(t.gameObject, StaticEditorFlags.BatchingStatic);
+            // not batching static: with 20 models of about 58k triangles, static batching would copy every placed
+            // mesh (36 of them) into combined buffers, roughly doubling mesh memory on phones and WebGL. The SRP
+            // batcher keeps the draw calls cheap without it.
 
             var (x, z) = WorldSpace.FromSource(spot.x, spot.z);
             holder.transform.SetParent(parent, true);
