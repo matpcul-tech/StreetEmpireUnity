@@ -69,6 +69,13 @@ namespace StreetEmpire.EditorTools
                 m.SetFloat("_AlphaClip", 1); m.SetFloat("_Cutoff", F("alphaCutoff", 0.5f)); m.EnableKeyword("_ALPHATEST_ON");
                 m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
             }
+            // glTF doubleSided: glTFast keeps it as cull mode Off (and double sided GI). Without this the
+            // inside faces of open roofs cull away and the roof reads as inside-out (house-03 duplex).
+            bool twoSided = src.doubleSidedGI
+                || (src.HasProperty("_CullMode") && src.GetFloat("_CullMode") < 0.5f)
+                || (src.HasProperty("_Cull") && src.GetFloat("_Cull") < 0.5f);
+            m.SetFloat("_Cull", twoSided ? 0f : 2f);
+            m.doubleSidedGI = twoSided;
             m.enableInstancing = true;
             EditorUtility.SetDirty(m);
             cache[src] = m;

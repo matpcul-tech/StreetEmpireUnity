@@ -2,7 +2,7 @@
 
 | File | Source |
 | --- | --- |
-| Models/Buildings/*.glb | Original Street Empire town buildings made for this project (matpcul-tech/StreetEmpire public/models/kit/buildings). Not third-party downloads. |
+| Models/Buildings/*.glb | Original Street Empire town buildings made for this project (matpcul-tech/StreetEmpire public/models/kit/buildings). Not third-party downloads. M5: apt-01, apt-02, house-01, house-02 and house-03 replaced with the fixed versions from the Eastside buildings v2 pass (existing-fixed), same names. |
 | Models/Cars/sedan.glb | Street Empire kit sedan (public/models/kit/cars/sedan-v11.glb). |
 
 Converted for Unity glTFast with tools/convert_glb.mjs: meshopt decoded, dequantized, WebP textures re-encoded as JPEG (PNG where there is alpha).
