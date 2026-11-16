@@ -28,9 +28,13 @@ namespace StreetEmpire.Tests
             {
                 var rs = b.GetComponentsInChildren<Renderer>();
                 Assert.Greater(rs.Length, 0, $"{b.name} has meshes");
-                var bounds = rs[0].bounds; foreach (var r in rs) bounds.Encapsulate(r.bounds);
+                // the collider is fitted to the model when the scene is built; renderer bounds are not
+                // reliable at runtime once static batching has merged the meshes
+                var col = b.GetComponent<BoxCollider>();
+                Assert.IsNotNull(col, $"{b.name} has a collider");
+                var bounds = col.bounds;
                 Assert.That(bounds.size.y, Is.InRange(2f, 40f), $"{b.name} height");
-                Assert.That(Mathf.Max(bounds.size.x, bounds.size.z), Is.InRange(8f, 14.5f), $"{b.name} fits its 13 m lot (renderer AABBs run a little wide)");
+                Assert.That(Mathf.Max(bounds.size.x, bounds.size.z), Is.InRange(8f, 13.6f), $"{b.name} fits its 13 m lot");
                 var block = blocks.First(k => k.blockId == b.blockId).transform.position;
                 Assert.Less(Mathf.Abs(bounds.center.x - block.x), 20.5f, $"{b.name} inside its block (x)");
                 Assert.Less(Mathf.Abs(bounds.center.z - block.z), 20.5f, $"{b.name} inside its block (z)");
