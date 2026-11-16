@@ -15,7 +15,6 @@ namespace StreetEmpire.Tests
     [PrebuildSetup(typeof(SceneSetup))]
     public class CharacterTests
     {
-        static string MeshOf(GameObject go) => go.GetComponentInChildren<SkinnedMeshRenderer>(true)?.sharedMesh?.name ?? "";
         static string MatOf(GameObject go) => go.GetComponentInChildren<SkinnedMeshRenderer>(true)?.sharedMaterial?.name ?? "";
 
         static float Height(GameObject go)
@@ -32,11 +31,12 @@ namespace StreetEmpire.Tests
             yield return null; yield return null;
             var s = GameSession.Instance; Assert.IsNotNull(s);
             var player = Object.FindFirstObjectByType<PlayerMotor>().gameObject;
-            string playerMesh = MeshOf(player);
+            var playerMesh = player.GetComponentInChildren<SkinnedMeshRenderer>().sharedMesh;
 
             var unc = GameObject.Find("Unc"); Assert.IsNotNull(unc, "Unc");
             StringAssert.StartsWith("unc", MatOf(unc), "Unc wears the Unc v2 model's own material");
-            Assert.AreNotEqual(playerMesh, MeshOf(unc), "Unc is not the player model");
+            // the Meshy meshes are all named output_unwrapped, so compare the mesh assets, not names
+            Assert.AreNotSame(playerMesh, unc.GetComponentInChildren<SkinnedMeshRenderer>().sharedMesh, "Unc is not the player model");
 
             var peds = Object.FindObjectsByType<Ped>(FindObjectsSortMode.None);
             Assert.AreEqual(4, peds.Length);
