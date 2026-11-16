@@ -62,8 +62,8 @@ namespace StreetEmpire.Tests
 
         static int policeRuns;
 
-        // M5: repeated to check for flakiness (the M4 version failed once with officers stuck at a block)
-        [UnityTest, Repeat(5)]
+        // M5: repeated 10 times to check for flakiness (the M4 version failed once with officers stuck at a block)
+        [UnityTest, Repeat(10)]
         public IEnumerator HittingPeopleBringsStarsAndPoliceBust()
         {
             policeRuns++;
