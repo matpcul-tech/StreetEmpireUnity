@@ -49,6 +49,8 @@ namespace StreetEmpire.EditorTools
             var target = new GameObject("CameraTarget").transform;
             target.SetParent(root.transform, false); target.localPosition = new Vector3(0, 1.55f, 0);
             var follow = Camera(target, root.transform.eulerAngles.y);
+            var user = root.AddComponent<VehicleUser>();
+            user.followCamera = follow; user.footCameraTarget = target;
             Hud();
             return root;
         }

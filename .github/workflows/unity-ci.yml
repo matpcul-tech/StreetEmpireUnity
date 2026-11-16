@@ -29,9 +29,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
+      # LFS objects come from the Actions cache, so runs only spend LFS bandwidth when the models change
       - uses: actions/checkout@v4
+      - name: List LFS objects
+        run: git lfs ls-files -l | cut -d ' ' -f1 | sort > .lfs-assets-id
+      - uses: actions/cache@v4
         with:
-          lfs: true
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-assets-id') }}
+          restore-keys: lfs-
+      - name: Git LFS pull (cache misses only)
+        run: git lfs pull && rm .lfs-assets-id
       - uses: actions/cache@v4
         with:
           path: Library
@@ -66,9 +74,17 @@ jobs:
         with:
           tool-cache: false
           android: false
+      # LFS objects come from the Actions cache, so runs only spend LFS bandwidth when the models change
       - uses: actions/checkout@v4
+      - name: List LFS objects
+        run: git lfs ls-files -l | cut -d ' ' -f1 | sort > .lfs-assets-id
+      - uses: actions/cache@v4
         with:
-          lfs: true
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-assets-id') }}
+          restore-keys: lfs-
+      - name: Git LFS pull (cache misses only)
+        run: git lfs pull && rm .lfs-assets-id
       - uses: actions/cache@v4
         with:
           path: Library
