@@ -41,7 +41,10 @@ namespace StreetEmpire.EditorTools
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
             PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
             PlayerSettings.WebGL.decompressionFallback = true; // works on hosts that do not send Content-Encoding
-            // Active Input Handling = Input System Package (1). Takes effect on the next Editor launch.
+            // Active Input Handling = Input System Package (1). Takes effect on the next Editor launch, so never
+            // flip it inside a batch build: the Editor would stay compiled for the old backend while the player
+            // uses the new one ("script class layout is incompatible"). Set it on first interactive open, then commit ProjectSettings.
+            if (Application.isBatchMode) return;
             var ps = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset");
             if (ps.Length > 0)
             {
