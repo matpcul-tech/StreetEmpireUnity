@@ -156,8 +156,13 @@ namespace StreetEmpire.EditorTools
         {
             var bc = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}_basecolor.jpg");
             var nm = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}_normal.jpg");
+            var mats = inst.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials).Where(m => m != null).Distinct().ToArray();
+            // buildings are never metal. UrpMaterials takes glTF metallicFactor alone, but some kit files say 1 and
+            // leave the real (low) value to a metallic-roughness texture URP Lit does not read, which made them
+            // render as shiny metal (the original house-01 did).
+            foreach (var m in mats) { m.SetFloat("_Metallic", 0f); m.SetFloat("_Smoothness", 0.12f); m.SetTexture("_MetallicGlossMap", null); m.DisableKeyword("_METALLICSPECGLOSSMAP"); EditorUtility.SetDirty(m); }
             if (bc == null) { Debug.LogWarning($"[SceneBuilder] no extracted texture for {name}"); return; }
-            foreach (var m in inst.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials).Where(m => m != null).Distinct())
+            foreach (var m in mats)
             {
                 m.SetTexture("_BaseMap", bc);
                 m.SetTexture("_BumpMap", nm); if (nm != null) m.EnableKeyword("_NORMALMAP"); else m.DisableKeyword("_NORMALMAP");

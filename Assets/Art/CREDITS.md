@@ -2,7 +2,7 @@
 
 | File | Source |
 | --- | --- |
-| Models/Buildings/*.glb | Original Street Empire town buildings made for this project (matpcul-tech/StreetEmpire public/models/kit/buildings). Not third-party downloads. M5: apt-01, apt-02, house-01, house-02 and house-03 replaced with the fixed versions from the Eastside buildings v2 pass (existing-fixed), same names. |
+| Models/Buildings/*.glb | Original Street Empire town buildings made for this project (matpcul-tech/StreetEmpire public/models/kit/buildings). Not third-party downloads. M5: apt-01, apt-02, house-02 and house-03 replaced with the fixed versions from the Eastside buildings v2 pass (existing-fixed), same names. house-01 stays the original (the fixed one had faceted normals) with metallic set to 0. Far LODs made with tools/decimate_far.py, textures extracted with tools/extract_building_textures.mjs. |
 | Models/Buildings/ (M5 new: store-bodega, store-laundromat, store-barber, store-pawn, store-takeout, shop-auto-garage, shop-gas-station, civic-church, house-rowhouse-pair, house-wood-duplex, house-shotgun, house-boarded, apt-mixed-use, apt-motel-style) | Eastside buildings v2, Meshy generations made for this project (about 58k triangles, 1024 textures, metallic 0, front +Z). Not third-party downloads. |
 | Models/Cars/sedan.glb | Street Empire kit sedan (public/models/kit/cars/sedan-v11.glb). |
 
