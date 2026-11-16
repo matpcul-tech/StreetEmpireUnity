@@ -1,6 +1,6 @@
 # CI license setup (GameCI, Unity Personal)
 
-GameCI activates Unity inside the build container. For a Unity Personal seat, current GameCI v4 needs only two repository secrets. No `.ulf` file is needed.
+GameCI activates Unity inside the build container. For a Unity Personal seat, current GameCI (unity-test-runner v4.4+, unity-builder v6) needs only two repository secrets. No `.ulf` file is needed.
 
 Where: https://github.com/matpcul-tech/StreetEmpireUnity/settings/secrets/actions
 (repo **Settings > Secrets and variables > Actions > New repository secret**)
@@ -30,3 +30,7 @@ If email and password activation ever fails, the fallback is Unity Build Automat
 ## Note on Unity's terms
 
 Unity's Terms of Service (June 30, 2026), section 17.2(ff), restricts using AI agents and automated tools to interact with Unity services outside "Authorized Agentic Access". For that reason the Editor was not installed or activated by the agent on the box; the project files were written by hand. GameCI runs in your GitHub account under your own license, the standard way Unity projects are built in CI. Worth a read of the current terms before relying on it.
+
+## Action versions
+
+`game-ci/unity-builder@v4` still demands a `.ulf` or a serial ("Missing Unity License File and no Serial was found"). `@v6` (Sep 2026) is a thin wrapper around game-ci/cli, the same engine `unity-test-runner@v4` now uses, and supports the email and password Personal route. Keep the builder on `@v6`.

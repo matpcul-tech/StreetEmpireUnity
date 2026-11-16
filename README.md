@@ -16,7 +16,7 @@ Status: scaffold only. No gameplay yet. See [docs/PLAN.md](docs/PLAN.md) for the
 | Camera | Cinemachine 3.1.7 |
 | Models | glTFast 6.21.0 (GLB) |
 | Multiplayer | Netcode for GameObjects 2.13.3, Unity Transport 2.7.5 |
-| CI | GameCI (unity-test-runner v4, unity-builder v4), Android and WebGL |
+| CI | GameCI (unity-test-runner v4, unity-builder v6), Android and WebGL |
 
 ## Layout
 

@@ -1,6 +1,6 @@
-# GameCI: EditMode tests, then Android (APK) and WebGL builds.
+# GameCI (unity-test-runner v4, unity-builder v6): EditMode tests, then Android (APK) and WebGL builds.
 # Needs two repo secrets (Settings > Secrets and variables > Actions):
-#   UNITY_EMAIL and UNITY_PASSWORD. GameCI v4 activates a Personal seat with just these.
+#   UNITY_EMAIL and UNITY_PASSWORD. GameCI (game-ci/cli based actions) activates a Personal seat with just these.
 #   No .ulf needed. See docs/CI-LICENSE.md.
 # Until they exist this workflow fails at license activation. That is expected.
 name: Unity CI
@@ -73,7 +73,7 @@ jobs:
           path: Library
           key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Packages/packages-lock.json', 'Packages/manifest.json', 'ProjectSettings/ProjectVersion.txt') }}
           restore-keys: Library-${{ matrix.targetPlatform }}-
-      - uses: game-ci/unity-builder@v4
+      - uses: game-ci/unity-builder@v6
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
           buildMethod: StreetEmpire.EditorTools.CIBuild.Build
