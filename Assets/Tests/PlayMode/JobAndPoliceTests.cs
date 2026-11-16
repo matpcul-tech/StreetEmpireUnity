@@ -91,7 +91,7 @@ namespace StreetEmpire.Tests
             float t = 0;
             while (s.Busts == 0 && t < 70f) { t += Time.deltaTime; yield return null; }
             Time.timeScale = 1f;
-            Assert.AreEqual(1, s.Busts, "busted with heat");
+            Assert.AreEqual(1, s.Busts, $"busted with heat (heat {s.heat:F0}, hp {s.playerHealth.hp:F0}, officers at {string.Join(" ", s.cops.Where(c => c != null).Select(c => $"{Vector3.Distance(c.transform.position, player.transform.position):F0}m"))})");
             Assert.That(s.cops.Count(c => c != null), Is.InRange(1, 4), "two stars allow up to four officers");
             Assert.AreEqual(Mathf.Floor(cash0 * 0.4f), s.LastBail, 0.01f, "bail is 40% of cash");
             StringAssert.StartsWith("BUSTED", s.Message);

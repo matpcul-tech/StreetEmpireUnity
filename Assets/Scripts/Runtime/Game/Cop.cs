@@ -13,9 +13,33 @@ namespace StreetEmpire.Game
         public bool leave;
         public int Swings { get; private set; }
 
-        NpcBody body; Health health; float windup, cd, leaveT, stuckT, sideT; Vector3 lastPos; float sideSign = 1;
+        NpcBody body; Health health; float windup, cd, leaveT, stuckT, sideT, planT; bool direct = true; Vector3 waypoint; Vector3 lastPos; float sideSign = 1;
 
         void Awake() { body = GetComponent<NpcBody>(); health = GetComponent<Health>(); lastPos = transform.position; }
+
+        static bool Clear(Vector3 a, Vector3 b)
+        {
+            a.y = b.y = 1f; var d = b - a; float len = d.magnitude; if (len < 0.1f) return true;
+            foreach (var h in Physics.SphereCastAll(a, 0.45f, d / len, len, ~0, QueryTriggerInteraction.Ignore))
+                if (h.collider.GetComponent<StreetEmpire.City.BuildingMarker>() != null) return false;
+            return true;
+        }
+
+        // the street corner that is reachable in a straight line and makes the shortest way to the target
+        Vector3 Corner(GameSession s, Vector3 target)
+        {
+            var here = transform.position; Vector3 best = target; float bd = float.MaxValue;
+            foreach (var x in s.streetX) foreach (var z in s.streetZ)
+            {
+                var c = new Vector3(x, here.y, z);
+                float via = Vector3.Distance(here, c) + Vector3.Distance(c, target);
+                if (via < bd && (c - here).sqrMagnitude > 1f && Clear(here, c)) { bd = via; best = c; }
+            }
+            // also a point on our own street level with the target, for the last stretch
+            foreach (var x in s.streetX) { var c = new Vector3(x, here.y, target.z); float via = Vector3.Distance(here, c) + Vector3.Distance(c, target); if (via < bd && Clear(here, c) && Clear(c, target)) { bd = via; best = c; } }
+            foreach (var z in s.streetZ) { var c = new Vector3(target.x, here.y, z); float via = Vector3.Distance(here, c) + Vector3.Distance(c, target); if (via < bd && Clear(here, c) && Clear(c, target)) { bd = via; best = c; } }
+            return best;
+        }
 
         void Update()
         {
@@ -57,8 +81,12 @@ namespace StreetEmpire.Game
                 if (cd <= 0) { windup = windupTime; cd = cooldown; }
                 return;
             }
-            // run at the player; when a wall holds it up, step to one side for a moment
-            var dir = to / Mathf.Max(d, 0.01f);
+            // run at the player; around a block, go by the street corners (steerPoint in the JS does the same job)
+            planT -= dt;
+            if (planT <= 0) { planT = 0.3f; direct = Clear(transform.position, target); if (!direct) waypoint = Corner(s, target); }
+            var goal = direct ? target : waypoint;
+            if (!direct && Vector2.Distance(new Vector2(goal.x, goal.z), new Vector2(transform.position.x, transform.position.z)) < 1.2f) planT = 0;
+            var dir = goal - transform.position; dir.y = 0; dir = dir.sqrMagnitude > 1e-4f ? dir.normalized : to / Mathf.Max(d, 0.01f);
             if (sideT > 0) { sideT -= dt; dir = (dir + Vector3.Cross(Vector3.up, dir) * sideSign * 1.6f).normalized; }
             body.Move(dir * runSpeed, dt);
             float moved = (transform.position - lastPos).magnitude; lastPos = transform.position;
