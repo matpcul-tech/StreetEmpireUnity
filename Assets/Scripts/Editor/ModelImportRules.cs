@@ -1,5 +1,6 @@
 // Import rules for character FBX files: Humanoid rigs so the CC0 Quaternius clips (UAL) retarget onto
 // the Meshy player (Mixamo bone names), in-place looping clips, and normal maps marked as such.
+// Textures under Assets/Art are GPU compressed per platform (ASTC Android, DXT WebGL).
 using System.Linq;
 using UnityEditor;
 
@@ -38,8 +39,27 @@ namespace StreetEmpire.EditorTools
 
         void OnPreprocessTexture()
         {
-            if (assetPath.StartsWith("Assets/Art/Models/Characters/") && assetPath.Contains("_normal") && assetImporter is TextureImporter t)
-                t.textureType = TextureImporterType.NormalMap;
+            if (!(assetImporter is TextureImporter t)) return;
+            bool art = assetPath.StartsWith("Assets/Art/Models/") || assetPath.StartsWith("Assets/Art/Textures/");
+            if (!art) return;
+            bool normal = assetPath.Contains("_normal");
+            if (normal) t.textureType = TextureImporterType.NormalMap;
+            t.mipmapEnabled = true; t.maxTextureSize = 1024;
+            t.textureCompression = TextureImporterCompression.Compressed;
+            // M5: compressed on the GPU, not RGBA32. Android ASTC (6x6 color, 5x5 normals), WebGL DXT
+            // (DXT1 color, DXT5 normals), which desktop browsers decode in hardware.
+            t.SetPlatformTextureSettings(new TextureImporterPlatformSettings
+            {
+                name = "Android", overridden = true, maxTextureSize = 1024,
+                format = normal ? TextureImporterFormat.ASTC_5x5 : TextureImporterFormat.ASTC_6x6,
+                compressionQuality = 50,
+            });
+            t.SetPlatformTextureSettings(new TextureImporterPlatformSettings
+            {
+                name = "WebGL", overridden = true, maxTextureSize = 1024,
+                format = normal ? TextureImporterFormat.DXT5 : TextureImporterFormat.DXT1,
+                compressionQuality = 50,
+            });
         }
 
         /// <summary>Blender takes come out as "Armature|Idle_Loop_Armature"; keep "Idle_Loop".</summary>
