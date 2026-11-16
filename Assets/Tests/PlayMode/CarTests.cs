@@ -35,6 +35,14 @@ namespace StreetEmpire.Tests
             Assert.AreSame(car, user.Car); Assert.IsTrue(car.hasDriver);
             Assert.IsFalse(player.GetComponent<CharacterController>().enabled, "on-foot collider off while driving");
 
+            // at the curb the driver's door opens onto the street: out the left side, then back in
+            user.Exit();
+            yield return null; yield return null;
+            Vector3 local = car.transform.InverseTransformPoint(player.transform.position);
+            Assert.That(local.x, Is.LessThan(-1.5f), "exits out the left side");
+            Assert.IsTrue(player.GetComponent<CharacterController>().enabled);
+            Assert.IsTrue(user.TryEnter(), "back in from the door");
+
             // the parked sedan faces +Z down the street; drive straight
             var start = car.transform.position;
             car.scriptThrottle = 1f; car.scriptSteer = 0f;
@@ -58,9 +66,8 @@ namespace StreetEmpire.Tests
             yield return null; yield return null;
             Assert.IsNull(user.Car); Assert.IsFalse(car.hasDriver);
             Assert.IsTrue(player.GetComponent<CharacterController>().enabled);
-            Vector3 local = car.transform.InverseTransformPoint(player.transform.position);
-            Assert.That(local.x, Is.LessThan(-1.5f), "exits out the left side");
-            Assert.That(Vector3.Distance(player.transform.position, car.transform.position), Is.LessThan(4f));
+            // after a drive the left door may face a wall; then state.js uses the right side
+            Assert.That(Mathf.Abs(car.transform.InverseTransformPoint(player.transform.position).x), Is.InRange(1.5f, 3.2f), "out beside the car");
         }
     }
 }
