@@ -45,13 +45,16 @@ namespace StreetEmpire.EditorTools
             var normal = T("normal");
             m.SetTexture("_BumpMap", normal);
             if (normal != null) m.EnableKeyword("_NORMALMAP"); else m.DisableKeyword("_NORMALMAP");
+            // glTF emission is texture times emissiveFactor (default black). The kit cars keep a paint and glass
+            // mask in the emissive slot with a black factor (kit.js reads it at load), so it must not glow here.
             var emissive = T("emissive");
             var ecol = C("emissiveFactor", Color.black);
-            if (emissive != null || ecol.maxColorComponent > 0.01f)
+            if (ecol.maxColorComponent > 0.01f)
             {
-                m.SetTexture("_EmissionMap", emissive); m.SetColor("_EmissionColor", emissive != null && ecol.maxColorComponent < 0.01f ? Color.white : ecol);
+                m.SetTexture("_EmissionMap", emissive); m.SetColor("_EmissionColor", ecol);
                 m.EnableKeyword("_EMISSION"); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
             }
+            else { m.SetTexture("_EmissionMap", null); m.SetColor("_EmissionColor", Color.black); m.DisableKeyword("_EMISSION"); }
             if (src.renderQueue >= 3000)
             {
                 // glass: URP Lit transparent
