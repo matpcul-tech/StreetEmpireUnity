@@ -20,10 +20,10 @@ namespace StreetEmpire.Game
         public float SpawnDistance { get; set; }
         public readonly List<Cop> crew = new();
 
-        CarController car; float planT, stuckT, backT, leaveT, stillT; int stuckCount;
+        CarController car; float planT, stuckT, backT, leaveT, stillT; int stuckCount; Vector3 lastPos;
         public int StuckCount => stuckCount; bool direct = true; List<Vector3> path = new();
 
-        void Awake() { car = GetComponent<CarController>(); car.aiDriven = true; }
+        void Awake() { car = GetComponent<CarController>(); car.aiDriven = true; lastPos = transform.position; }
 
         void FixedUpdate()
         {
@@ -73,7 +73,9 @@ namespace StreetEmpire.Game
             if (turnAhead && to.magnitude < 25f && Mathf.Abs(car.Speed) > 13f) thr = -0.6f;
             // jammed against a wall or a car: back up for a second with the wheel the other way, then replan
             // (the JS backs up only until it is moving, which is a few centimeters here)
-            stuckT = Mathf.Abs(car.Speed) < 1f && backT <= 0 ? stuckT + dt : 0;
+            // by how far it actually moved: pressed against a wall the collision keeps undoing a small speed
+            float moved = Flat(transform.position - lastPos).magnitude / Mathf.Max(dt, 1e-4f); lastPos = transform.position;
+            stuckT = moved < 1f && backT <= 0 && !(d < 16f && !pCar) ? stuckT + dt : 0;
             if (stuckT > 1.2f) { stuckT = 0; backT = 1.1f; stuckCount++; planT = 0; }
             if (backT > 0) { backT -= dt; thr = -1; diff = -diff; }
             // stop short of a player on foot: start braking with room to stop (it brakes at about 34 m/s2, the JS
