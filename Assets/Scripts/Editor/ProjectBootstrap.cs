@@ -1,10 +1,8 @@
-// This repo was scaffolded by hand, without opening the Editor. On first open (or first CI run) this
-// creates what a normal "New Project" would have: the URP pipeline asset, the Boot scene and the database asset.
-// Safe to run again: it only creates what is missing.
+// This repo was scaffolded without opening the Editor. On first open (and before every CI build or
+// play mode test) this creates what a normal "New Project" would have and rebuilds the scenes from code.
 using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -14,20 +12,23 @@ namespace StreetEmpire.EditorTools
     [InitializeOnLoad]
     public static class ProjectBootstrap
     {
-        public const string BootScene = "Assets/Scenes/Boot.unity";
         const string PipelinePath = "Assets/Settings/URP-Default.asset";
         const string RendererPath = "Assets/Settings/URP-Default-Renderer.asset";
         const string DatabasePath = "Assets/Data/GameDatabase.asset";
 
-        static ProjectBootstrap() => EditorApplication.delayCall += () => { if (!Application.isBatchMode) Ensure(); };
+        public static string[] BuildScenes => new[] { SceneBuilder.EastsideScene };
+
+        static ProjectBootstrap() => EditorApplication.delayCall += () => { if (!Application.isBatchMode && !File.Exists(SceneBuilder.EastsideScene)) Ensure(); };
 
         [MenuItem("Street Empire/Run Project Bootstrap")]
         public static void Ensure()
         {
             EnsurePlayerSettings();
             EnsurePipeline();
-            var db = EnsureDatabase();
-            EnsureBootScene(db);
+            EnsureDatabase();
+            AssetDatabase.SaveAssets();
+            SceneBuilder.BuildEastside();
+            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(SceneBuilder.EastsideScene, true) };
             AssetDatabase.SaveAssets();
         }
 
@@ -39,8 +40,12 @@ namespace StreetEmpire.EditorTools
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, "com.matpcultech.streetempire");
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
+            PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
+            PlayerSettings.allowedAutorotateToPortrait = false; PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
+            PlayerSettings.allowedAutorotateToLandscapeLeft = true; PlayerSettings.allowedAutorotateToLandscapeRight = true;
             PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
             PlayerSettings.WebGL.decompressionFallback = true; // works on hosts that do not send Content-Encoding
+            PlayerSettings.WebGL.template = "PROJECT:StreetEmpire"; // shows a clear message when 3D cannot start
             // Active Input Handling = Input System Package (1). Takes effect on the next Editor launch, so never
             // flip it inside a batch build: the Editor would stay compiled for the old backend while the player
             // uses the new one ("script class layout is incompatible"). Set it on first interactive open, then commit ProjectSettings.
@@ -56,7 +61,6 @@ namespace StreetEmpire.EditorTools
 
         static void EnsurePipeline()
         {
-            if (GraphicsSettings.defaultRenderPipeline != null) return;
             Directory.CreateDirectory("Assets/Settings");
             var pipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(PipelinePath);
             if (pipeline == null)
@@ -66,37 +70,28 @@ namespace StreetEmpire.EditorTools
                 pipeline = UniversalRenderPipelineAsset.Create(renderer);
                 AssetDatabase.CreateAsset(pipeline, PipelinePath);
             }
+            // mobile and WebGL friendly: no HDR, 2x MSAA, one shadow cascade over the near streets
+            pipeline.supportsHDR = false;
+            pipeline.msaaSampleCount = 2;
+            pipeline.renderScale = 1f;
+            pipeline.shadowDistance = 90f;
+            pipeline.shadowCascadeCount = 1;
+            EditorUtility.SetDirty(pipeline);
             GraphicsSettings.defaultRenderPipeline = pipeline;
             int keep = QualitySettings.GetQualityLevel();
             for (int i = 0; i < QualitySettings.names.Length; i++) { QualitySettings.SetQualityLevel(i, false); QualitySettings.renderPipeline = pipeline; }
             QualitySettings.SetQualityLevel(keep, false);
         }
 
-        static GameDatabase EnsureDatabase()
+        static void EnsureDatabase()
         {
             var db = AssetDatabase.LoadAssetAtPath<GameDatabase>(DatabasePath);
-            if (db != null) return db;
+            if (db != null) return;
             db = ScriptableObject.CreateInstance<GameDatabase>();
             TextAsset T(string n) => AssetDatabase.LoadAssetAtPath<TextAsset>($"Assets/Data/{n}.json");
             db.crews = T("crews"); db.weapons = T("weapons"); db.vehicles = T("vehicles");
             db.jobs = T("jobs"); db.police = T("police"); db.world = T("world");
             AssetDatabase.CreateAsset(db, DatabasePath);
-            return db;
-        }
-
-        static void EnsureBootScene(GameDatabase db)
-        {
-            if (!File.Exists(BootScene))
-            {
-                var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
-                var cam = Camera.main;
-                if (cam != null) { cam.transform.position = new Vector3(0, 420, -260); cam.transform.rotation = Quaternion.Euler(60, 0, 0); cam.farClipPlane = 2000; }
-                var boot = new GameObject("Boot").AddComponent<Boot>();
-                boot.database = db;
-                Directory.CreateDirectory("Assets/Scenes");
-                EditorSceneManager.SaveScene(scene, BootScene);
-            }
-            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(BootScene, true) };
         }
     }
 }

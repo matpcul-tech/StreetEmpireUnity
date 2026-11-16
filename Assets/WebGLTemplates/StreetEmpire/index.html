@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+  <title>{{{ PRODUCT_NAME }}}</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #111; color: #eee; font-family: system-ui, sans-serif; overflow: hidden; }
+    #unity-canvas { width: 100%; height: 100%; display: block; background: #111; }
+    #se-loading { position: fixed; left: 0; right: 0; bottom: 18%; text-align: center; font-size: 15px; letter-spacing: 0.05em; }
+    #se-bar { width: 220px; height: 4px; margin: 10px auto 0; background: #333; }
+    #se-fill { width: 0; height: 100%; background: #ff8a1a; }
+    #se-no3d { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: #111; padding: 24px; box-sizing: border-box; }
+    #se-no3d .box { max-width: 520px; border: 1px solid #ff8a1a; padding: 24px 28px; border-radius: 8px; background: #1b1b1b; }
+    #se-no3d h1 { margin: 0 0 10px; font-size: 22px; color: #ff8a1a; }
+    #se-no3d p { margin: 8px 0; line-height: 1.45; }
+    #se-no3d code { color: #aaa; font-size: 12px; word-break: break-word; }
+  </style>
+</head>
+<body>
+  <canvas id="unity-canvas" tabindex="-1"></canvas>
+  <div id="se-loading">Loading Street Empire<div id="se-bar"><div id="se-fill"></div></div></div>
+  <div id="se-no3d" role="alert">
+    <div class="box">
+      <h1>3D graphics could not start</h1>
+      <p>Street Empire needs WebGL 2, and this browser or device did not start it.</p>
+      <p>Try the latest Chrome, Edge, Firefox or Safari, turn on hardware acceleration in the browser settings, or play on a phone or computer with a newer graphics driver.</p>
+      <p><code id="se-why"></code></p>
+    </div>
+  </div>
+  <script>
+    var canvas = document.querySelector('#unity-canvas');
+    function no3d(why) {
+      document.querySelector('#se-loading').style.display = 'none';
+      canvas.style.display = 'none';
+      document.querySelector('#se-why').textContent = why ? String(why) : '';
+      document.querySelector('#se-no3d').style.display = 'flex';
+      window.seStatus = 'no3d';
+    }
+    function hasWebGL2() {
+      try { var c = document.createElement('canvas'); return !!(window.WebGL2RenderingContext && c.getContext('webgl2')); }
+      catch (e) { return false; }
+    }
+    window.seStatus = 'loading';
+    if (!hasWebGL2()) {
+      no3d('WebGL 2 is not available.');
+    } else {
+      var config = {
+        dataUrl: "Build/{{{ DATA_FILENAME }}}",
+        frameworkUrl: "Build/{{{ FRAMEWORK_FILENAME }}}",
+#if USE_THREADS
+        workerUrl: "Build/{{{ WORKER_FILENAME }}}",
+#endif
+#if USE_WASM
+        codeUrl: "Build/{{{ CODE_FILENAME }}}",
+#endif
+#if MEMORY_FILENAME
+        memoryUrl: "Build/{{{ MEMORY_FILENAME }}}",
+#endif
+#if SYMBOLS_FILENAME
+        symbolsUrl: "Build/{{{ SYMBOLS_FILENAME }}}",
+#endif
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+        productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
+        productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
+        showBanner: function (msg, type) { if (type === 'error') no3d(msg); else console.warn(msg); },
+      };
+      var script = document.createElement('script');
+      script.src = "Build/{{{ LOADER_FILENAME }}}";
+      script.onload = function () {
+        createUnityInstance(canvas, config, function (p) { document.querySelector('#se-fill').style.width = (100 * p) + '%'; })
+          .then(function (instance) { window.seUnity = instance; document.querySelector('#se-loading').style.display = 'none'; window.seStatus = 'running'; })
+          .catch(function (err) { no3d(err); });
+      };
+      script.onerror = function () { no3d('The game files did not load.'); };
+      document.body.appendChild(script);
+    }
+  </script>
+</body>
+</html>

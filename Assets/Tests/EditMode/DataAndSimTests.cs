@@ -69,3 +69,28 @@ namespace StreetEmpire.Tests
         }
     }
 }
+
+namespace StreetEmpire.Tests
+{
+    public class CityLayoutTests
+    {
+        [Test]
+        public void EastsideMatchesJs()
+        {
+            string R(string n) => File.ReadAllText(Path.Combine(Application.dataPath, "Data", n + ".json"));
+            var data = GameDataLoader.FromJson(R("crews"), R("weapons"), R("vehicles"), R("jobs"), R("police"), R("world"));
+            var s = Simulation.CreateState(data, 1);
+            // from node: buildingsFor(s.blocks[1]) in the JS game
+            var b1 = CityLayout.BuildingsFor(data.World, s.blocks[1]);
+            Assert.AreEqual("store", b1[0].kind); Assert.AreEqual(-187.5f, b1[0].x); Assert.AreEqual(-245.5f, b1[0].z);
+            Assert.AreEqual("apt", b1[3].kind); Assert.AreEqual(-160.5f, b1[3].x); Assert.AreEqual(-218.5f, b1[3].z); Assert.AreEqual(11f, b1[3].h);
+            var b10 = CityLayout.BuildingsFor(data.World, s.blocks[10]);
+            Assert.AreEqual("house", b10[3].kind);
+            Assert.AreEqual(CityLayout.Eastside, CityLayout.DistrictOf(2, 2, 9));
+            Assert.AreEqual(CityLayout.Midtown, CityLayout.DistrictOf(3, 3, 9));
+            Assert.AreEqual(CityLayout.Harbor, CityLayout.DistrictOf(8, 8, 9));
+            Assert.AreEqual(-261f, CityLayout.LineCoord(data.World, 0));
+            Assert.AreEqual(-87f, CityLayout.LineCoord(data.World, 3));
+        }
+    }
+}

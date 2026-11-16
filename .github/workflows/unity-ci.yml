@@ -25,7 +25,7 @@ env:
 
 jobs:
   test:
-    name: EditMode tests
+    name: Tests (EditMode and PlayMode)
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -40,9 +40,9 @@ jobs:
       - uses: game-ci/unity-test-runner@v4
         id: tests
         with:
-          testMode: editmode
+          testMode: all
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-          checkName: EditMode results
+          checkName: Test results
       - uses: actions/upload-artifact@v4
         if: always()
         with:

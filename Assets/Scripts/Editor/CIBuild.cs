@@ -16,7 +16,7 @@ namespace StreetEmpire.EditorTools
             var path = Arg("-customBuildPath") ?? $"build/{target}/StreetEmpire";
             var options = new BuildPlayerOptions
             {
-                scenes = new[] { ProjectBootstrap.BootScene },
+                scenes = ProjectBootstrap.BuildScenes,
                 target = target,
                 locationPathName = path,
                 options = BuildOptions.None,
