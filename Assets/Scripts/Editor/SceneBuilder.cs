@@ -19,6 +19,7 @@ namespace StreetEmpire.EditorTools
         public const string EastsideScene = "Assets/Scenes/Eastside.unity";
         const string Mats = "Assets/Art/Materials";
         const string Models = "Assets/Art/Models/Buildings";
+        const string BuildingTextures = "Assets/Art/Textures/Buildings";
 
         // kit.json "buildings" for the Eastside kinds, plus (M5) the 14 new Eastside buildings v2. Eastside has
         // 9 stores, 4 apartments and 23 houses: one store and one apartment model each, and the 7 houses dealt
@@ -135,7 +136,10 @@ namespace StreetEmpire.EditorTools
             inst.transform.localPosition += new Vector3(-bounds.center.x, -bounds.min.y, -bounds.center.z);
             bounds = WorldBounds(inst);
             var col = holder.AddComponent<BoxCollider>(); col.center = bounds.center; col.size = bounds.size;
-            foreach (var r in inst.GetComponentsInChildren<Renderer>()) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
+            BindTextures(inst, name);
+            var near = inst.GetComponentsInChildren<Renderer>();
+            foreach (var r in near) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
+            AddFar(holder, inst, name, bounds, near);
             // not batching static: with 20 models of about 58k triangles, static batching would copy every placed
             // mesh (36 of them) into combined buffers, roughly doubling mesh memory on phones and WebGL. The SRP
             // batcher keeps the draw calls cheap without it.
@@ -144,6 +148,41 @@ namespace StreetEmpire.EditorTools
             holder.transform.SetParent(parent, true);
             holder.transform.SetPositionAndRotation(new Vector3(x, 0.24f, z), Quaternion.Euler(0, WorldSpace.YawFromSource(spot.yaw) * Mathf.Rad2Deg, 0));
             return true;
+        }
+
+        /// <summary>Point the building's URP material at the extracted, GPU compressed textures
+        /// (tools/extract_building_textures.mjs) instead of glTFast's uncompressed ones.</summary>
+        static void BindTextures(GameObject inst, string name)
+        {
+            var bc = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}_basecolor.jpg");
+            var nm = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}_normal.jpg");
+            if (bc == null) { Debug.LogWarning($"[SceneBuilder] no extracted texture for {name}"); return; }
+            foreach (var m in inst.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials).Where(m => m != null).Distinct())
+            {
+                m.SetTexture("_BaseMap", bc);
+                m.SetTexture("_BumpMap", nm); if (nm != null) m.EnableKeyword("_NORMALMAP"); else m.DisableKeyword("_NORMALMAP");
+                EditorUtility.SetDirty(m);
+            }
+        }
+
+        /// <summary>LOD1: the Blender decimated far version (about 5.8k triangles, tools/decimate_far.py) with the
+        /// near model's material, fitted to the near bounds. Phones draw the 58k triangle model only up close.</summary>
+        static void AddFar(GameObject holder, GameObject inst, string name, Bounds nearBounds, Renderer[] near)
+        {
+            var farAsset = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/Far/{name}.glb");
+            if (farAsset == null) return;
+            var far = (GameObject)PrefabUtility.InstantiatePrefab(farAsset);
+            far.name = "Far"; far.transform.SetParent(holder.transform, false);
+            var mat = near[0].sharedMaterial;
+            var farRs = far.GetComponentsInChildren<Renderer>();
+            foreach (var r in farRs) { r.sharedMaterials = Enumerable.Repeat(mat, r.sharedMaterials.Length).ToArray(); r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
+            var b = WorldBounds(far);
+            far.transform.localScale *= Mathf.Max(nearBounds.size.x, nearBounds.size.z) / Mathf.Max(b.size.x, b.size.z, 1e-4f);
+            b = WorldBounds(far);
+            far.transform.localPosition += new Vector3(nearBounds.center.x - b.center.x, nearBounds.min.y - b.min.y, nearBounds.center.z - b.center.z);
+            var lod = holder.AddComponent<LODGroup>();
+            lod.SetLODs(new[] { new LOD(0.2f, near), new LOD(0.01f, farRs) });
+            lod.RecalculateBounds();
         }
 
         static void Lighting(Transform root)
