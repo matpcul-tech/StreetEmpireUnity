@@ -89,7 +89,7 @@ namespace StreetEmpire.EditorTools
             }
 
             Lighting(root.transform);
-            OverviewCamera(w);
+            PlayerBuilder.Build(w, s.blocks[0]);
 
             Directory.CreateDirectory("Assets/Scenes");
             EditorSceneManager.SaveScene(scene, EastsideScene);

@@ -145,3 +145,4 @@ UnityEntitlementLicense*.xml
 **/licenses/*.xml
 .env
 .DS_Store
+tools/node_modules

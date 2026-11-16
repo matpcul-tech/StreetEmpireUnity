@@ -1,14 +1,25 @@
 {
     "name": "StreetEmpire.Tests.PlayMode",
     "rootNamespace": "StreetEmpire.Tests",
-    "references": ["StreetEmpire.Sim", "StreetEmpire.Runtime", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
+    "references": [
+        "StreetEmpire.Sim",
+        "StreetEmpire.Runtime",
+        "Unity.InputSystem",
+        "Unity.Cinemachine",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
-    "precompiledReferences": ["nunit.framework.dll"],
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
     "autoReferenced": false,
-    "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
     "versionDefines": [],
     "noEngineReferences": false
 }

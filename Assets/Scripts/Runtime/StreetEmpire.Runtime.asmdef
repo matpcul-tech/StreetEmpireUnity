@@ -2,7 +2,10 @@
     "name": "StreetEmpire.Runtime",
     "rootNamespace": "StreetEmpire",
     "references": [
-        "StreetEmpire.Sim"
+        "StreetEmpire.Sim",
+        "Unity.InputSystem",
+        "Unity.Cinemachine",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
