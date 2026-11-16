@@ -1,4 +1,4 @@
-// M3: the kit sedan, parked where createState() parks the first car (east curb of block 0), with the
+// M3: the kit sedan (M5: painted like makeKitCar), parked where createState() parks the first car (east curb of block 0), with the
 // sedan numbers from Assets/Data/vehicles.json.
 using System.Linq;
 using StreetEmpire.Sim;
@@ -13,35 +13,75 @@ namespace StreetEmpire.EditorTools
     {
         const string SedanGlb = "Assets/Art/Models/Cars/sedan.glb";
 
+        const string PoliceGlb = "Assets/Art/Models/Cars/police.glb";
+        // the first PAINT color in vehicles.js (deep red), baked into the atlas by tools/paint_car.mjs
+        const string SedanPaint = "Assets/Art/Models/Cars/sedan_paint_6a2420.jpg";
+
         public static CarController BuildSedan(GameData data, Block b0)
         {
             var w = data.World;
             var (cx, cz) = Simulation.BlockCenter(w, b0);
             // state.js: makeCar(s, bc.x + PITCH / 2 - 5.6, bc.z - 10 + (i % 3) * 6, 0, types[0] = 'sedan')
             var (x, z) = WorldSpace.FromSource(cx + w.pitch / 2 - 5.6f, cz - 10);
-            // fit the model with the root at the origin, then place the root (bounds are world space)
-            var root = new GameObject("Sedan");
-
-            var model = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(SedanGlb));
-            model.name = "Model"; model.transform.SetParent(root.transform, false);
-            UrpMaterials.Apply(model, "sedan");
             // kit.json sedan: length 4.5 m, yaw 0 (nose along +Z)
+            var car = BuildCar("Sedan", SedanGlb, "sedan", 4.5f, data.Vehicle("sedan"));
+            Paint(car.gameObject, "sedan", SedanPaint);
+            car.transform.SetPositionAndRotation(new Vector3(x, 0, z), Quaternion.identity);
+            return car;
+        }
+
+        /// <summary>M5: the kit police cruiser (police-v7, made from the Meshy police-01 model), kit.json length 5.2 m,
+        /// as an inactive template the police dispatch copies. Police cars keep their own paint (makeKitCar).</summary>
+        public static CarController BuildPoliceTemplate(GameData data)
+        {
+            var car = BuildCar("Cruiser Template", PoliceGlb, "police", 5.2f, data.Vehicle("police"));
+            car.transform.position = new Vector3(0, -60, 0);
+            car.gameObject.AddComponent<StreetEmpire.Game.PoliceCruiser>();
+            car.gameObject.SetActive(false);
+            return car;
+        }
+
+        static CarController BuildCar(string name, string glb, string modelName, float length, VehicleData stats)
+        {
+            // fit the model with the root at the origin, then place the root (bounds are world space)
+            var root = new GameObject(name);
+            var model = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(glb));
+            model.name = "Model"; model.transform.SetParent(root.transform, false);
+            UrpMaterials.Apply(model, modelName);
             var bounds = Bounds(model);
-            model.transform.localScale *= (4.5f / Mathf.Max(bounds.size.z, 1e-3f));
+            model.transform.localScale *= (length / Mathf.Max(bounds.size.z, 1e-3f));
             bounds = Bounds(model);
             model.transform.localPosition += new Vector3(-bounds.center.x, -bounds.min.y, -bounds.center.z);
             bounds = Bounds(model);
 
             var box = root.AddComponent<BoxCollider>();
             box.center = bounds.center; box.size = bounds.size;
-            root.transform.SetPositionAndRotation(new Vector3(x, 0, z), Quaternion.identity);
             var rb = root.AddComponent<Rigidbody>(); rb.isKinematic = true; rb.interpolation = RigidbodyInterpolation.None;
             var car = root.AddComponent<CarController>();
-            car.stats = data.Vehicle("sedan");
+            car.stats = stats;
             var t = new GameObject("CameraTarget").transform; t.SetParent(root.transform, false); t.localPosition = new Vector3(0, 1.4f, 0);
             car.cameraTarget = t;
             foreach (var r in model.GetComponentsInChildren<Renderer>()) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
             return car;
+        }
+
+        /// <summary>Swap each textured material for a copy that uses the painted atlas.</summary>
+        static void Paint(GameObject car, string modelName, string texPath)
+        {
+            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(texPath);
+            if (tex == null) { Debug.LogWarning($"[VehicleBuilder] no paint texture {texPath}"); return; }
+            foreach (var r in car.GetComponentsInChildren<Renderer>())
+                r.sharedMaterials = r.sharedMaterials.Select(m =>
+                {
+                    if (m == null || m.GetTexture("_BaseMap") == null) return m;
+                    string p = $"Assets/Art/Materials/Kit/{modelName}_{m.name}_painted.mat";
+                    var pm = AssetDatabase.LoadAssetAtPath<Material>(p);
+                    if (pm == null) { pm = new Material(m); AssetDatabase.CreateAsset(pm, p); } else pm.CopyPropertiesFromMaterial(m);
+                    pm.SetTexture("_BaseMap", tex);
+                    pm.SetFloat("_Smoothness", Mathf.Max(pm.GetFloat("_Smoothness"), 0.55f));
+                    EditorUtility.SetDirty(pm);
+                    return pm;
+                }).ToArray();
         }
 
         static Bounds Bounds(GameObject go)

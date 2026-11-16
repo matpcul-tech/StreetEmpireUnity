@@ -21,11 +21,9 @@ namespace StreetEmpire.Game
         public Vector3 spawn; public float spawnYaw;
         public float[] streetX, streetZ;      // Unity-space street center lines of the district (x = const, z = const)
         public Vector2 spanZ, spanX;          // how far the x lines run in z, and the z lines run in x
-        public GameObject copTemplate;
-        // The JS drives a cruiser in from spawnRingMin to spawnRingMax (60 to 110 m) at up to 34 m/s and the officers
-        // get out near you. This slice has no police cars yet, so officers arrive on foot from about where that
-        // cruiser would stop, which keeps the time until they reach you in the same range.
-        public Vector2 footRing = new(30f, 45f);
+        public GameObject[] copTemplates;     // one per cop model, taken in turn
+        // M5: officers arrive in a cruiser that spawns spawnRingMin to spawnRingMax (60 to 110 m) out, like the JS
+        public GameObject cruiserTemplate;
 
         [Header("Scene")]
         public PlayerMotor player; public Health playerHealth;
@@ -38,8 +36,10 @@ namespace StreetEmpire.Game
         public float LastBail { get; private set; }
         public string Message { get; private set; } = "";
         public readonly List<Cop> cops = new();
+        public readonly List<PoliceCruiser> cruisers = new();
+        public int CruisersSent { get; private set; }
 
-        float downT, policeT, msgT; bool downBusted;
+        float downT, policeT, msgT; bool downBusted; int copLook;
 
         void Awake()
         {
@@ -61,13 +61,15 @@ namespace StreetEmpire.Game
         {
             float dt = Time.deltaTime;
             if (msgT > 0) { msgT -= dt; if (msgT <= 0) Message = ""; }
-            cops.RemoveAll(c => c == null);
+            cops.RemoveAll(c => c == null); cruisers.RemoveAll(c => c == null);
             if (downT > 0) { downT -= dt; if (downT <= 0) Respawn(); return; }
 
             // heat decays when nobody is chasing you
             var d = police.decay; calmT += dt;
             var pp = player.transform.position;
-            bool copNear = cops.Any(c => !c.GetComponent<Health>().Down && (c.transform.position - pp).sqrMagnitude < d.copNearRadius * d.copNearRadius);
+            float r2 = d.copNearRadius * d.copNearRadius;
+            bool copNear = cops.Any(c => !c.GetComponent<Health>().Down && (c.transform.position - pp).sqrMagnitude < r2)
+                || cruisers.Any(c => c.riders > 0 && (c.transform.position - pp).sqrMagnitude < r2);
             if (heat > 0 && calmT > d.calmAfter && !copNear) heat = Mathf.Max(0, heat - d.calmRate * dt);
             if (heat > 0 && calmT > d.longCalmAfter) heat = Mathf.Max(0, heat - d.longCalmRate * dt);
 
@@ -80,29 +82,42 @@ namespace StreetEmpire.Game
             policeT -= dt;
             if (st == 0) return;
             var level = police.levels.First(l => l.stars == st);
-            int active = cops.Count(c => !c.leave && !c.GetComponent<Health>().Down);
+            int active = cops.Count(c => !c.leave && !c.GetComponent<Health>().Down) + cruisers.Where(c => !c.leave).Sum(c => c.riders);
             if (active >= level.maxUnits || policeT > 0) return;
             policeT = level.spawnInterval;
-            if (!SpawnPoint(out var at)) return;
-            for (int i = 0; i < level.officersPerCar && active + i < level.maxUnits; i++)
-            {
-                var cop = Instantiate(copTemplate, at + new Vector3(i * 1.6f - 0.8f, 0.1f, 0), Quaternion.identity);
-                cop.name = $"Officer {cops.Count + 1}"; cop.SetActive(true);
-                var h = cop.GetComponent<Health>(); h.max = h.hp = level.officerHp;
-                cops.Add(cop.GetComponent<Cop>());
-            }
+            if (!SpawnPoint(out var at, police.spawnRingMin, police.spawnRingMax, 2.6f)) return;
+            int n = Mathf.Min(level.officersPerCar, level.maxUnits - active);
+            var p = player.transform.position; var face = p - at; face.y = 0;
+            var go = Instantiate(cruiserTemplate, at, Quaternion.LookRotation(face.sqrMagnitude > 0.01f ? face : Vector3.forward));
+            go.name = $"Cruiser {++CruisersSent}"; go.SetActive(true);
+            var car = go.GetComponent<StreetEmpire.Vehicles.CarController>(); car.hp = level.cruiserHp;
+            var cr = go.GetComponent<PoliceCruiser>(); cr.riders = n; cr.riderHp = level.officerHp;
+            cr.SpawnDistance = Vector2.Distance(new Vector2(at.x, at.z), new Vector2(p.x, p.z));
+            cruisers.Add(cr);
             Say(st >= 2 ? "More units on the way." : "Police are coming.", 2.5f);
         }
 
-        /// <summary>A point on a district street center line, footRing from the player, clear of buildings.</summary>
-        public bool SpawnPoint(out Vector3 at)
+        /// <summary>An officer on foot at a spot (out of a cruiser), the cop models taken in turn.</summary>
+        public Cop SpawnOfficer(Vector3 at, float hp)
+        {
+            var t = copTemplates[copLook++ % copTemplates.Length];
+            var cop = Instantiate(t, at, Quaternion.identity);
+            cop.name = $"Officer {cops.Count + 1}"; cop.SetActive(true);
+            var h = cop.GetComponent<Health>(); h.max = h.hp = hp;
+            var c = cop.GetComponent<Cop>(); cops.Add(c);
+            return c;
+        }
+
+        /// <summary>A point on a district street center line, min to max m from the player, clear of buildings.</summary>
+        public bool SpawnPoint(out Vector3 at, float min, float max, float clearRadius = 1f)
         {
             var p = player.transform.position; var opts = new List<Vector3>();
             foreach (var x in streetX) for (float t = spanZ.x; t <= spanZ.y; t += 4f) opts.Add(new Vector3(x, 0, t));
             foreach (var z in streetZ) for (float t = spanX.x; t <= spanX.y; t += 4f) opts.Add(new Vector3(t, 0, z));
-            bool Clear(Vector3 q) => !Physics.OverlapSphere(q + Vector3.up, 1f, ~0, QueryTriggerInteraction.Ignore).Any(c => c.GetComponent<BuildingMarker>() != null);
+            bool Clear(Vector3 q) => !Physics.OverlapSphere(q + Vector3.up, clearRadius, ~0, QueryTriggerInteraction.Ignore)
+                .Any(c => c.GetComponent<BuildingMarker>() != null || c.GetComponentInParent<StreetEmpire.Vehicles.CarController>() != null);
             float D(Vector3 q) => Vector2.Distance(new Vector2(q.x, q.z), new Vector2(p.x, p.z));
-            var ring = opts.Where(q => D(q) > footRing.x && D(q) < footRing.y && Clear(q)).ToList();
+            var ring = opts.Where(q => D(q) > min && D(q) < max && Clear(q)).ToList();
             // a small district may not reach the full ring: then the farthest clear street point
             if (ring.Count == 0) ring = opts.Where(Clear).OrderByDescending(D).Take(8).ToList();
             if (ring.Count == 0) { at = default; return false; }
@@ -132,6 +147,7 @@ namespace StreetEmpire.Game
             player.inputEnabled = true;
             heat = 0; calmT = 0;
             foreach (var c in cops) if (c != null) c.leave = true;
+            foreach (var c in cruisers) if (c != null) c.leave = true;
         }
     }
 }

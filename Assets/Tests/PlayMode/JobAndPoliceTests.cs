@@ -60,9 +60,14 @@ namespace StreetEmpire.Tests
             StringAssert.Contains("Job done: Bag Back", s.Message);
         }
 
-        [UnityTest]
+        static int policeRuns;
+
+        // M5: repeated to check for flakiness (the M4 version failed once with officers stuck at a block)
+        [UnityTest, Repeat(5)]
         public IEnumerator HittingPeopleBringsStarsAndPoliceBust()
         {
+            policeRuns++;
+            Debug.Log($"[PoliceTest] run {policeRuns}");
             yield return Load();
             Assert.AreEqual(0, s.Stars);
             // punch a pedestrian twice: hitPed 7, hitPed 7 + koPed 8 = 22 heat, one star
@@ -80,19 +85,25 @@ namespace StreetEmpire.Tests
             Assert.AreEqual(1, s.Stars);
 
             yield return new WaitForSeconds(0.5f);
-            Assert.That(s.cops.Count(c => c != null), Is.InRange(1, 2), "one star sends up to two officers");
+            var first = s.cruisers.FirstOrDefault(c => c != null);
+            Assert.IsNotNull(first, "one star sends a cruiser");
+            Assert.That(first.riders, Is.InRange(1, 2), "one star: up to two officers in it");
+            Assert.That(first.SpawnDistance, Is.InRange(55f, 115f), "the cruiser starts 60 to 110 m out (police.json spawnRing)");
 
             s.AddHeat(23); // 45: two stars, with room for the calm decay while they close in
             Assert.AreEqual(2, s.Stars);
             float cash0 = s.cash;
 
-            // stand still and let them come: they run at 6 m/s from 30 to 45 m out, then hit for 9
+            // stand still and let them come: the cruiser drives in, stops within 16 m, the officers get out and hit for 9
             Time.timeScale = 4f;
-            float t = 0;
-            while (s.Busts == 0 && t < 70f) { t += Time.deltaTime; yield return null; }
+            float t = 0; bool unloaded = false;
+            while (s.Busts == 0 && t < 90f) { t += Time.deltaTime; unloaded |= s.cruisers.Any(c => c != null && c.Unloaded); yield return null; }
             Time.timeScale = 1f;
-            Assert.AreEqual(1, s.Busts, $"busted with heat (heat {s.heat:F0}, hp {s.playerHealth.hp:F0}, officers at {string.Join(" ", s.cops.Where(c => c != null).Select(c => $"{Vector3.Distance(c.transform.position, player.transform.position):F0}m"))})");
-            Assert.That(s.cops.Count(c => c != null), Is.InRange(1, 4), "two stars allow up to four officers");
+            string where = string.Join(" ", s.cruisers.Where(c => c != null).Select(c => $"car {Flat(c.transform.position, player.transform.position):F0}m v{c.GetComponent<StreetEmpire.Vehicles.CarController>().Speed:F1} r{c.riders}"))
+                + " " + string.Join(" ", s.cops.Where(c => c != null).Select(c => $"cop {Flat(c.transform.position, player.transform.position):F0}m"));
+            Assert.AreEqual(1, s.Busts, $"busted with heat (heat {s.heat:F0}, hp {s.playerHealth.hp:F0}, sent {s.CruisersSent}, {where}, t {t:F0}s)");
+            Assert.IsTrue(unloaded, "officers got out of a cruiser");
+            Assert.That(s.cops.Count(c => c != null) + s.cruisers.Where(c => c != null).Sum(c => c.riders), Is.InRange(1, 4), "two stars allow up to four officers");
             Assert.AreEqual(Mathf.Floor(cash0 * 0.4f), s.LastBail, 0.01f, "bail is 40% of cash");
             StringAssert.StartsWith("BUSTED", s.Message);
 
@@ -101,6 +112,7 @@ namespace StreetEmpire.Tests
             Assert.AreEqual(0f, s.heat, 0.01f); Assert.AreEqual(0, s.Stars);
             Assert.AreEqual(100f, s.playerHealth.hp, 0.01f);
             Assert.IsTrue(s.cops.Where(c => c != null).All(c => c.leave), "officers leave after the bust");
+            Assert.IsTrue(s.cruisers.Where(c => c != null).All(c => c.leave), "cruisers leave after the bust");
         }
     }
 }

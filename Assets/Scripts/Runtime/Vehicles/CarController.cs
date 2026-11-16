@@ -19,6 +19,8 @@ namespace StreetEmpire.Vehicles
         // scripted input for tests; null means read the player's controls while someone drives
         public float? scriptThrottle, scriptSteer;
         public bool scriptHandbrake;
+        // AI drivers (police cruisers) set these every frame instead
+        public bool aiDriven; public float aiThrottle, aiSteer;
 
         public readonly CarState state = new CarState();
         public float Speed => state.v;
@@ -47,6 +49,7 @@ namespace StreetEmpire.Vehicles
                 var m = c.Move;
                 throttle = scriptThrottle ?? m.y; steer = scriptSteer ?? m.x; hb = scriptHandbrake || c.Sprint;
             }
+            else if (aiDriven) { throttle = aiThrottle; steer = aiSteer; }
             CarPhysics.Drive(state, stats, throttle, steer, hb, dt);
             Collide();
             float y = GroundY(new Vector3(state.x, transform.position.y, state.z));

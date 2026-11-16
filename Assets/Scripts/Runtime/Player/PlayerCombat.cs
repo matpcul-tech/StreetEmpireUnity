@@ -11,9 +11,9 @@ namespace StreetEmpire.Player
         public float range = 2.7f, damage = 18f, cooldown = 0.34f;
         public bool scriptAttack;
         public int Punches { get; private set; }
-        float cd; VehicleUser user;
+        float cd; VehicleUser user; PlayerMotor motor;
 
-        void Awake() => user = GetComponent<VehicleUser>();
+        void Awake() { user = GetComponent<VehicleUser>(); motor = GetComponent<PlayerMotor>(); }
 
         void Update()
         {
@@ -22,6 +22,7 @@ namespace StreetEmpire.Player
             var s = GameSession.Instance;
             if (!attack || cd > 0 || (user != null && user.Car != null) || (s != null && s.IsDown)) return;
             cd = cooldown; Punches++;
+            CharacterAnim.Punch(motor.animator, Punches % 2);   // jab, cross, jab...
             Health best = null; float bd = range * range;
             foreach (var h in FindObjectsByType<Health>(FindObjectsSortMode.None))
             {

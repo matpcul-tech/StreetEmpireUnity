@@ -86,6 +86,10 @@ namespace StreetEmpire.EditorTools
             ac.AddParameter("Speed", AnimatorControllerParameterType.Float);
             ac.AddParameter("Grounded", AnimatorControllerParameterType.Bool);
             ac.AddParameter("Jump", AnimatorControllerParameterType.Trigger);
+            ac.AddParameter("Punch", AnimatorControllerParameterType.Trigger);
+            ac.AddParameter("PunchKind", AnimatorControllerParameterType.Int);
+            ac.AddParameter("Hit", AnimatorControllerParameterType.Trigger);
+            ac.AddParameter("Down", AnimatorControllerParameterType.Bool);
             var sm = ac.layers[0].stateMachine;
             var loco = ac.CreateBlendTreeInController("Locomotion", out var tree, 0);
             tree.blendType = BlendTreeType.Simple1D; tree.blendParameter = "Speed"; tree.useAutomaticThresholds = false;
@@ -93,12 +97,29 @@ namespace StreetEmpire.EditorTools
             sm.defaultState = loco;
             var jumpStart = sm.AddState("Jump Start"); jumpStart.motion = C("Jump_Start");
             var air = sm.AddState("In Air"); air.motion = C("Jump_Loop");
-            var t1 = sm.AddAnyStateTransition(jumpStart); t1.AddCondition(AnimatorConditionMode.If, 0, "Jump"); t1.duration = 0.08f; t1.canTransitionToSelf = false;
+            var t1 = sm.AddAnyStateTransition(jumpStart); t1.AddCondition(AnimatorConditionMode.If, 0, "Jump"); t1.AddCondition(AnimatorConditionMode.IfNot, 0, "Down"); t1.duration = 0.08f; t1.canTransitionToSelf = false;
             var t2 = jumpStart.AddTransition(air); t2.hasExitTime = true; t2.exitTime = 0.85f; t2.duration = 0.1f;
             foreach (var from in new[] { jumpStart, air })
             {
                 var land = from.AddTransition(loco); land.AddCondition(AnimatorConditionMode.If, 0, "Grounded"); land.hasExitTime = from == jumpStart; land.exitTime = 0.5f; land.duration = 0.12f;
             }
+            // M5 fight clips, all from the same CC0 UAL pack: jab and cross, a flinch, and the knockdown fall
+            AnimatorState OneShot(string state, string clip, string trigger, int kind, float back)
+            {
+                var st = sm.AddState(state); st.motion = C(clip);
+                var into = sm.AddAnyStateTransition(st); into.AddCondition(AnimatorConditionMode.If, 0, trigger);
+                if (kind >= 0) into.AddCondition(AnimatorConditionMode.Equals, kind, "PunchKind");
+                into.AddCondition(AnimatorConditionMode.IfNot, 0, "Down");
+                into.duration = 0.06f; into.canTransitionToSelf = true;
+                var outT = st.AddTransition(loco); outT.hasExitTime = true; outT.exitTime = back; outT.duration = 0.15f;
+                return st;
+            }
+            OneShot("Punch Jab", "Punch_Jab", "Punch", 0, 0.8f);
+            OneShot("Punch Cross", "Punch_Cross", "Punch", 1, 0.8f);
+            OneShot("Hit", "Hit_Chest", "Hit", -1, 0.75f);
+            var down = sm.AddState("Down"); down.motion = C("Death01");
+            var fall = sm.AddAnyStateTransition(down); fall.AddCondition(AnimatorConditionMode.If, 0, "Down"); fall.duration = 0.1f; fall.canTransitionToSelf = false;
+            var up = down.AddTransition(loco); up.AddCondition(AnimatorConditionMode.IfNot, 0, "Down"); up.duration = 0.3f;
             AssetDatabase.SaveAssets();
             return ac;
         }

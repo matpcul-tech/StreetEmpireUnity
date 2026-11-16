@@ -56,17 +56,25 @@ namespace StreetEmpire.EditorTools
             GameObjectUtility.SetStaticEditorFlags(ground, StaticEditorFlags.BatchingStatic);
 
             var streets = new GameObject("Streets").transform; streets.SetParent(root.transform);
-            float len = max - min;
+            // double yellow center lines, broken at every crossing so they do not run through the intersections
+            float half = w.street / 2f;
+            var spans = new System.Collections.Generic.List<(float a, float b)>();
+            float from = min;
+            for (int j = 0; j <= 3; j++) { float cj = CityLayout.LineCoord(w, j); spans.Add((from, cj - half)); from = cj + half; }
+            spans.Add((from, max));
             for (int i = 0; i <= 3; i++)
             {
                 float c = CityLayout.LineCoord(w, i);
                 foreach (float off in new[] { -0.18f, 0.18f })
-                {
-                    var (ax, az) = WorldSpace.FromSource(c + off, (min + max) / 2);
-                    Box($"Line X{i}", streets, line, new Vector3(ax, 0.01f, az), new Vector3(0.12f, 0.02f, len), false);
-                    var (bx, bz) = WorldSpace.FromSource((min + max) / 2, c + off);
-                    Box($"Line Z{i}", streets, line, new Vector3(bx, 0.01f, bz), new Vector3(len, 0.02f, 0.12f), false);
-                }
+                    for (int k = 0; k < spans.Count; k++)
+                    {
+                        var (a, b) = spans[k]; float mid = (a + b) / 2, len = b - a;
+                        if (len < 0.5f) continue;
+                        var (ax, az) = WorldSpace.FromSource(c + off, mid);
+                        Box($"Line X{i}.{k}", streets, line, new Vector3(ax, 0.01f, az), new Vector3(0.12f, 0.02f, len), false);
+                        var (bx, bz) = WorldSpace.FromSource(mid, c + off);
+                        Box($"Line Z{i}.{k}", streets, line, new Vector3(bx, 0.01f, bz), new Vector3(len, 0.02f, 0.12f), false);
+                    }
             }
 
             int placed = 0;

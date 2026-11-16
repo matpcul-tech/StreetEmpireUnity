@@ -1,5 +1,5 @@
 // Shared on-foot body for officers and pedestrians: CharacterController movement with gravity,
-// turning toward where it walks, the locomotion blend driven by speed, and a knocked-down pose.
+// turning toward where it walks, the locomotion blend driven by speed, and the knockdown clip.
 using UnityEngine;
 
 namespace StreetEmpire.Game
@@ -39,12 +39,12 @@ namespace StreetEmpire.Game
 
         public void Teleport(Vector3 p) { var c = Controller; c.enabled = false; transform.position = p; c.enabled = true; vy = 0; }
 
-        /// <summary>Lie flat while knocked down (no fall clip yet), stand back up after.</summary>
+        /// <summary>Knocked down: the Death01 fall clip (CharacterAnim Down), stand back up after.</summary>
         public void SetDown(bool down)
         {
-            if (model) model.localRotation = down ? Quaternion.Euler(-90, 0, 0) : Quaternion.identity;
-            if (model) model.localPosition = down ? new Vector3(0, 0.25f, 0) : Vector3.zero;
+            CharacterAnim.SetDown(animator, down);
             if (animator) animator.SetFloat(SpeedId, 0);
+            animSpeed = 0;
         }
     }
 }
