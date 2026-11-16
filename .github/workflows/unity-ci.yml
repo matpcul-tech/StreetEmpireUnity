@@ -11,6 +11,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  checks: write # unity-test-runner posts the EditMode results as a check run
+
 concurrency:
   group: unity-ci-${{ github.ref }}
   cancel-in-progress: true
