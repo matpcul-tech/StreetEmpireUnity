@@ -117,7 +117,9 @@ namespace StreetEmpire.EditorTools
             var variants = Kit[spot.kind];
             dealt.TryGetValue(spot.kind, out int n); dealt[spot.kind] = n + 1;
             string name = variants[n % variants.Length];
-            var model = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/{name}.glb");
+            // the near model is the Blender decimated copy (45%, about 26k triangles, tools/decimate_far.py) when
+            // there is one: the 58k triangle source meshes were most of the APK and of the phone's mesh memory
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/Near/{name}.glb") ?? AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/{name}.glb");
             var holder = new GameObject($"{spot.kind} {spot.index} ({name})");
             var marker = holder.AddComponent<BuildingMarker>();
             marker.blockId = spot.blockId; marker.index = spot.index; marker.kind = spot.kind; marker.model = name;
