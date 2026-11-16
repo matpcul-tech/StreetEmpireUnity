@@ -41,6 +41,7 @@ jobs:
         id: tests
         with:
           testMode: all
+          cliVersion: v0.1.76 # pinned: the "latest" lookup can hit a GitHub API 403
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           checkName: Test results
       - uses: actions/upload-artifact@v4
