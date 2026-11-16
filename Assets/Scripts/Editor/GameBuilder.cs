@@ -19,6 +19,7 @@ namespace StreetEmpire.EditorTools
             var w = data.World;
             var go = new GameObject("Game");
             var session = go.AddComponent<GameSession>();
+            go.AddComponent<ShotDirector>();
             session.police = data.Police;
             session.cash = s.crews["player"].cash;
             session.spawn = player.transform.position; session.spawnYaw = player.transform.eulerAngles.y;

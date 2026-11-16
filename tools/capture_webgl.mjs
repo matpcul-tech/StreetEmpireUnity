@@ -1,9 +1,10 @@
 // Headless screenshots of the WebGL build with software rendering (SwiftShader). Box tool, no GPU needed.
-// Usage: node capture_webgl.mjs <build dir with index.html> <out dir> [--no3d] [--keys=w:2000,shift+w:1500]
+// Usage: node capture_webgl.mjs <build dir with index.html> <out dir> [--no3d] [--keys=w:2000,shift+w:1500] [--query=shot=job]
 import http from 'http'; import fs from 'fs'; import path from 'path';
 import puppeteer from 'puppeteer-core';
 const [dir, out, ...flags] = process.argv.slice(2);
 const no3d = flags.includes('--no3d');
+const query = (flags.find((f) => f.startsWith('--query=')) || '').slice(8);
 const keys = (flags.find((f) => f.startsWith('--keys=')) || '').slice(7).split(',').filter(Boolean);
 fs.mkdirSync(out, { recursive: true });
 const types = { '.html': 'text/html', '.js': 'application/javascript', '.wasm': 'application/wasm', '.data': 'application/octet-stream', '.unityweb': 'application/octet-stream' };
@@ -17,7 +18,7 @@ const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome
 const page = await browser.newPage();
 await page.setViewport({ width: 1280, height: 720 });
 const logs = []; page.on('console', (m) => logs.push(m.type() + ': ' + m.text()));
-await page.goto('http://localhost:8765/', { waitUntil: 'load', timeout: 120000 });
+await page.goto('http://localhost:8765/' + (query ? '?' + query : ''), { waitUntil: 'load', timeout: 120000 });
 const t0 = Date.now();
 await page.waitForFunction(() => window.seStatus && window.seStatus !== 'loading', { timeout: 420000, polling: 1000 });
 const status = await page.evaluate(() => window.seStatus);
