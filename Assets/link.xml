@@ -1,0 +1,5 @@
+<!-- Medium managed stripping (CIBuild): keep the game's own assemblies whole, they are small -->
+<linker>
+  <assembly fullname="StreetEmpire.Runtime" preserve="all"/>
+  <assembly fullname="StreetEmpire.Sim" preserve="all"/>
+</linker>

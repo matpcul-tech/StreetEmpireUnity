@@ -22,6 +22,13 @@ namespace StreetEmpire.EditorTools
                 options = BuildOptions.None,
             };
             if (target == BuildTarget.Android) EditorUserBuildSettings.buildAppBundle = false; // APK for now, AAB with signing later
+            // smaller players: LZ4HC data, unused mesh channels stripped, medium managed code stripping
+            PlayerSettings.stripUnusedMeshComponents = true;
+            if (target == BuildTarget.Android)
+            {
+                options.options |= BuildOptions.CompressWithLz4HC;
+                PlayerSettings.SetManagedStrippingLevel(UnityEditor.Build.NamedBuildTarget.Android, ManagedStrippingLevel.Medium);
+            }
             var report = BuildPipeline.BuildPlayer(options);
             var r = report.summary;
             Debug.Log($"[CIBuild] {target} {r.result} size {r.totalSize} errors {r.totalErrors} at {path}");
