@@ -22,6 +22,15 @@ namespace StreetEmpire.Tests
             var user = player.GetComponent<VehicleUser>();
             Assert.IsNotNull(car, "sedan in scene"); Assert.IsNotNull(user, "VehicleUser on player");
             Assert.AreEqual(28f, car.stats.maxSpeed, 0.01f, "sedan maxSpeed from vehicles.json");
+            // the body has to be drawn where the car is (renderer bounds are live: the car is not static batched)
+            var rs = car.GetComponentsInChildren<Renderer>();
+            Assert.Greater(rs.Length, 0, "sedan meshes");
+            var rb = rs[0].bounds; foreach (var r in rs) rb.Encapsulate(r.bounds);
+            Assert.Less(Vector2.Distance(new Vector2(rb.center.x, rb.center.z), new Vector2(car.transform.position.x, car.transform.position.z)), 1.5f, "model sits on the car");
+            Assert.That(rb.size.z, Is.InRange(4f, 5f), "kit sedan is 4.5 m long");
+            Assert.That(rb.min.y - car.transform.position.y, Is.InRange(-0.1f, 0.3f), "wheels on the road");
+            var box = car.GetComponent<BoxCollider>();
+            Assert.Less(Vector3.Distance(box.bounds.center, rb.center), 0.5f, "collider wraps the body");
             for (int i = 0; i < 20; i++) yield return null;
 
             // too far: no entry

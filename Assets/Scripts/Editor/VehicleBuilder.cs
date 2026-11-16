@@ -19,8 +19,8 @@ namespace StreetEmpire.EditorTools
             var (cx, cz) = Simulation.BlockCenter(w, b0);
             // state.js: makeCar(s, bc.x + PITCH / 2 - 5.6, bc.z - 10 + (i % 3) * 6, 0, types[0] = 'sedan')
             var (x, z) = WorldSpace.FromSource(cx + w.pitch / 2 - 5.6f, cz - 10);
+            // fit the model with the root at the origin, then place the root (bounds are world space)
             var root = new GameObject("Sedan");
-            root.transform.SetPositionAndRotation(new Vector3(x, 0, z), Quaternion.identity);
 
             var model = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(SedanGlb));
             model.name = "Model"; model.transform.SetParent(root.transform, false);
@@ -33,7 +33,8 @@ namespace StreetEmpire.EditorTools
             bounds = Bounds(model);
 
             var box = root.AddComponent<BoxCollider>();
-            box.center = bounds.center - root.transform.position; box.size = bounds.size;
+            box.center = bounds.center; box.size = bounds.size;
+            root.transform.SetPositionAndRotation(new Vector3(x, 0, z), Quaternion.identity);
             var rb = root.AddComponent<Rigidbody>(); rb.isKinematic = true; rb.interpolation = RigidbodyInterpolation.None;
             var car = root.AddComponent<CarController>();
             car.stats = data.Vehicle("sedan");
