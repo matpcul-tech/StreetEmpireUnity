@@ -146,3 +146,4 @@ UnityEntitlementLicense*.xml
 .env
 .DS_Store
 tools/node_modules
+Assets/Resources/build-label.txt*

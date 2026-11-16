@@ -90,6 +90,8 @@ jobs:
           path: Library
           key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Packages/packages-lock.json', 'Packages/manifest.json', 'ProjectSettings/ProjectVersion.txt') }}
           restore-keys: Library-${{ matrix.targetPlatform }}-
+      - name: Build label for the HUD (which build is installed)
+        run: mkdir -p Assets/Resources && echo "v0.5 ${GITHUB_SHA::7}" > Assets/Resources/build-label.txt
       - uses: game-ci/unity-builder@v6
         with:
           targetPlatform: ${{ matrix.targetPlatform }}

@@ -95,6 +95,12 @@ namespace StreetEmpire.Tests
                 Assert.AreEqual(g.Count(), g.Select(b => b.model).Distinct().Count(), $"block {g.Key} repeats a model: {string.Join(", ", g.Select(b => b.model))}");
             Assert.GreaterOrEqual(bs.Select(b => b.model).Distinct().Count(), 18, "most of the 20 Eastside models are placed");
             Assert.IsTrue(bs.Any(b => b.model == "store-barber") && bs.Any(b => b.model == "civic-church") && bs.Any(b => b.model == "apt-motel-style"));
+            foreach (var b in bs)
+                foreach (var m in b.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials))
+                    Assert.AreEqual(0f, m.GetFloat("_Metallic"), 1e-4f, $"{b.model} is not metallic");
+            Assert.IsTrue(bs.Where(b => b.model != "store-liquor-blank").All(b => b.GetComponent<LODGroup>() != null), "buildings have a far LOD");
+            var label = GameObject.Find("BuildLabel"); Assert.IsNotNull(label, "build label on the HUD");
+            StringAssert.StartsWith("v0.5", label.GetComponent<UnityEngine.UI.Text>().text);
             var sedan = Object.FindObjectsByType<CarController>(FindObjectsSortMode.None).First(c => c.name == "Sedan");
             Assert.IsTrue(sedan.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials).Any(m => m != null && m.name.EndsWith("_painted")), "sedan wears the painted atlas");
         }

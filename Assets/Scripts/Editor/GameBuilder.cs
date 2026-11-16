@@ -187,6 +187,8 @@ namespace StreetEmpire.EditorTools
             }
             hud.cash = T("Cash", new Vector2(0, 1), new Vector2(30, -24), new Vector2(400, 60), 44, TextAnchor.UpperLeft);
             hud.cash.color = new Color(0.55f, 0.95f, 0.55f);
+            var ver = T("BuildLabel", new Vector2(0, 1), new Vector2(32, -76), new Vector2(400, 30), 20, TextAnchor.UpperLeft);
+            ver.color = new Color(1, 1, 1, 0.7f); ver.text = BuildLabel.Fallback; ver.gameObject.AddComponent<BuildLabel>();
             hud.objective = T("Objective", new Vector2(0.5f, 1), new Vector2(0, -24), new Vector2(1100, 60), 34, TextAnchor.UpperCenter);
             hud.message = T("Message", new Vector2(0.5f, 0.5f), new Vector2(0, 140), new Vector2(1400, 260), 36, TextAnchor.MiddleCenter);
 
