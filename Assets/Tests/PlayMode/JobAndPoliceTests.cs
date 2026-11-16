@@ -96,11 +96,12 @@ namespace StreetEmpire.Tests
 
             // stand still and let them come: the cruiser drives in, stops within 16 m, the officers get out and hit for 9
             Time.timeScale = 4f;
-            float t = 0; bool unloaded = false;
+            float t = 0; bool unloaded = false; float closest = float.MaxValue;
             float logT = 0;
             while (s.Busts == 0 && t < 90f)
             {
                 t += Time.deltaTime; unloaded |= s.cruisers.Any(c => c != null && c.Unloaded);
+                foreach (var c in s.cruisers) if (c != null) closest = Mathf.Min(closest, Flat(c.transform.position, player.transform.position));
                 if (t >= logT) { logT += 3f; Debug.Log($"[PoliceTest] run {policeRuns} t {t:F0}s heat {s.heat:F0} " + string.Join(" ", s.cruisers.Where(c => c != null).Select(c => $"{c.name} {Flat(c.transform.position, player.transform.position):F0}m v{c.GetComponent<StreetEmpire.Vehicles.CarController>().Speed:F1} r{c.riders} jams{c.StuckCount}")) + " " + string.Join(" ", s.cops.Where(c => c != null).Select(c => $"cop {Flat(c.transform.position, player.transform.position):F0}m"))); }
                 yield return null;
             }
@@ -110,6 +111,7 @@ namespace StreetEmpire.Tests
             Debug.Log($"[PoliceTest] run {policeRuns} {(s.Busts == 1 ? "busted" : "NOT busted")} after {t:F1}s game time");
             Assert.AreEqual(1, s.Busts, $"busted with heat (heat {s.heat:F0}, hp {s.playerHealth.hp:F0}, sent {s.CruisersSent}, {where}, t {t:F0}s)");
             Assert.IsTrue(unloaded, "officers got out of a cruiser");
+            Assert.Greater(closest, 3.5f, "the cruiser stops short of the player instead of driving onto them");
             Assert.That(s.cops.Count(c => c != null) + s.cruisers.Where(c => c != null).Sum(c => c.riders), Is.InRange(1, 4), "two stars allow up to four officers");
             Assert.AreEqual(Mathf.Floor(cash0 * 0.4f), s.LastBail, 0.01f, "bail is 40% of cash");
             StringAssert.StartsWith("BUSTED", s.Message);

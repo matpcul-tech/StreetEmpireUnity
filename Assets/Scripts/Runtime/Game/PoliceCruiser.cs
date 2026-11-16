@@ -76,7 +76,9 @@ namespace StreetEmpire.Game
             stuckT = Mathf.Abs(car.Speed) < 1f && backT <= 0 ? stuckT + dt : 0;
             if (stuckT > 1.2f) { stuckT = 0; backT = 1.1f; stuckCount++; planT = 0; }
             if (backT > 0) { backT -= dt; thr = -1; diff = -diff; }
-            if (!going && d < 16f && !pCar) thr = car.Speed > 2f ? -1f : 0f;
+            // stop short of a player on foot: start braking with room to stop (it brakes at about 34 m/s2, the JS
+            // brakes at 16 m, which at full speed would carry it onto the player here)
+            if (!going && !pCar && (d < 16f || d < 9f + car.Speed * car.Speed / 40f)) thr = car.Speed > 2f ? -1f : d > 10f ? 0.25f : 0f;
             if (!going && pCar && d < 8f) thr = 0.6f;
             car.aiThrottle = thr; car.aiSteer = Mathf.Clamp(diff * 2f, -1f, 1f);
 
