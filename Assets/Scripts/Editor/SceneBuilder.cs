@@ -114,7 +114,8 @@ namespace StreetEmpire.EditorTools
             float k = spot.w / Mathf.Max(bounds.size.x, bounds.size.z, 1e-4f);
             inst.transform.localScale = Vector3.one * k;
             bounds = WorldBounds(inst);
-            inst.transform.localPosition = new Vector3(-bounds.center.x, -bounds.min.y, -bounds.center.z);
+            // shift, not set: the imported root may already carry an offset of its own
+            inst.transform.localPosition += new Vector3(-bounds.center.x, -bounds.min.y, -bounds.center.z);
             bounds = WorldBounds(inst);
             var col = holder.AddComponent<BoxCollider>(); col.center = bounds.center; col.size = bounds.size;
             foreach (var r in inst.GetComponentsInChildren<Renderer>()) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
