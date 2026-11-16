@@ -112,7 +112,8 @@ namespace StreetEmpire.EditorTools
             inst.transform.SetParent(holder.transform, false);
             var bounds = WorldBounds(inst);
             float k = spot.w / Mathf.Max(bounds.size.x, bounds.size.z, 1e-4f);
-            inst.transform.localScale = Vector3.one * k;
+            // multiply, not set: glTFast folds a lone root node (and its scale) into the prefab root
+            inst.transform.localScale *= k;
             bounds = WorldBounds(inst);
             // shift, not set: the imported root may already carry an offset of its own
             inst.transform.localPosition += new Vector3(-bounds.center.x, -bounds.min.y, -bounds.center.z);
