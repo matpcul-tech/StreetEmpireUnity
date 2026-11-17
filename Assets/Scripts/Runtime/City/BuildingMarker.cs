@@ -7,5 +7,6 @@ namespace StreetEmpire.City
     {
         public int blockId, index;
         public string kind, model;
+        public int wash;      // houses: which stucco wash (SceneBuilder.HouseTint) it got
     }
 }

@@ -97,11 +97,13 @@ namespace StreetEmpire.Tests
                     Assert.IsFalse(inside, $"a center line crosses the intersection at ({x:F0}, {z:F0})");
                 }
             }
-            // M5 buildings: the new Eastside models are in, and no block repeats one
+            // the Eastside models are in and no block repeats a building: houses are the three stucco models
+            // (the clapboard and brick ones are out), told apart by model and stucco wash
             var bs = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None);
             foreach (var g in bs.GroupBy(b => b.blockId))
-                Assert.AreEqual(g.Count(), g.Select(b => b.model).Distinct().Count(), $"block {g.Key} repeats a model: {string.Join(", ", g.Select(b => b.model))}");
-            Assert.GreaterOrEqual(bs.Select(b => b.model).Distinct().Count(), 18, "most of the 20 Eastside models are placed");
+                Assert.AreEqual(g.Count(), g.Select(b => b.model + "#" + b.wash).Distinct().Count(), $"block {g.Key} repeats a building: {string.Join(", ", g.Select(b => b.model + "#" + b.wash))}");
+            Assert.IsFalse(bs.Any(b => b.model is "house-wood-duplex" or "house-shotgun" or "house-boarded" or "house-rowhouse-pair"), "no clapboard or brick houses");
+            Assert.GreaterOrEqual(bs.Select(b => b.model).Distinct().Count(), 15, "the stores, apartments and the three stucco houses are placed");
             Assert.IsTrue(bs.Any(b => b.model == "store-barber") && bs.Any(b => b.model == "civic-church") && bs.Any(b => b.model == "apt-motel-style"));
             foreach (var b in bs)
                 foreach (var m in b.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials))

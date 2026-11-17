@@ -29,10 +29,20 @@ namespace StreetEmpire.EditorTools
         static readonly Dictionary<string, string[]> Kit = new()
         {
             ["store"] = new[] { "store-liquor-blank", "store-bodega", "store-laundromat", "store-barber", "store-pawn", "store-takeout", "shop-auto-garage", "shop-gas-station", "civic-church" },
-            ["house"] = new[] { "house-01-bungalow", "house-rowhouse-pair", "house-02-two-story", "house-wood-duplex", "house-03-duplex", "house-shotgun", "house-boarded" },
+            // Eastside houses read like the web game's: stucco walls, tile roofs, bars on the windows. The clapboard
+            // and brick ones (house-wood-duplex, house-shotgun, house-boarded, house-rowhouse-pair) read as the
+            // Midwest and are left out; their files stay in the repo. Each house gets a stucco wash (HouseTint).
+            ["house"] = new[] { "house-01-bungalow", "house-02-two-story", "house-03-duplex", "house-01-bungalow", "house-02-two-story", "house-01-bungalow", "house-03-duplex" },
             ["apt"] = new[] { "apt-01-stucco", "apt-mixed-use", "apt-02-brick", "apt-motel-style" },
         };
         static readonly Dictionary<string, int> dealt = new();
+
+        /// <summary>Stucco washes dealt to the houses in turn (multiplied over the model's own colors): white, warm
+        /// cream, peach, pale pink and sand, as along the web game's Eastside streets.</summary>
+        static readonly Color[] HouseTint =
+        {
+            Color.white, new(1f, 0.95f, 0.86f), new(1f, 0.88f, 0.78f), new(1f, 0.9f, 0.88f), new(0.96f, 0.9f, 0.78f),
+        };
 
         public static readonly int[] EastsideBlocks = { 0, 1, 2, 9, 10, 11, 18, 19, 20 };
 
@@ -53,7 +63,7 @@ namespace StreetEmpire.EditorTools
             var asphalt = TexMat("Asphalt", "worn_asphalt", district / 4.5f, 0.12f, new Color(0.78f, 0.78f, 0.8f));
             var sidewalk = TexMat("Sidewalk", "concrete_pavement", (w.block + 4) / 2.6f, 0.08f, Color.white);
             var yard = TexMat("Yard", "sparse_grass", (w.block - 2) / 3.5f, 0.04f, new Color(0.74f, 0.71f, 0.52f));   // dry olive like the web yards
-            var outer = TexMat("OuterGround", "leafy_grass", 1600f / 6f, 0.03f, new Color(0.8f, 0.85f, 0.78f));
+            var outer = TexMat("OuterGround", "sparse_grass", 1600f / 6f, 0.03f, new Color(0.62f, 0.56f, 0.42f));   // dry lots out to the haze, not green lawn
             var line = Mat("LaneYellow", new Color32(0xb5, 0x9a, 0x3a, 255), 0.3f);   // the web center line color
             var curb = Mat("Curb", new Color32(0x6e, 0x6b, 0x66, 255), 0.1f);
 
@@ -155,6 +165,7 @@ namespace StreetEmpire.EditorTools
             bounds = WorldBounds(inst);
             var col = holder.AddComponent<BoxCollider>(); col.center = bounds.center; col.size = bounds.size;
             BindTextures(inst, name);
+            if (spot.kind == "house") { marker.wash = n % HouseTint.Length; Wash(inst, name, HouseTint[marker.wash]); }
             var near = inst.GetComponentsInChildren<Renderer>();
             foreach (var r in near) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
             Compress(inst, name, "Near");
@@ -186,6 +197,27 @@ namespace StreetEmpire.EditorTools
                 m.SetTexture("_BaseMap", bc);
                 m.SetTexture("_BumpMap", nm); if (nm != null) m.EnableKeyword("_NORMALMAP"); else m.DisableKeyword("_NORMALMAP");
                 EditorUtility.SetDirty(m);
+            }
+        }
+
+        /// <summary>A tinted copy of the house material (one asset per model and wash, so placements share it).</summary>
+        static void Wash(GameObject inst, string name, Color tint)
+        {
+            if (tint == Color.white) return;
+            foreach (var r in inst.GetComponentsInChildren<Renderer>())
+            {
+                var mats = r.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    if (mats[i] == null) continue;
+                    string path = $"{Mats}/Wash/{name}__{mats[i].name.Replace(" ", "_")}__{ColorUtility.ToHtmlStringRGB(tint)}.mat";
+                    var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+                    if (m == null) { System.IO.Directory.CreateDirectory($"{Mats}/Wash"); m = new Material(mats[i]); AssetDatabase.CreateAsset(m, path); }
+                    else m.CopyPropertiesFromMaterial(mats[i]);
+                    m.SetColor("_BaseColor", mats[i].GetColor("_BaseColor") * tint);
+                    EditorUtility.SetDirty(m); mats[i] = m;
+                }
+                r.sharedMaterials = mats;
             }
         }
 
@@ -300,17 +332,22 @@ namespace StreetEmpire.EditorTools
         // Golden hour palette taken from the live web game (sky, haze, fog), written as the scene values that land
         // on those screen colors after ACES (an inverse of the ACES curve on the captured sRGB colors)
         static readonly Color SkyZenith = new(0.49f, 0.50f, 0.47f), SkyUpper = new(0.72f, 0.68f, 0.56f),
-            SkyHorizon = new(1.05f, 0.62f, 0.47f), SkyGlow = new(2.4f, 1.15f, 0.55f), SkyBelow = new(0.40f, 0.22f, 0.18f);
+            SkyHorizon = new(1.05f, 0.62f, 0.47f), SkyGlow = new(2.4f, 1.15f, 0.55f);
+
+        // the fog color (RenderSettings.fogColor below) in linear: the sky at and under the horizon is exactly the
+        // fully fogged ground, so the far edge of the world melts into the haze with no line
+        static readonly Color FogLinear = new Color(0.66f, 0.53f, 0.50f).linear;
 
         static Color SkyColor(Vector3 d)
         {
             float e = d.y;
-            Color c = e < 0 ? Color.Lerp(SkyHorizon, SkyBelow, Mathf.SmoothStep(0, 1, -e * 6f))
-                : e < 0.25f ? Color.Lerp(SkyHorizon, SkyUpper, Mathf.SmoothStep(0, 1, e / 0.25f))
-                : Color.Lerp(SkyUpper, SkyZenith, Mathf.SmoothStep(0, 1, (e - 0.25f) / 0.65f));
+            Color c = e < 0 ? FogLinear
+                : e < 0.08f ? Color.Lerp(FogLinear, SkyHorizon, Mathf.SmoothStep(0, 1, e / 0.08f))
+                : e < 0.3f ? Color.Lerp(SkyHorizon, SkyUpper, Mathf.SmoothStep(0, 1, (e - 0.08f) / 0.22f))
+                : Color.Lerp(SkyUpper, SkyZenith, Mathf.SmoothStep(0, 1, (e - 0.3f) / 0.6f));
             float k = Mathf.Max(0, Vector3.Dot(d, SunDir));
             float glow = Mathf.Pow(k, 6f) * 0.55f + Mathf.Pow(k, 48f) * 0.8f;
-            c += SkyGlow * glow * Mathf.Clamp01(1f - Mathf.Max(0, e) * 1.6f);
+            c += SkyGlow * glow * Mathf.SmoothStep(0, 1, (e + 0.01f) / 0.06f) * Mathf.Clamp01(1f - Mathf.Max(0, e) * 1.6f);
             if (k > 0.9994f) c += new Color(10f, 7.5f, 5f);           // the sun disk
             c.a = 1; return c;
         }
