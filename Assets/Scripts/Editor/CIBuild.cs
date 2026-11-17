@@ -71,6 +71,13 @@ namespace StreetEmpire.EditorTools
                 PlayerSettings.Android.keyaliasName = alias; PlayerSettings.Android.keyaliasPass = aliasPass;
             }
             Debug.Log($"[CIBuild] Android version code {PlayerSettings.Android.bundleVersionCode}, {(signed ? "signed with the release key" : "debug signed (no release key given)")}");
+            // CI always passes the key. A debug signed APK has a different certificate every build, so it can never
+            // update over an installed copy ("App not installed"). Stop instead of shipping one.
+            if (!signed && ks != null && Application.isBatchMode)
+            {
+                Debug.LogError("[CIBuild] release key missing or incomplete, refusing to build a debug signed APK");
+                EditorApplication.Exit(1);
+            }
         }
 
         static string Arg(string name)

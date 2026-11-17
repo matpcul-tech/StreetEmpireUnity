@@ -114,6 +114,16 @@ jobs:
           androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASS }}
           androidKeyaliasName: ${{ secrets.ANDROID_KEYALIAS_NAME }}
           androidKeyaliasPass: ${{ secrets.ANDROID_KEYALIAS_PASS }}
+      # every APK must carry the one release certificate (public fingerprint, from keys/README-KEEP-THIS-KEY.md)
+      # so it installs over the previous one; fail the run otherwise
+      - name: Check APK signer and version code
+        if: matrix.targetPlatform == 'Android'
+        run: |
+          APK=$(find build/Android -name '*.apk' | head -1)
+          SIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)
+          "$SIGNER/apksigner" verify --print-certs "$APK" | tee signer.txt
+          grep -qi "SHA-256 digest: fc309cd288ad3b2904e4181a0f31480cd907715a081d25c954d6b58743442f65" signer.txt || { echo "APK is not signed with the release key"; exit 1; }
+          "$SIGNER/aapt2" dump badging "$APK" | head -1
       - uses: actions/upload-artifact@v4
         with:
           name: StreetEmpire-${{ matrix.targetPlatform }}${{ inputs.variant && format('-{0}', inputs.variant) || '' }}
