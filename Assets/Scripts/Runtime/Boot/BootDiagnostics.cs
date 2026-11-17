@@ -46,7 +46,7 @@ namespace StreetEmpire.Boot
                 PreviousCrashed = exitCrash || (hadLog && !PreviousLog.Contains(OkMarker));
                 var go = new GameObject("BootHeartbeat") { hideFlags = HideFlags.HideAndDontSave };
                 UnityEngine.Object.DontDestroyOnLoad(go);
-                go.AddComponent<Heartbeat>();
+                go.AddComponent<BootHeartbeat>();
             }
             catch (Exception e) { Debug.LogWarning($"BootDiagnostics could not start: {e.Message}"); }
         }
@@ -71,7 +71,7 @@ namespace StreetEmpire.Boot
             Write($"{type}: {message}{top}");
         }
 
-        static string Mem() => $"mem {Profiler.GetTotalAllocatedMemoryLong() / 1048576} of {Profiler.GetTotalReservedMemoryLong() / 1048576} MB, mono {Profiler.GetMonoUsedSizeLong() / 1048576} MB";
+        internal static string Mem() => $"mem {Profiler.GetTotalAllocatedMemoryLong() / 1048576} of {Profiler.GetTotalReservedMemoryLong() / 1048576} MB, mono {Profiler.GetMonoUsedSizeLong() / 1048576} MB";
 
         static string LabelText() { var t = Resources.Load<TextAsset>("build-label"); return t != null ? t.text.Trim() : "dev"; }
 
@@ -99,7 +99,12 @@ namespace StreetEmpire.Boot
                 if (reason == 4 || reason == 5 || reason == 6)
                 {
                     var stream = info.Call<AndroidJavaObject>("getTraceInputStream");
-                    if (stream != null) sb.Append("\ntrace:\n").Append(ReadableStrings(ReadBytes(stream, sdk)));
+                    if (stream != null)
+                    {
+                        var bytes = ReadBytes(stream, sdk);
+                        var parsed = reason == 5 ? Tombstone.Summarize(bytes) : null;
+                        sb.Append("\ntrace:\n").Append(parsed ?? ReadableStrings(bytes));
+                    }
                 }
                 PreviousExit = sb.ToString();
                 Write(PreviousExit.Split('\n')[0]);
@@ -147,16 +152,6 @@ namespace StreetEmpire.Boot
             _ => "unknown",
         };
 
-        class Heartbeat : MonoBehaviour
-        {
-            float next = 2f;
-            bool ok;
-            void Update()
-            {
-                float t = Time.realtimeSinceStartup - startTime;
-                if (t >= next && next <= 30f) { Write($"alive {Mem()} fps {1f / Mathf.Max(0.0001f, Time.unscaledDeltaTime):0}"); next += 2f; }
-                if (!ok && t > 12f && SceneManager.GetActiveScene().name == "Eastside") { ok = true; Write(OkMarker); }
-            }
-        }
+        internal static float Since => Time.realtimeSinceStartup - startTime;
     }
 }

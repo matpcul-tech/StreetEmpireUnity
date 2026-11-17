@@ -16,26 +16,4 @@ namespace StreetEmpire.Game
         public static void Hit(Animator a) { if (Ready(a)) a.SetTrigger(HitId); }
         public static void SetDown(Animator a, bool down) { if (Ready(a)) a.SetBool(DownId, down); }
     }
-
-    /// <summary>Flinch when hurt, fall when knocked out, get up when the hit points come back.</summary>
-    [RequireComponent(typeof(Health))]
-    public class HitReaction : MonoBehaviour
-    {
-        public Animator animator;
-        Health health; bool down;
-        public bool IsDown => down;
-
-        void Awake()
-        {
-            health = GetComponent<Health>();
-            if (animator == null) animator = GetComponentInChildren<Animator>();
-            health.Damaged += (_, __) => { if (!health.Down) CharacterAnim.Hit(animator); };
-        }
-
-        void Update()
-        {
-            if (health.Down == down) return;
-            down = health.Down; CharacterAnim.SetDown(animator, down);
-        }
-    }
 }
