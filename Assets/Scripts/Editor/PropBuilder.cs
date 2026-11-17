@@ -76,6 +76,8 @@ namespace StreetEmpire.EditorTools
             Intersections(blocks, streetX, streetZ, streets, marks);
             Manholes(streetX, streetZ, streets);
             PowerLines(blocks, streets);
+            foreach (var b in blocks) for (int k = 0; k < 4; k++) Grime(b, k, StreetAt(b, k, streetX, streetZ), marks);
+            Graffiti(marks);
             marks.Save(root);
 
             foreach (var kv in batches) kv.Value.matrices = placed[kv.Key].ToArray();
@@ -164,10 +166,10 @@ namespace StreetEmpire.EditorTools
                 case 0: // pocket park: two palms, a hedge along the walk, a bench looking out
                     Place("palm-tall", "tree", b.id, L(12.5f, -3f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.28f);
                     Place("palm-short", "tree", b.id, L(9.5f, 3.6f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.2f);
-                    Place("hedge", "hedge", b.id, L(18.2f, -3.6f), Face(n), parent, Col.Bounds, 0.01f);
-                    Place("hedge", "hedge", b.id, L(18.2f, 3.6f), Face(n), parent, Col.Bounds, 0.01f);
+                    Place("dry-hedge", "hedge", b.id, L(18.2f, -3.6f), Face(n), parent, Col.Bounds, 0.01f);
+                    Place("dry-hedge", "hedge", b.id, L(18.2f, 3.6f), Face(n), parent, Col.Bounds, 0.01f);
                     Place("bench", "bench", b.id, L(15.2f, 0.4f), Face(n), parent, Col.Bounds, 0.012f);
-                    Place("bush", "bush", b.id, L(8.4f, -5f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
+                    Place("dry-shrub", "bush", b.id, L(8.4f, -5f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
                     break;
                 case 1: // parking lot: cracked concrete pad, stalls, two cars, a barrier at the mouth
                     marks.Pad("Lot", L(13f, 0, 0), t, n, 12.6f, 11.6f, LotTop);
@@ -190,14 +192,14 @@ namespace StreetEmpire.EditorTools
                     Place("trashbag", "junk", b.id, L(9.6f, 3.7f, LotTop), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.02f);
                     Place("barrel", "junk", b.id, L(8.4f, -4.8f, LotTop), Quaternion.Euler(0, Jit(180), 0), parent, Col.Bounds, 0.02f);
                     Place("cardboard-box", "junk", b.id, L(15.5f, 2.2f, LotTop), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.02f);
-                    Place("bush", "bush", b.id, L(16.8f, -4.6f, LotTop), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
-                    Place("bush", "bush", b.id, L(11f, 5.4f, LotTop), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
+                    Place("dry-shrub", "bush", b.id, L(16.8f, -4.6f, LotTop), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
+                    Place("dry-shrub", "bush", b.id, L(11f, 5.4f, LotTop), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
                     break;
                 case 3: // side yard: wood fence along the walk, a tall palm, a bush
                     for (int i = 0; i < 5; i++)
                         Place("wood-fence", "wood fence", b.id, L(18.6f, -5f + i * 2.5f), Face(n), parent, Col.Bounds, 0.01f);
                     Place("palm-tall", "tree", b.id, L(12f, 1.5f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.32f);
-                    Place("bush", "bush", b.id, L(16.6f, -4.4f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
+                    Place("dry-shrub", "bush", b.id, L(16.6f, -4.4f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
                     Place("aircon", "aircon", b.id, L(9f, -6.1f), Face(t), parent, Col.Bounds, 0.015f);
                     break;
                 default: // service yard: dumpsters, bags, boxes, crates, a utility box
@@ -230,7 +232,7 @@ namespace StreetEmpire.EditorTools
             Place("palm-short", "tree", b.id, b.center + new Vector3(3.8f, YardTop, -3.2f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.2f);
             Place("barrel", "junk", b.id, b.center + new Vector3(1.2f, YardTop, 4.6f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Bounds, 0.02f);
             Place("tyre", "junk", b.id, b.center + new Vector3(-1.4f, YardTop, -4.4f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.02f);
-            Place("bush", "bush", b.id, b.center + new Vector3(-5.6f, YardTop, -5.4f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
+            Place("dry-shrub", "bush", b.id, b.center + new Vector3(-5.6f, YardTop, -5.4f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
             Place("aircon", "aircon", b.id, b.center + new Vector3(5.8f, YardTop, 5.9f), Quaternion.Euler(0, 180, 0), parent, Col.Bounds, 0.015f);
         }
 
@@ -411,7 +413,7 @@ namespace StreetEmpire.EditorTools
             if (model is "utility-pole" or "traffic-signal" or "stop-sign" or "sign-post" or "bus-shelter" or "bus-stop-sign"
                 || model.StartsWith("tree-") || model.StartsWith("palm-") || model.StartsWith("street-blade")) return (40f, 170f, true);
             if (model is "manhole" or "cardboard-box" or "crate" or "trashbag" or "tyre") return (15f, 45f, false);
-            if (model is "wood-fence" or "chainlink-panel" or "chainlink-post" or "hedge" or "dumpster" or "road-barrier" or "bench") return (22f, 80f, true);
+            if (model is "wood-fence" or "chainlink-panel" or "chainlink-post" or "hedge" or "dry-hedge" or "dumpster" or "road-barrier" or "bench") return (22f, 80f, true);
             return (18f, 60f, true);
         }
 
@@ -633,9 +635,113 @@ namespace StreetEmpire.EditorTools
 
         // ---------------------------------------------------------------- flat markings, one mesh per material
 
+        // ---------------------------------------------------------------- decals (cracks, oil, litter, graffiti)
+
+        /// <summary>The decal atlas tiles (tools/draw_decals.py, finished by Sovereign Asset as decal-set.glb):
+        /// two rows of four 256 px ground tiles, then four 512 x 256 graffiti pieces.</summary>
+        static Rect Tile(int i) => new Rect((i % 4) * 0.25f, (i / 4) * 0.25f, 0.25f, 0.25f);
+        static Rect Piece(int i) => new Rect((i % 2) * 0.5f, 0.5f + (i / 2) * 0.25f, 0.5f, 0.25f);
+        static readonly int[] Cracks = { 0, 1, 6 }, Oils = { 2, 3, 7 }, Litters = { 4, 5 };
+        static int Hash(int a, int b, int c) { unchecked { int h = a * 73856093 ^ b * 19349663 ^ c * 83492791; return h & 0x7fffffff; } }
+
+        /// <summary>How far the street center lies past the block center on side k (0 if the side faces the edge).</summary>
+        static float StreetAt(BlockInfo b, int k, float[] xs, float[] zs)
+        {
+            float c = k < 2 ? b.center.x : b.center.z; float sign = k % 2 == 0 ? 1 : -1;
+            var lines = k < 2 ? xs : zs; float best = 0;
+            foreach (var l in lines) { float d = (l - c) * sign; if (d > CurbLine && (best == 0 || d < best)) best = d; }
+            return best;
+        }
+
+        /// <summary>Street grime along one block side: cracks in the asphalt and the sidewalk, oil where cars park and
+        /// stop, litter in the gutter and on the walk. Dealt by a hash so the build is the same every time.</summary>
+        static void Grime(BlockInfo b, int k, float street, Marks marks)
+        {
+            var n = N(k); var t = T(k);
+            float far = street > 0 ? street - 0.6f : CurbLine + 5f;    // stay on this block's half of the street
+            for (int i = 0; i < 6; i++)
+            {
+                float s = -17f + i * 6.8f; int h = Hash(b.id, k, i);
+                float ang = (h % 360) * Mathf.Deg2Rad; var r = Mathf.Cos(ang) * t + Mathf.Sin(ang) * n; var u = Vector3.Cross(Vector3.up, r) * -1f;
+                if (h % 3 == 0) marks.Decal("Decal", At(b, k, Mathf.Lerp(CurbLine + 1.5f, far, (h / 7 % 10) / 10f), s, 0.008f), r, u, Vector3.up, 2.2f, 2.2f, Tile(Cracks[h / 3 % 3]));
+                if (h % 4 == 1 && ParkLine < far) marks.Decal("Decal", At(b, k, ParkLine + (h / 5 % 3 - 1) * 0.4f, s + 2f, 0.009f), r, u, Vector3.up, 1.7f, 1.7f, Tile(Oils[h / 4 % 3]));
+                if (h % 5 == 2) marks.Decal("Decal", At(b, k, CurbLine + 0.55f, s - 1.5f, 0.01f), r, u, Vector3.up, 1.3f, 1.3f, Tile(Litters[h / 5 % 2]));
+                if (h % 7 == 3) marks.Decal("Decal", At(b, k, 20.8f, s + 1f, SidewalkTop + 0.006f), r, u, Vector3.up, 1.4f, 1.4f, Tile(h % 2 == 0 ? Cracks[0] : Litters[1]));
+            }
+        }
+
+        /// <summary>Tags and pieces on the side walls of about half the buildings, found by a ray against the real
+        /// wall (a mesh collider on the near model while the scene is built, removed after) so they sit on it.</summary>
+        static void Graffiti(Marks marks)
+        {
+            int tagged = 0;
+            foreach (var bm in Object.FindObjectsByType<BuildingMarker>(FindObjectsSortMode.None).OrderBy(x => x.blockId).ThenBy(x => x.index))
+            {
+                int h = Hash(bm.blockId, bm.index, 5);
+                if (h % 2 == 1) continue;
+                var lod = bm.GetComponent<RuntimeLod>(); var box = bm.GetComponent<BoxCollider>();
+                if (lod == null || box == null || lod.near == null) continue;
+                var temp = new List<MeshCollider>();
+                foreach (var r in lod.near) { var mf = r != null ? r.GetComponent<MeshFilter>() : null; if (mf != null && mf.sharedMesh != null) { var mc = r.gameObject.AddComponent<MeshCollider>(); mc.sharedMesh = mf.sharedMesh; temp.Add(mc); } }
+                Physics.SyncTransforms();
+                var bounds = box.bounds; var side = bm.transform.right * (h % 4 == 0 ? 1 : -1); var fwd = bm.transform.forward;
+                var from = bounds.center + side * (bounds.extents.magnitude + 2f) + fwd * (bounds.extents.z * 0.3f);
+                from.y = 1.5f;
+                var hit = Physics.RaycastAll(from, -side, bounds.extents.magnitude + 3f, ~0, QueryTriggerInteraction.Ignore)
+                    .Where(x => temp.Contains(x.collider as MeshCollider)).OrderBy(x => x.distance).FirstOrDefault();
+                if (hit.collider != null && Mathf.Abs(hit.normal.y) < 0.3f)
+                {
+                    var nrm = new Vector3(hit.normal.x, 0, hit.normal.z).normalized;
+                    var right = Vector3.Cross(Vector3.up, -nrm);
+                    marks.Decal("Graffiti", hit.point + nrm * 0.03f, right, Vector3.up, nrm, 2.6f, 1.3f, Piece(h / 2 % 4));
+                    tagged++;
+                }
+                foreach (var mc in temp) Object.DestroyImmediate(mc);
+            }
+            Debug.Log($"[PropBuilder] graffiti on {tagged} walls");
+        }
+
+        /// <summary>The decal material: lit, alpha blended over the ground or wall, no shadow of its own.</summary>
+        static Material DecalMat(string name)
+        {
+            string path = $"{MatDir}/{name.Replace(" ", "_")}.mat";
+            var lit = Shader.Find("Universal Render Pipeline/Lit");
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m == null) { Directory.CreateDirectory(MatDir); m = new Material(lit); AssetDatabase.CreateAsset(m, path); } else m.shader = lit;
+            m.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>($"{Tex}/decal-set__decals_basecolor.png"));
+            m.SetColor("_BaseColor", Color.white); m.SetFloat("_Smoothness", 0.1f); m.SetFloat("_Metallic", 0f);
+            m.SetFloat("_Surface", 1); m.SetFloat("_Blend", 0); m.SetFloat("_AlphaClip", 0); m.DisableKeyword("_ALPHATEST_ON");
+            m.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha); m.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha); m.SetFloat("_ZWrite", 0);
+            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT"); m.SetOverrideTag("RenderType", "Transparent");
+            m.renderQueue = (int)RenderQueue.Transparent - 100; m.SetFloat("_Cull", 2f);
+            m.SetShaderPassEnabled("ShadowCaster", false);
+            m.enableInstancing = true; EditorUtility.SetDirty(m);
+            return m;
+        }
+
         class Marks
         {
             readonly Dictionary<string, (List<Vector3> v, List<Vector2> uv, List<int> t)> sets = new();
+            readonly Dictionary<string, List<Vector3>> normals = new();
+
+            /// <summary>A decal: a w by h quad centered on c, `right` across it and `up` along it, facing n, showing the
+            /// atlas rectangle uv (0 to 1, from the top left of the decal atlas).</summary>
+            public void Decal(string set, Vector3 c, Vector3 right, Vector3 up, Vector3 n, float w, float h, Rect uv)
+            {
+                if (!sets.TryGetValue(set, out var s)) sets[set] = s = (new List<Vector3>(), new List<Vector2>(), new List<int>());
+                if (!normals.TryGetValue(set, out var nl)) normals[set] = nl = new List<Vector3>();
+                while (nl.Count < s.v.Count) nl.Add(Vector3.up);
+                var a = right.normalized * (w / 2); var b = up.normalized * (h / 2);
+                int i = s.v.Count;
+                s.v.Add(c - a - b); s.v.Add(c - a + b); s.v.Add(c + a + b); s.v.Add(c + a - b);
+                // atlas rows run from the top (glTF), Unity v runs from the bottom
+                float u0 = uv.xMin, u1 = uv.xMax, v0 = 1f - uv.yMax, v1 = 1f - uv.yMin;
+                s.uv.Add(new Vector2(u0, v0)); s.uv.Add(new Vector2(u0, v1)); s.uv.Add(new Vector2(u1, v1)); s.uv.Add(new Vector2(u1, v0));
+                for (int q = 0; q < 4; q++) nl.Add(n.normalized);
+                bool front = Vector3.Dot(Vector3.Cross(b, a), n) > 0;
+                if (front) { s.t.Add(i); s.t.Add(i + 1); s.t.Add(i + 2); s.t.Add(i); s.t.Add(i + 2); s.t.Add(i + 3); }
+                else { s.t.Add(i); s.t.Add(i + 2); s.t.Add(i + 1); s.t.Add(i); s.t.Add(i + 3); s.t.Add(i + 2); }
+            }
 
             /// <summary>A flat rectangle centered on c, `along` meters along a and `across` along b, at height y.</summary>
             public void Line(Vector3 c, Vector3 a, Vector3 b, float along, float across, float y, string set = "White") => Quad(set, c, a, b, along, across, y, 1f);
@@ -664,6 +770,8 @@ namespace StreetEmpire.EditorTools
                     ["Joint"] = Plain("SidewalkJoint", new Color(0.36f, 0.35f, 0.33f), 0.05f),
                     ["CurbEdge"] = Plain("CurbEdge", new Color(0.72f, 0.71f, 0.68f), 0.1f),
                     ["Lot"] = Textured("LotConcrete", "Assets/Art/Textures/Ground/cracked_concrete_basecolor.jpg", "Assets/Art/Textures/Ground/cracked_concrete_normal.jpg", 1f, 0.1f, Color.white),
+                    ["Decal"] = DecalMat("Decal Ground"),
+                    ["Graffiti"] = DecalMat("Decal Graffiti"),
                     ["Dirt"] = Textured("LotDirt", "Assets/Art/Textures/Ground/park_dirt_basecolor.jpg", "Assets/Art/Textures/Ground/park_dirt_normal.jpg", 1f, 0.05f, Color.white),
                 };
                 foreach (var kv in sets)
@@ -672,7 +780,9 @@ namespace StreetEmpire.EditorTools
                     if (AssetDatabase.LoadAssetAtPath<Mesh>(path) != null) AssetDatabase.DeleteAsset(path);
                     var mesh = new Mesh { name = $"Markings {kv.Key}", indexFormat = IndexFormat.UInt32 };
                     mesh.SetVertices(kv.Value.v); mesh.SetUVs(0, kv.Value.uv); mesh.SetTriangles(kv.Value.t, 0);
-                    mesh.SetNormals(Enumerable.Repeat(Vector3.up, kv.Value.v.Count).ToList());
+                    var nl = normals.TryGetValue(kv.Key, out var got) ? got : new List<Vector3>();
+                    while (nl.Count < kv.Value.v.Count) nl.Add(Vector3.up);
+                    mesh.SetNormals(nl);
                     mesh.RecalculateTangents(); mesh.RecalculateBounds();
                     AssetDatabase.CreateAsset(mesh, path);
                     var go = new GameObject($"Markings {kv.Key}"); go.transform.SetParent(parent, false);

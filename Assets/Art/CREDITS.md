@@ -41,6 +41,8 @@ Every prop below was finished, exported and checked in Sovereign Asset (/asset.h
 | Models/Props/stop-sign, sign-post, street-blade-0..7, traffic-signal, mailbox, newspaper-box, dumpster, utility-pole, wood-fence, bus-stop-sign, bus-shelter | Modeled for this project in Blender (own work, no third-party source). Sign faces and grime textures drawn for this project with PIL. The street names are made up for the game. |
 | Models/Props/tree-maple, tree-elm, tree-young, hedge, bush | Modeled for this project in Blender (own work), leaf and bark textures generated for this project. |
 | Models/Props/palm-tall, palm-short | Modeled for this project (own work, tools/model_palms.py) after the original web game's procedural Eastside palm: tapered trunk, nine drooping alpha frond planes. Frond and bark textures drawn for this project with PIL in the web palette. Sovereign Asset Game ready, both READY. |
+| Models/Props/dry-shrub, dry-hedge | Modeled for this project (own work, tools/model_plants.py): crossed blade cards with a dry olive and straw blade texture drawn with PIL, in place of the round hedge and bush blobs. Sovereign Asset Game ready, READY. |
+| Models/Props/decal-set (decal atlas) | Drawn for this project with PIL (tools/draw_decals.py): asphalt cracks, oil stains, litter and four graffiti pieces. The lettering uses the Bangers font by Vernon Adams (SIL Open Font License 1.1). Sovereign Asset Game ready, READY. |
 | Textures/Ground/worn_asphalt, concrete_pavement, sparse_grass, leafy_grass, park_dirt, cracked_concrete | Poly Haven textures of the same names, CC0 1.0 (1k diffuse and OpenGL normal maps). |
 
 Poly Haven assets are CC0: no attribution is required; it is given here anyway.

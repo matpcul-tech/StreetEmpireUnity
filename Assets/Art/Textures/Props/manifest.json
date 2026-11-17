@@ -322,6 +322,63 @@
    "metalsmooth": "crate__plastic_crate_02_metalsmooth.png"
   },
   {
+   "prop": "decal-set",
+   "material": "decals",
+   "alpha": "BLEND",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8999999761581421,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "decal-set__decals_basecolor.png"
+  },
+  {
+   "prop": "dry-hedge",
+   "material": "dry_blades",
+   "alpha": "MASK",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.949999988079071,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "dry-hedge__dry_blades_basecolor.png"
+  },
+  {
+   "prop": "dry-shrub",
+   "material": "dry_blades",
+   "alpha": "MASK",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.949999988079071,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "dry-shrub__dry_blades_basecolor.png"
+  },
+  {
    "prop": "dumpster",
    "material": "dumpster",
    "alpha": "OPAQUE",

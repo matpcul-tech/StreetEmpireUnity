@@ -57,7 +57,7 @@ namespace StreetEmpire.EditorTools
             if (assetPath.StartsWith("Assets/Art/Textures/Props/") && assetPath.Contains("chainlink")) t.wrapMode = UnityEngine.TextureWrapMode.Repeat;
             // palm fronds are alpha tested: keep their coverage in the mips so the crowns do not thin out with
             // distance, and keep the alpha channel on WebGL (DXT5, not DXT1)
-            bool frond = assetPath.StartsWith("Assets/Art/Textures/Props/") && assetPath.Contains("palm_frond");
+            bool frond = assetPath.StartsWith("Assets/Art/Textures/Props/") && (assetPath.Contains("palm_frond") || assetPath.Contains("dry_blades") || assetPath.Contains("decal-set"));
             if (frond) { t.alphaIsTransparency = true; t.mipMapsPreserveCoverage = true; t.alphaTestReferenceValue = 0.5f; }
             t.textureCompression = TextureImporterCompression.Compressed;
             // M5: compressed on the GPU, not RGBA32. Android ASTC (6x6 color, 5x5 normals), WebGL DXT
@@ -81,7 +81,7 @@ namespace StreetEmpire.EditorTools
         static readonly string[] SmallProps = { "tyre", "trashbag", "cardboard-box", "crate", "barrel", "manhole", "security-light",
             "newspaper-box", "mailbox", "utility-box-1", "utility-box-2", "aircon", "bus-stop-sign", "sign-post" };
 
-        static bool Crisp(string path) => path.Contains("chainlink-panel__modular_chainlink_fence_wire") || path.Contains("street-blade") || path.Contains("stop-sign__stop");
+        static bool Crisp(string path) => path.Contains("chainlink-panel__modular_chainlink_fence_wire") || path.Contains("decal-set") || path.Contains("street-blade") || path.Contains("stop-sign__stop");
 
         /// <summary>Prop texture sizes: hero color 2048 with 1024 normals, glass 256, metal and smoothness 512,
         /// small clutter 512, the rest 1024 color and 512 normals.</summary>

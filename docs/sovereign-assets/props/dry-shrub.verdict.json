@@ -1,0 +1,18 @@
+{
+ "name": "dry-shrub",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 12,
+ "tris_after": 12,
+ "maxTex": "512",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 24 open edges. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Triangles 12 triangles. No target was set.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.39 wide, 0.950 tall, 1.11 long (meters). No size was set.",
+  "NOTE File size 10 KB, was 10 KB."
+ ],
+ "found": "No broken geometry found. 24 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}
