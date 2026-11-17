@@ -7,6 +7,7 @@
 //   shot=overview high view over the whole district
 //   shot=cruiser two stars, standing still while a cruiser drives in
 //   shot=peds    side view following a walking pedestrian (posture, feet, corners); logs each ped's lean
+//   shot=legs    side view of the player: idle, then keys 2 walk, 3 sprint, 1 stand; logs the knee angles
 using System.Collections;
 using StreetEmpire.Player;
 using StreetEmpire.Vehicles;
@@ -53,6 +54,9 @@ namespace StreetEmpire.Game
                 case "peds":
                     StartCoroutine(FollowPed());
                     break;
+                case "legs":
+                    StartCoroutine(PlayerLegs(p));
+                    break;
                 case "car":
                     var car = FindFirstObjectByType<CarController>();
                     p.Teleport(car.transform.position - car.transform.right * 2.4f, car.transform.eulerAngles.y);
@@ -69,6 +73,48 @@ namespace StreetEmpire.Game
             if (a == null || !a.isHuman || a.GetBoneTransform(HumanBodyBones.Neck) == null) return 0;
             var v = Vector3.ProjectOnPlane(a.GetBoneTransform(HumanBodyBones.Neck).position - a.GetBoneTransform(HumanBodyBones.Hips).position, root.right);
             return Vector3.SignedAngle(Vector3.up, v, root.right);
+        }
+
+        /// <summary>Angle at the knee (upper leg, knee, ankle), degrees; 180 is straight.</summary>
+        public static float Knee(Animator a, bool left)
+        {
+            if (a == null || !a.isHuman) return 0;
+            var up = a.GetBoneTransform(left ? HumanBodyBones.LeftUpperLeg : HumanBodyBones.RightUpperLeg);
+            var kn = a.GetBoneTransform(left ? HumanBodyBones.LeftLowerLeg : HumanBodyBones.RightLowerLeg);
+            var ft = a.GetBoneTransform(left ? HumanBodyBones.LeftFoot : HumanBodyBones.RightFoot);
+            if (up == null || kn == null || ft == null) return 0;
+            return Vector3.Angle(up.position - kn.position, ft.position - kn.position);
+        }
+
+        IEnumerator PlayerLegs(PlayerMotor motor)
+        {
+            var cam = Camera.main;
+            var brain = cam.GetComponent<Unity.Cinemachine.CinemachineBrain>(); if (brain) brain.enabled = false;
+            var anim = motor.animator;
+            // the player starts in the street at the east edge of the block: film from further out in the street
+            var side = Vector3.right;
+            int phase = 1; float nextLog = 0;
+            while (true)
+            {
+                var kb = UnityEngine.InputSystem.Keyboard.current;
+                if (kb != null)
+                {
+                    if (kb.digit1Key.isPressed) phase = 1;
+                    if (kb.digit2Key.isPressed) phase = 2;
+                    if (kb.digit3Key.isPressed) phase = 3;
+                }
+                motor.scriptMove = phase == 1 ? Vector2.zero : phase == 2 ? new Vector2(0.2f, 0) : new Vector2(1f, 0);
+                motor.scriptSprint = phase == 3;
+                var tr = motor.transform;
+                cam.transform.position = tr.position + side * 3.6f + Vector3.up * 1.0f;
+                cam.transform.LookAt(tr.position + Vector3.up * 0.85f);
+                if (Time.time > nextLog)
+                {
+                    nextLog = Time.time + 0.5f;
+                    Debug.Log($"[ShotDirector] legs {(phase == 1 ? "idle" : phase == 2 ? "walk" : "sprint")} speed {motor.PlanarSpeed:0.0} knees {Knee(anim, true):0} {Knee(anim, false):0}");
+                }
+                yield return null;
+            }
         }
 
         IEnumerator FollowPed()
