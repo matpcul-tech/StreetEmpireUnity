@@ -147,3 +147,5 @@ UnityEntitlementLicense*.xml
 .DS_Store
 tools/node_modules
 Assets/Resources/build-label.txt*
+*.keystore
+*.jks

@@ -14,3 +14,4 @@ Converted for Unity glTFast with tools/convert_glb.mjs: meshopt decoded, dequant
 | Models/Characters/Peds/ped-*.fbx and textures | Street Empire Locals models reused as pedestrians (pedestrian-reuse: ped-m-1, ped-m-2, ped-f-1, ped-f-2), Meshy generations made earlier for this project. Same conversion. |
 | Models/Cars/police.glb | Street Empire kit police cruiser (public/models/kit/cars/police-v7.glb, made from the Meshy police-01 model). Converted with tools/convert_glb.mjs. |
 | Models/Cars/sedan_paint_6a2420.jpg | The sedan atlas repainted deep red by tools/paint_car.mjs, the same rule kit.js uses for car paint. |
+| Textures/Cars/police_* | Extracted from Models/Cars/police.glb by tools/extract_car_textures.mjs (metallic-roughness rewritten for URP) so Unity compresses them. |

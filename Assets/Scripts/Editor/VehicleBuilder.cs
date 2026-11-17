@@ -48,6 +48,7 @@ namespace StreetEmpire.EditorTools
             var model = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(glb));
             model.name = "Model"; model.transform.SetParent(root.transform, false);
             UrpMaterials.Apply(model, modelName);
+            BindTextures(model, modelName);
             var bounds = Bounds(model);
             model.transform.localScale *= (length / Mathf.Max(bounds.size.z, 1e-3f));
             bounds = Bounds(model);
@@ -63,6 +64,30 @@ namespace StreetEmpire.EditorTools
             car.cameraTarget = t;
             foreach (var r in model.GetComponentsInChildren<Renderer>()) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
             return car;
+        }
+
+        /// <summary>Use the extracted, GPU compressed textures (tools/extract_car_textures.mjs) when there are any,
+        /// including the metallic-smoothness map: without it the police car's metallic factor of 1 made the
+        /// whole car chrome.</summary>
+        static void BindTextures(GameObject model, string modelName)
+        {
+            const string dir = "Assets/Art/Textures/Cars";
+            var bc = AssetDatabase.LoadAssetAtPath<Texture2D>($"{dir}/{modelName}_basecolor.jpg");
+            if (bc == null) return;
+            var em = AssetDatabase.LoadAssetAtPath<Texture2D>($"{dir}/{modelName}_emissive.jpg");
+            var ms = AssetDatabase.LoadAssetAtPath<Texture2D>($"{dir}/{modelName}_metalsmooth.png");
+            foreach (var m in model.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials).Where(m => m != null).Distinct())
+            {
+                if (m.GetTexture("_BaseMap") == null) continue;
+                m.SetTexture("_BaseMap", bc);
+                if (m.IsKeywordEnabled("_EMISSION")) m.SetTexture("_EmissionMap", em);
+                if (ms != null)
+                {
+                    m.SetTexture("_MetallicGlossMap", ms); m.EnableKeyword("_METALLICSPECGLOSSMAP");
+                    m.SetFloat("_Metallic", 1f); m.SetFloat("_Smoothness", 1f); m.SetFloat("_SmoothnessTextureChannel", 0f);
+                }
+                EditorUtility.SetDirty(m);
+            }
         }
 
         /// <summary>Swap each textured material for a copy that uses the painted atlas.</summary>

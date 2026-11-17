@@ -100,6 +100,14 @@ jobs:
           cliVersion: v0.1.76
           buildName: StreetEmpire
           versioning: Semantic
+          # one persistent release key (kept off the repo), so each APK installs over the last; the version
+          # code is the workflow run number, which only goes up
+          androidVersionCode: ${{ github.run_number }}
+          androidKeystoreName: streetempire-release.keystore
+          androidKeystoreBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+          androidKeyaliasName: ${{ secrets.ANDROID_KEYALIAS_NAME }}
+          androidKeyaliasPass: ${{ secrets.ANDROID_KEYALIAS_PASS }}
       - uses: actions/upload-artifact@v4
         with:
           name: StreetEmpire-${{ matrix.targetPlatform }}

@@ -43,7 +43,9 @@ namespace StreetEmpire.EditorTools
             bool art = assetPath.StartsWith("Assets/Art/Models/") || assetPath.StartsWith("Assets/Art/Textures/");
             if (!art) return;
             bool normal = assetPath.Contains("_normal");
+            bool data = assetPath.Contains("_metalsmooth");   // URP metallic (R) and smoothness (A): linear, keeps alpha
             if (normal) t.textureType = TextureImporterType.NormalMap;
+            if (data) { t.sRGBTexture = false; t.alphaSource = TextureImporterAlphaSource.FromInput; }
             t.mipmapEnabled = true; t.maxTextureSize = 1024;
             t.textureCompression = TextureImporterCompression.Compressed;
             // M5: compressed on the GPU, not RGBA32. Android ASTC (6x6 color, 5x5 normals), WebGL DXT
@@ -57,7 +59,7 @@ namespace StreetEmpire.EditorTools
             t.SetPlatformTextureSettings(new TextureImporterPlatformSettings
             {
                 name = "WebGL", overridden = true, maxTextureSize = 1024,
-                format = normal ? TextureImporterFormat.DXT5 : TextureImporterFormat.DXT1,
+                format = normal || data ? TextureImporterFormat.DXT5 : TextureImporterFormat.DXT1,
                 compressionQuality = 50,
             });
         }
