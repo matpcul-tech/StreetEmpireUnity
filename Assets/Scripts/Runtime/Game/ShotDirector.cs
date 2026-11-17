@@ -66,7 +66,7 @@ namespace StreetEmpire.Game
         /// <summary>Upper body lean of a character from hips to neck, degrees, positive forward.</summary>
         public static float Lean(Animator a, Transform root)
         {
-            if (a == null || !a.isHuman) return 0;
+            if (a == null || !a.isHuman || a.GetBoneTransform(HumanBodyBones.Neck) == null) return 0;
             var v = Vector3.ProjectOnPlane(a.GetBoneTransform(HumanBodyBones.Neck).position - a.GetBoneTransform(HumanBodyBones.Hips).position, root.right);
             return Vector3.SignedAngle(Vector3.up, v, root.right);
         }
@@ -91,10 +91,10 @@ namespace StreetEmpire.Game
                     foreach (var p in peds)
                     {
                         var b = p.GetComponent<NpcBody>();
-                        Debug.Log($"[ShotDirector] ped {p.name} lean {Lean(b.animator, p.transform):0.0} speed {b.Speed:0.00} y {p.transform.position.y:0.00}");
+                        Debug.Log($"[ShotDirector] ped {p.name} lean {b.Lean:0.0} speed {b.Speed:0.00} y {p.transform.position.y:0.00}");
                     }
                 }
-                yield return new WaitForEndOfFrame();
+                yield return null;
             }
         }
     }

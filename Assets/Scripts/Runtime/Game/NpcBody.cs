@@ -22,6 +22,8 @@ namespace StreetEmpire.Game
         public CharacterController Controller => cc != null ? cc : cc = GetComponent<CharacterController>();
         public float Speed { get; private set; }
         public bool IsDown { get; private set; }
+        /// <summary>Upper body lean (hips to neck, degrees, positive forward) as drawn this frame.</summary>
+        public float Lean { get; private set; }
 
         void Awake()
         {
@@ -64,6 +66,7 @@ namespace StreetEmpire.Game
             // after the Animator has posed the bones: stand the upper body up by the rest pose lean
             if (spine != null && !IsDown && Mathf.Abs(restLean) > 0.5f)
                 spine.rotation = Quaternion.AngleAxis(-restLean, transform.right) * spine.rotation;
+            Lean = ShotDirector.Lean(animator, transform);
         }
 
         public void Face(Vector3 at)

@@ -25,7 +25,6 @@ namespace StreetEmpire.Tests
             for (int k = 0; k < 24; k++)
             {
                 yield return new WaitForSeconds(0.25f);
-                yield return new WaitForEndOfFrame();
                 foreach (var p in peds)
                 {
                     var body = p.GetComponent<NpcBody>();
@@ -37,7 +36,7 @@ namespace StreetEmpire.Tests
                     maxHover = Mathf.Max(maxHover, Mathf.Abs(pos.y - hit.point.y));
                     if (body.Speed > 0.8f)
                     {
-                        maxLean = Mathf.Max(maxLean, ShotDirector.Lean(body.animator, p.transform));
+                        maxLean = Mathf.Max(maxLean, body.Lean);
                         minParam = Mathf.Min(minParam, body.animator.GetFloat("Speed"));
                         samples++;
                     }
