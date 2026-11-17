@@ -1,0 +1,15 @@
+# Matthew's checklist: Unity vs the original web game (audit, Nov 17, 2026, v67)
+
+Reference: matpcul-tech/StreetEmpire (read only) src/main.js, src/state.js, src/city.js, src/style.css, index.html,
+and the live game (shots in /workspace/shots/web-original). Order of work below is by visual impact.
+
+| # | Item | Web game | Unity v67 | Gap |
+|---|---|---|---|---|
+| 1 | Player and follow camera | Camera 5.2 m behind, pivot 1.7 m, aimed 1.2 m past the player and 0.6 m to the right (over the shoulder), pitch starts at 0.3 rad (17 deg), range -0.1 to 1.1 rad, 0.0026 rad per mouse pixel, position eased (12 per s), pulled in when a wall is behind, FOV 62 | Cinemachine orbit, 5.2 m, FOV 58, pitch 14 deg in -8 to 60, centered on the player, no wall pull in, 0.12 deg per pixel | Shoulder offset, look ahead, FOV 62, start pitch, mouse feel, wall pull in |
+| 2 | Sunset sky, fog, grade | Golden hour, warm haze 62 to 270 m, ACES plus LUT grade | Done in v67 | Sky horizon must meet the fog color so no line shows; outer ground is green grass |
+| 3 | NPCs and the mugger mission | 2.5 s into a new game a mugger appears 9 m ahead and rushes you; at 2.3 m he grabs the bag and shoves you; when he is hurt, grabs, or after 3.2 s two friends join (50 hp fists, 56 hp bat); when all are down (or 22 s) a Red Kings scout drives by, bails out and chases for 5 s; then "The street goes quiet. Unc wants a word." and Bag Back is offered. Onboarding box: 1/3 Stop the muggers, 2/3 Talk to Unc, 3/3 Take a block | Four sidewalk pedestrians, police, Unc and Bag Back. No mugger opening, no onboarding | Mugger opening with the friends and the bat, the onboarding box; the scout drive by |
+| 4 | Minimap and heat HUD | Round radar top left (200 px, dark green #2a332b, grey roads with dashed yellow lines, blocks tinted by crew, capture rings, Unc as a yellow dot and letter at the edge, job target dot, people as crew dots, cops flashing red and blue, turns with the camera). Top right column: clock, weapon, cash (#f4e6c4, 30 px), HEAT with five slanted bars (orange to red when lit), red health bar, Rep and Turf | Green cash top left, five diamonds top right, no radar, no health, no clock | Radar, the HEAT bars, health bar, clock, weapon, Rep and Turf, web colors |
+| 5 | Prop cleanup: sky, sun, fog, grade | as 2 | Done in v67 | Verify on Ultra and High that the fog hides the edge |
+| 6 | Decals | Painted asphalt and grime in the web textures, trash bags | None | Cracks, oil stains, graffiti, litter |
+| 7 | Palms, no blob foliage | Palms only; yards are dry grass, no hedges or round bushes | Palms done; hedges and bushes are still round blobs | Replace hedges and bushes with dry web style plants |
+| 8 | Houses for the Eastside | White stucco houses with red tile roofs | house-01 bungalow (white stucco, red tile, bars) and house-02 (peach stucco) read right; house-wood-duplex, house-shotgun (clapboard), house-boarded and house-rowhouse-pair (brick, Chicago) read wrong; house-03-duplex is mint | Replace or reskin the four wrong ones |
