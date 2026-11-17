@@ -60,13 +60,13 @@ jobs:
 
   build:
     name: Build ${{ matrix.targetPlatform }}
-    needs: test
+    # bisect branch: build only
     runs-on: ubuntu-latest
     timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
-        targetPlatform: [Android, WebGL]
+        targetPlatform: [Android]
     steps:
       - name: Free disk space (Android image is large)
         if: matrix.targetPlatform == 'Android'
@@ -97,9 +97,15 @@ jobs:
           # pinned: resolving "latest" calls the GitHub API unauthenticated and can hit a 403 rate limit
           cliVersion: v0.1.76
           buildName: StreetEmpire
+          androidVersionCode: ${{ github.run_number }}
+          androidKeystoreName: streetempire-release.keystore
+          androidKeystoreBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+          androidKeyaliasName: ${{ secrets.ANDROID_KEYALIAS_NAME }}
+          androidKeyaliasPass: ${{ secrets.ANDROID_KEYALIAS_PASS }}
           versioning: Semantic
       - uses: actions/upload-artifact@v4
         with:
-          name: StreetEmpire-${{ matrix.targetPlatform }}
+          name: StreetEmpire-${{ matrix.targetPlatform }}-m5-signed
           path: build/${{ matrix.targetPlatform }}
           retention-days: 14

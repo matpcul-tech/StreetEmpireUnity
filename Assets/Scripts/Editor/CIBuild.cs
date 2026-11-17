@@ -22,6 +22,7 @@ namespace StreetEmpire.EditorTools
                 options = BuildOptions.None,
             };
             if (target == BuildTarget.Android) EditorUserBuildSettings.buildAppBundle = false; // APK for now, AAB with signing later
+            if (target == BuildTarget.Android) AndroidSigning(); // bisect: the M5 commit plus only the release key and version code
             var report = BuildPipeline.BuildPlayer(options);
             var r = report.summary;
             Debug.Log($"[CIBuild] {target} {r.result} size {r.totalSize} errors {r.totalErrors} at {path}");
@@ -36,6 +37,24 @@ namespace StreetEmpire.EditorTools
             Console.WriteLine($"Size: {r.totalSize} bytes");
             if (r.result == BuildResult.Succeeded) Console.WriteLine("Build succeeded!");
             if (Application.isBatchMode) EditorApplication.Exit(r.result == BuildResult.Succeeded ? 0 : 1);
+        }
+
+        /// <summary>GameCI passes the version code and the release key (decoded into the project folder) on the
+        /// command line; its own build script would apply them, a custom build method has to. Nothing secret is logged.</summary>
+        static void AndroidSigning()
+        {
+            if (int.TryParse(Arg("-androidVersionCode") ?? "", out int code) && code > 0) PlayerSettings.Android.bundleVersionCode = code;
+            var ks = Arg("-androidKeystoreName");
+            string pass = Arg("-androidKeystorePass"), alias = Arg("-androidKeyaliasName"), aliasPass = Arg("-androidKeyaliasPass");
+            string path = string.IsNullOrEmpty(ks) ? null : System.IO.Path.GetFullPath(ks);
+            bool signed = path != null && System.IO.File.Exists(path) && !string.IsNullOrEmpty(pass) && !string.IsNullOrEmpty(alias);
+            PlayerSettings.Android.useCustomKeystore = signed;
+            if (signed)
+            {
+                PlayerSettings.Android.keystoreName = path; PlayerSettings.Android.keystorePass = pass;
+                PlayerSettings.Android.keyaliasName = alias; PlayerSettings.Android.keyaliasPass = aliasPass;
+            }
+            Debug.Log($"[CIBuild] Android version code {PlayerSettings.Android.bundleVersionCode}, {(signed ? "signed with the release key" : "debug signed (no release key given)")}");
         }
 
         static string Arg(string name)
