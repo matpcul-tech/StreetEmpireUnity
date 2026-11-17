@@ -61,11 +61,18 @@ namespace StreetEmpire.Game
             return Mathf.Lerp(5f, 9f, Mathf.Clamp01((speed - jogClipSpeed) / (sprintClipSpeed - jogClipSpeed)));
         }
 
+        Quaternion corrected; bool hasCorrected;
+
         void LateUpdate()
         {
             // after the Animator has posed the bones: stand the upper body up by the rest pose lean
-            if (spine != null && !IsDown && Mathf.Abs(restLean) > 0.5f)
+            // only when the Animator wrote the spine this frame: a culled Animator (CullUpdateTransforms, off
+            // screen or no camera) leaves last frame's corrected pose, and turning it again would add up
+            if (spine != null && !IsDown && Mathf.Abs(restLean) > 0.5f && !(hasCorrected && spine.localRotation == corrected))
+            {
                 spine.rotation = Quaternion.AngleAxis(-restLean, transform.right) * spine.rotation;
+                corrected = spine.localRotation; hasCorrected = true;
+            }
             Lean = ShotDirector.Lean(animator, transform);
         }
 
