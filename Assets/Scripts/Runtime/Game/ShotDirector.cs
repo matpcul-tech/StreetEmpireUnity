@@ -113,9 +113,29 @@ namespace StreetEmpire.Game
                 {
                     nextLog = Time.time + 3f;
                     Debug.Log($"[ShotDirector] tour view {view + 1} draws {draws.LastValue} batches {batches.LastValue} setpass {setpass.LastValue} tris {trisRec.LastValue} frame {Time.smoothDeltaTime * 1000f:0} ms (software renderer here, not a phone number)");
+                    Debug.Log($"[ShotDirector] tour view {view + 1} drawn once (before shadow and depth passes): {Breakdown()}");
                 }
                 yield return null;
             }
+        }
+
+        /// <summary>Triangles of what is drawn, once each, by kind: the counter above adds every pass (depth
+        /// prepass for SSAO, each shadow cascade), so this shows where they come from.</summary>
+        static string Breakdown()
+        {
+            long build = 0, chars = 0, other = 0;
+            foreach (var r in FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+            {
+                if (!r.isVisible || !r.enabled) continue;
+                Mesh m = r is SkinnedMeshRenderer sk ? sk.sharedMesh : r.GetComponent<MeshFilter>()?.sharedMesh;
+                if (m == null) continue;
+                long t = 0; for (int i = 0; i < m.subMeshCount; i++) t += m.GetIndexCount(i) / 3;
+                if (r is SkinnedMeshRenderer) chars += t;
+                else if (r.GetComponentInParent<StreetEmpire.City.BuildingMarker>() != null) build += t;
+                else other += t;
+            }
+            var pi = FindFirstObjectByType<StreetEmpire.City.PropInstancer>();
+            return $"buildings {build} (incl. shadow proxies), characters {chars}, other renderers {other}, instanced props {(pi ? pi.LastTriangles : 0)} in {(pi ? pi.LastInstances : 0)} copies";
         }
 
         /// <summary>Upper body lean of a character from hips to neck, degrees, positive forward.</summary>

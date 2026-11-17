@@ -117,6 +117,9 @@ namespace StreetEmpire.EditorTools
                 F("Intensity", 1.6f); F("Radius", 0.45f); F("DirectLightingStrength", 0.25f);
                 B("Downsample", true);        // half resolution: most of the look for a quarter of the cost
                 B("AfterOpaque", false);
+                // depth only, normals rebuilt from it: the depth-normals source draws the whole scene once more
+                void E(string n, int v) { var p = s.FindPropertyRelative(n); if (p != null) p.enumValueIndex = v; else Debug.LogWarning($"[GraphicsSetup] SSAO has no {n}"); }
+                E("Source", 0); E("NormalSamples", 1);
             }
             so.ApplyModifiedPropertiesWithoutUndo();
             feature.SetActive(true);

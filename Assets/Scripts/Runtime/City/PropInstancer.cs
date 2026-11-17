@@ -21,13 +21,14 @@ namespace StreetEmpire.City
         readonly List<Matrix4x4> near = new(), far = new();
         public int LastInstances { get; private set; }
         public int LastDraws { get; private set; }
+        public long LastTriangles { get; private set; }
 
         void LateUpdate()
         {
             var cam = Camera.main; if (cam == null || !SystemInfo.supportsInstancing) return;
             GeometryUtility.CalculateFrustumPlanes(cam, planes);
             var eye = cam.transform.position;
-            int shown = 0, draws = 0;
+            int shown = 0, draws = 0; long tris = 0;
             foreach (var b in batches)
             {
                 if (b == null || b.lod0 == null || b.matrices == null) continue;
@@ -46,10 +47,18 @@ namespace StreetEmpire.City
                     else { near.Add(m); if (hn) nb.Encapsulate(box); else { nb = box; hn = true; } }
                 }
                 shown += near.Count + far.Count;
+                tris += near.Count * Tris(b.lod0) + far.Count * Tris(b.lod1);
                 if (hn) draws += Draw(b, b.lod0, near, nb);
                 if (hf) draws += Draw(b, b.lod1, far, fb);
             }
-            LastInstances = shown; LastDraws = draws;
+            LastInstances = shown; LastDraws = draws; LastTriangles = tris;
+        }
+
+        static long Tris(Mesh m)
+        {
+            if (m == null) return 0;
+            long t = 0; for (int i = 0; i < m.subMeshCount; i++) t += m.GetIndexCount(i) / 3;
+            return t;
         }
 
         int Draw(PropBatch b, Mesh mesh, List<Matrix4x4> list, Bounds bounds)
