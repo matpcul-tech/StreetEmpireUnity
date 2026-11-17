@@ -23,13 +23,12 @@ namespace StreetEmpire.EditorTools
             };
             if (target == BuildTarget.Android) EditorUserBuildSettings.buildAppBundle = false; // APK for now, AAB with signing later
             if (target == BuildTarget.Android) AndroidSigning();
-            // smaller players: LZ4HC data, unused mesh channels stripped, medium managed code stripping
-            PlayerSettings.stripUnusedMeshComponents = true;
-            if (target == BuildTarget.Android)
-            {
-                options.options |= BuildOptions.CompressWithLz4HC;
-                PlayerSettings.SetManagedStrippingLevel(UnityEditor.Build.NamedBuildTarget.Android, ManagedStrippingLevel.Medium);
-            }
+            // 47c3075 also set medium managed stripping and stripped unused mesh channels, and that APK crashed on
+            // launch on a Samsung phone. Both are back to what the M2 to M4 APKs (which ran) used: minimal
+            // stripping, all mesh channels. LZ4HC only changes how the data is packed.
+            PlayerSettings.stripUnusedMeshComponents = false;
+            PlayerSettings.SetManagedStrippingLevel(UnityEditor.Build.NamedBuildTarget.Android, ManagedStrippingLevel.Minimal);
+            if (target == BuildTarget.Android) options.options |= BuildOptions.CompressWithLz4HC;
             var report = BuildPipeline.BuildPlayer(options);
             var r = report.summary;
             Debug.Log($"[CIBuild] {target} {r.result} size {r.totalSize} errors {r.totalErrors} at {path}");
