@@ -31,10 +31,12 @@ namespace StreetEmpire.Tests
                     var pos = p.transform.position;
                     var d = pos - p.blockCenter;
                     float ring = Mathf.Max(Mathf.Abs(d.x), Mathf.Abs(d.z));
-                    Assert.That(ring, Is.InRange(Ped.SidewalkInner + 0.2f, Ped.SidewalkOuter - 0.1f), $"{p.name} stays on the sidewalk (ring {ring:0.00})");
+                    Assert.That(ring, Is.InRange(Ped.SidewalkInner, Ped.SidewalkOuter - 0.1f), $"{p.name} stays on the sidewalk (ring {ring:0.00})");
+                    foreach (var c in Physics.OverlapSphere(pos + Vector3.up * 1f, 0.28f))
+                        Assert.IsNull(c.GetComponentInParent<StreetEmpire.City.BuildingMarker>(), $"{p.name} is inside {c.name} at {pos}");
                     Assert.IsTrue(Physics.Raycast(pos + Vector3.up * 0.5f, Vector3.down, out var hit, 2f), "ground under the ped");
                     maxHover = Mathf.Max(maxHover, Mathf.Abs(pos.y - hit.point.y));
-                    if (body.Speed > 0.8f)
+                    if (body.Speed > 1f)
                     {
                         maxLean = Mathf.Max(maxLean, body.Lean);
                         minParam = Mathf.Min(minParam, body.animator.GetFloat("Speed"));

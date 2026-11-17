@@ -93,14 +93,13 @@ namespace StreetEmpire.Game
                     var d = nb - pos; d.y = 0;
                     if (d.magnitude < 2.2f && Vector3.Dot(d.normalized, fwd) > 0.5f) { blocked = true; break; }
                 }
-                // pass on the right, like people do: toward the curb or, going the other way round, toward
-                // the buildings (less far, the walls are a meter off the loop)
-                float side = Vector3.Dot(Vector3.Cross(Vector3.up, fwd), outward) >= 0 ? 0.75f : -0.55f;
-                var local = pos - blockCenter; float straight = half - cornerRadius;
-                if (Mathf.Abs(local.x) > straight && Mathf.Abs(local.z) > straight) side = 0.75f; // round a corner on the curb side only
-                sidestep = Mathf.MoveTowards(sidestep, blocked ? side : 0f, dt * 0.8f);
+                // pass on the right when that is the curb side; going the other way round (right hand to the
+                // walls, a meter off) hold the line and slow down while the other one steps out
+                bool rightIsCurb = Vector3.Dot(Vector3.Cross(Vector3.up, fwd), outward) >= 0;
+                sidestep = Mathf.MoveTowards(sidestep, blocked && rightIsCurb ? 0.75f : 0f, dt * 0.8f);
+                float pace = blocked && !rightIsCurb ? 0.4f : 1f;
                 var aim = target + outward * sidestep - pos; aim.y = 0;
-                want = aim.normalized * speed;
+                want = aim.normalized * speed * pace;
             }
             else want = Vector3.zero;
             // ease into the new direction so it walks round corners instead of snapping
