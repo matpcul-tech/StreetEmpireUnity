@@ -1,0 +1,18 @@
+{
+ "name": "hydrant-aged",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 1711,
+ "tris_after": 1704,
+ "maxTex": "512",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 376 open edges and 33 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Triangles 1704 triangles. No target was set.",
+  "NOTE Draw calls 5 draw calls, 1 material.",
+  "NOTE Size 0.275 wide, 0.799 tall, 0.317 long (meters). No size was set.",
+  "NOTE File size 0.3 MB, was 0.3 MB."
+ ],
+ "found": "4 small pieces floating free of the model 51 triangles are lit from the wrong side 391 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

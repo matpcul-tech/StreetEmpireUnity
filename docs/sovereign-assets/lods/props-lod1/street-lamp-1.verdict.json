@@ -1,0 +1,18 @@
+{
+ "name": "street-lamp-1",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 1484,
+ "tris_after": 1484,
+ "maxTex": "512",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 318 open edges and 1 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Triangles 1484 triangles. No target was set.",
+  "NOTE Draw calls 3 draw calls, 2 materials.",
+  "NOTE Size 0.691 wide, 3.87 tall, 0.383 long (meters). No size was set.",
+  "NOTE File size 0.5 MB, was 0.5 MB."
+ ],
+ "found": "26 triangles are lit from the wrong side 318 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

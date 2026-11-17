@@ -1,0 +1,31 @@
+Sovereign Asset report
+Source: chainlink-panel
+Finish: Game ready
+Output: chainlink-panel-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (2 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 14 open edges. Fine for games and rendering. A 3D print needs none.
+PASS  Triangle target: 800 triangles. Target 800.
+NOTE  Draw calls: 2 draw calls, 2 materials.
+PASS  Texture size: All 6 readable textures are 512 px or under.
+NOTE  Size: 0.933 wide, 2.37 tall, 0.048 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 2 materials, 6 textures.
+NOTE  File size: 0.8 MB, was 2.5 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- Closed 0 holes. 1 opening left open: too large or not a simple loop.
+- Reduced 3026 triangles to 800. The surface moved by at most 0.3 percent of the model size. Edges between parts were held in place.
+- The model was set on the ground, centered.
+- Textures: 6 resized to 512 px or under. Saved 1.7 MB.

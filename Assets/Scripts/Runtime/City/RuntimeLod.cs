@@ -10,12 +10,16 @@ namespace StreetEmpire.City
         public Renderer[] near;
         public Renderer[] far;
         public float nearHeight = 0.1f, farHeight = 0.005f;
+        /// <summary>Optional third level (the lowest detail building mesh) and where it stops drawing.</summary>
+        public Renderer[] low;
+        public float lowHeight = 0.004f;
 
         void Awake()
         {
             if (GetComponent<LODGroup>() != null) return;
             var g = gameObject.AddComponent<LODGroup>();
-            g.SetLODs(new[] { new LOD(nearHeight, near), new LOD(farHeight, far) });
+            if (low != null && low.Length > 0) g.SetLODs(new[] { new LOD(nearHeight, near), new LOD(farHeight, far), new LOD(lowHeight, low) });
+            else g.SetLODs(new[] { new LOD(nearHeight, near), new LOD(farHeight, far) });
             g.RecalculateBounds();
         }
     }

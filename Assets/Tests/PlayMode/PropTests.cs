@@ -55,19 +55,36 @@ namespace StreetEmpire.Tests
         public IEnumerator PropsUseTheirUrpMaterials()
         {
             yield return Load();
-            foreach (var p in props)
-                foreach (var r in p.GetComponentsInChildren<Renderer>())
-                    foreach (var m in r.sharedMaterials)
-                    {
-                        Assert.IsNotNull(m, $"{p.name} material");
-                        Assert.IsTrue(m.shader.name.StartsWith("Universal Render Pipeline/"), $"{p.name} uses URP (got {m.shader.name})");
-                        // prop materials come from the texture manifest: named <prop>__<glTF material>
-                        if (p.kind != "parked car") StringAssert.Contains("__", m.name, $"{p.name} material {m.name} was made from the manifest");
-                    }
-            var hydrant = props.First(p => p.kind == "hydrant").GetComponentInChildren<Renderer>().sharedMaterial;
+            var inst = Object.FindFirstObjectByType<PropInstancer>();
+            Assert.IsNotNull(inst, "the props draw through the instancer");
+            foreach (var p in props) Assert.AreEqual(0, p.GetComponentsInChildren<Renderer>().Length, $"{p.name} has no renderer of its own");
+            foreach (var b in inst.batches)
+            {
+                Assert.IsNotNull(b.lod0, $"{b.name} mesh");
+                Assert.AreEqual(b.materials.Length, b.lod0.subMeshCount, $"{b.name}: one submesh per material");
+                if (b.lod1) Assert.AreEqual(b.lod0.subMeshCount, b.lod1.subMeshCount, $"{b.name}: LOD1 keeps the submesh order");
+                foreach (var m in b.materials)
+                {
+                    Assert.IsNotNull(m, $"{b.name} material");
+                    Assert.IsTrue(m.shader.name.StartsWith("Universal Render Pipeline/"), $"{b.name} uses URP (got {m.shader.name})");
+                    Assert.IsTrue(m.enableInstancing, $"{b.name} material {m.name} instances");
+                    // prop materials come from the texture manifest: named <prop>__<glTF material>
+                    if (!b.name.StartsWith("car-")) StringAssert.Contains("__", m.name, $"{b.name} material {m.name} was made from the manifest");
+                }
+            }
+            // every placed prop is drawn by some batch
+            int kinds = props.Where(p => p.kind != "parked car").Select(p => p.model).Distinct().Count(m => !inst.batches.Any(b => b.name.Split('@', '#')[0] == m));
+            Assert.AreEqual(0, kinds, "a batch for every placed prop model");
+            Assert.AreEqual(props.Length, inst.batches.Sum(b => b.matrices.Length), "one instance per placed prop");
+            var hb = inst.batches.First(b => b.name == "hydrant");
+            Assert.IsNotNull(hb.lod1, "hydrant LOD1");
+            var hydrant = hb.materials[0];
             Assert.IsNotNull(hydrant.GetTexture("_BaseMap"), "hydrant base color");
             Assert.IsNotNull(hydrant.GetTexture("_BumpMap"), "hydrant normal map");
             Assert.IsNotNull(hydrant.GetTexture("_MetallicGlossMap"), "hydrant metallic smoothness map");
+            Assert.IsTrue(inst.batches.Any(b => b.name.StartsWith("car-sedan") && b.lod1 != null), "parked sedans have a LOD1");
+            for (int i = 0; i < 3; i++) yield return null;
+            if (SystemInfo.supportsInstancing) Assert.Greater(inst.LastDraws, 0, "the instancer draws");
         }
 
         [UnityTest]
@@ -105,9 +122,12 @@ namespace StreetEmpire.Tests
             yield return Load();
             var cycle = Object.FindFirstObjectByType<TrafficSignalCycle>();
             Assert.IsNotNull(cycle, "signal cycle");
-            Assert.Greater(cycle.greenA.Length, 0, "north-south green lenses");
-            Assert.AreEqual(cycle.greenA.Length, cycle.redA.Length, "a red for every green");
-            Assert.AreEqual(cycle.greenA.Length, cycle.greenB.Length, "both directions have as many heads");
+            Assert.IsTrue(cycle.lenses.Length == 6 && cycle.lenses.All(m => m != null), "red, yellow and green lenses for both directions");
+            Assert.AreNotEqual(cycle.lenses[2], cycle.lenses[5], "each direction lights its own lenses");
+            var inst = Object.FindFirstObjectByType<PropInstancer>();
+            var live = cycle.Live(2);
+            Assert.IsNotNull(live, "live copy of the north-south green");
+            Assert.IsTrue(inst.batches.Any(b => b.materials.Contains(live)), "the instancer draws the live lens");
             Assert.AreEqual(0, cycle.Phase(1f)); Assert.AreEqual(1, cycle.Phase(cycle.green + 1f));
             Assert.AreEqual(3, cycle.Phase(cycle.green + cycle.yellow + cycle.allRed + 1f));
             for (int i = 0; i < 10; i++) yield return null;

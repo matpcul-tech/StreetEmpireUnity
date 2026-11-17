@@ -1,0 +1,17 @@
+{
+ "name": "cardboard-box",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 1000,
+ "tris_after": 297,
+ "maxTex": "512",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 5 open edges and 2 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 0.383 wide, 0.337 tall, 0.516 long (meters). No size was set.",
+  "NOTE File size 0.2 MB, was 0.6 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

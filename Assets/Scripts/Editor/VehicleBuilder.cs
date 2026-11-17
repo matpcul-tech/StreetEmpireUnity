@@ -43,11 +43,11 @@ namespace StreetEmpire.EditorTools
 
         /// <summary>A parked, static copy of a kit car for the curbs (no controller, no rigidbody): the stock
         /// or painted sedan, or the police cruiser. Root at the ground center, nose along +Z, box collider.</summary>
-        public static GameObject ParkedCar(string kind, bool painted)
+        public static GameObject ParkedCar(string kind, bool painted, string glb = null)
         {
             bool police = kind == "police";
             var root = new GameObject(police ? "Parked cruiser" : painted ? "Parked sedan (red)" : "Parked sedan");
-            var model = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(police ? PoliceGlb : SedanGlb));
+            var model = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(glb ?? (police ? PoliceGlb : SedanGlb)));
             model.name = "Model"; model.transform.SetParent(root.transform, false);
             string name = police ? "police" : "sedan";
             UrpMaterials.Apply(model, name);

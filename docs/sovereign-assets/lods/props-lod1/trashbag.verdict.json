@@ -1,0 +1,17 @@
+{
+ "name": "trashbag",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 1500,
+ "tris_after": 498,
+ "maxTex": "512",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 0.524 wide, 0.567 tall, 0.455 long (meters). No size was set.",
+  "NOTE File size 0.2 MB, was 0.6 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

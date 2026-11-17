@@ -1,0 +1,17 @@
+{
+ "name": "store-takeout",
+ "banner": "READY",
+ "preset": "se-building",
+ "tris_before": 58000,
+ "tris_after": 25998,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 4 open edges and 2 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.67 wide, 1.89 tall, 1.72 long (meters). No size was set.",
+  "NOTE File size 1.2 MB, was 1.9 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

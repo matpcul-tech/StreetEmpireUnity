@@ -1,0 +1,17 @@
+{
+ "name": "road-barrier",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 2497,
+ "tris_after": 699,
+ "maxTex": "512",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 1 open edges and 4 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.54 wide, 0.827 tall, 0.637 long (meters). No size was set.",
+  "NOTE File size 0.2 MB, was 0.8 MB."
+ ],
+ "found": "No broken geometry found. 2 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

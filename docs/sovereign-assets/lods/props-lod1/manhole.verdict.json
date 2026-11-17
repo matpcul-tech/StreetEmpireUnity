@@ -1,0 +1,18 @@
+{
+ "name": "manhole",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 1083,
+ "tris_after": 1083,
+ "maxTex": "512",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 211 open edges. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Triangles 1083 triangles. No target was set.",
+  "NOTE Draw calls 2 draw calls, 1 material.",
+  "NOTE Size 0.691 wide, 0.068 tall, 0.691 long (meters). No size was set.",
+  "NOTE File size 0.2 MB, was 0.2 MB."
+ ],
+ "found": "No broken geometry found. 211 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

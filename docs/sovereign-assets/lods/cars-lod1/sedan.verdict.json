@@ -1,0 +1,17 @@
+{
+ "name": "sedan",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 29996,
+ "tris_after": 5995,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 1 open edges and 5 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 5 draw calls, 1 material.",
+  "NOTE Size 1.93 wide, 1.42 tall, 4.50 long (meters). No size was set.",
+  "NOTE File size 0.7 MB, was 1.3 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

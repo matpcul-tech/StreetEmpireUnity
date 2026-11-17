@@ -1,0 +1,17 @@
+{
+ "name": "store-pawn",
+ "banner": "READY",
+ "preset": "se-building",
+ "tris_before": 58000,
+ "tris_after": 26000,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.90 wide, 1.50 tall, 1.60 long (meters). No size was set.",
+  "NOTE File size 1.8 MB, was 3.1 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

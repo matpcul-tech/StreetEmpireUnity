@@ -1,0 +1,30 @@
+Sovereign Asset report
+Source: police
+Finish: Game ready
+Output: police-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors.
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 1821 open edges and 141 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.
+NOTE  Triangles: 7729 triangles. No target was set.
+NOTE  Draw calls: 5 draw calls, 1 material.
+PASS  Texture size: All 3 readable textures are 1024 px or under.
+NOTE  Size: 0.354 wide, 0.282 tall, 0.948 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 1 material, 3 textures.
+NOTE  File size: 0.8 MB, was 0.7 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- Turned 1 inside-out shell the right way round.
+- Closed 1 hole. 482 openings left open: too large or not a simple loop.
+- Normals: 374 faces lit from behind got corners of their own. Every other normal is the model's own.
+- The model was set on the ground, centered. The change sits on one top node, so parts, bones and animation are untouched.

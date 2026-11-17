@@ -1,6 +1,6 @@
 // Two URP quality tiers for the Eastside, both made from code like the rest of the project:
-//   Ultra (default): HDR, 4x MSAA, soft shadows over 120 m in 4 cascades on a 4096 map, SSAO.
-//   High: HDR, 2x MSAA, soft shadows over 80 m in 2 cascades on a 2048 map, no SSAO.
+//   Ultra (default): HDR, 4x MSAA, soft shadows over 100 m in 3 cascades on a 4096 map, SSAO.
+//   High: HDR, 2x MSAA, soft shadows over 55 m in 2 cascades on a 2048 map, no SSAO.
 // Both feed the same global post volume (ACES tonemapping, a little bloom, color grading, vignette).
 // The player switches tiers at run time with the HUD button (GraphicsQuality); nothing here runs in the player.
 using System;
@@ -26,10 +26,10 @@ namespace StreetEmpire.EditorTools
         public static UniversalRenderPipelineAsset Ensure()
         {
             var ultra = Pipeline(UltraPath, UltraRendererPath, out var ultraRenderer);
-            Tier(ultra, msaa: 4, distance: 120f, cascades: 4, map: 4096, softQuality: 3);
+            Tier(ultra, msaa: 4, distance: 100f, cascades: 3, map: 4096, softQuality: 3);
             Ssao(ultraRenderer, true);
             var high = Pipeline(HighPath, HighRendererPath, out var highRenderer);
-            Tier(high, msaa: 2, distance: 80f, cascades: 2, map: 2048, softQuality: 2);
+            Tier(high, msaa: 2, distance: 55f, cascades: 2, map: 2048, softQuality: 2);
             Ssao(highRenderer, false);
             AssetDatabase.SaveAssets();
             return ultra;
@@ -60,6 +60,7 @@ namespace StreetEmpire.EditorTools
             p.shadowDistance = distance;
             p.shadowCascadeCount = cascades;
             if (cascades == 2) p.cascade2Split = 0.25f;
+            if (cascades == 3) p.cascade3Split = new Vector2(0.1f, 0.3f);
             if (cascades == 4) p.cascade4Split = new Vector3(0.067f, 0.2f, 0.47f);
             p.supportsCameraDepthTexture = true;
             var so = new SerializedObject(p);

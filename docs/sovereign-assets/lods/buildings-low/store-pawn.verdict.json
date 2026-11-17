@@ -1,0 +1,18 @@
+{
+ "name": "store-pawn",
+ "banner": "READY",
+ "preset": "se-building",
+ "tris_before": 3480,
+ "tris_after": 3469,
+ "maxTex": "512",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 5861 open edges. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Triangles 3469 triangles. No target was set.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.98 wide, 1.55 tall, 1.63 long (meters). No size was set.",
+  "NOTE File size 0.2 MB, was 0.2 MB."
+ ],
+ "found": "11 small pieces floating free of the model 5,902 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

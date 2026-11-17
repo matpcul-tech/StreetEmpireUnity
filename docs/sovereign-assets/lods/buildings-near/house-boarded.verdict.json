@@ -1,0 +1,17 @@
+{
+ "name": "house-boarded",
+ "banner": "READY",
+ "preset": "se-building",
+ "tris_before": 57999,
+ "tris_after": 25998,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 2 open edges and 10 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.66 wide, 1.64 tall, 1.90 long (meters). No size was set.",
+  "NOTE File size 1.9 MB, was 3.4 MB."
+ ],
+ "found": "No broken geometry found. 3 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

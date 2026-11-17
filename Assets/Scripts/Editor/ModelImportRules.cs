@@ -46,8 +46,11 @@ namespace StreetEmpire.EditorTools
             bool data = assetPath.Contains("_metalsmooth");   // URP metallic (R) and smoothness (A): linear, keeps alpha
             if (normal) t.textureType = TextureImporterType.NormalMap;
             if (data) { t.sRGBTexture = false; t.alphaSource = TextureImporterAlphaSource.FromInput; }
-            // hero props seen up close keep 2048 px (tools/extract_prop_textures.mjs names them _2k)
-            int max = assetPath.Contains("_2k_") ? 2048 : 1024;
+            // hero props seen up close keep 2048 px color (tools/extract_prop_textures.mjs names them _2k); the
+            // other prop maps are sized by how close they get seen (Size), which keeps the APK down
+            bool prop = assetPath.StartsWith("Assets/Art/Textures/Props/");
+            bool hero = assetPath.Contains("_2k_");
+            int max = prop ? Size(assetPath, normal, data, hero) : hero ? 2048 : 1024;
             t.mipmapEnabled = true; t.maxTextureSize = max;
             // ground textures tile across big boxes and are seen at grazing angles
             if (assetPath.StartsWith("Assets/Art/Textures/Ground/")) { t.wrapMode = UnityEngine.TextureWrapMode.Repeat; t.anisoLevel = 8; }
@@ -58,7 +61,9 @@ namespace StreetEmpire.EditorTools
             t.SetPlatformTextureSettings(new TextureImporterPlatformSettings
             {
                 name = "Android", overridden = true, maxTextureSize = max,
-                format = normal ? TextureImporterFormat.ASTC_5x5 : TextureImporterFormat.ASTC_6x6,
+                // props: 8x8 blocks (2 bits a pixel), except hero maps, cutout wire and the lettered signs (6x6)
+                format = !prop ? (normal ? TextureImporterFormat.ASTC_5x5 : TextureImporterFormat.ASTC_6x6)
+                    : (hero && !data) || Crisp(assetPath) ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_8x8,
                 compressionQuality = 50,
             });
             t.SetPlatformTextureSettings(new TextureImporterPlatformSettings
@@ -67,6 +72,24 @@ namespace StreetEmpire.EditorTools
                 format = normal || data ? TextureImporterFormat.DXT5 : TextureImporterFormat.DXT1,
                 compressionQuality = 50,
             });
+        }
+
+        static readonly string[] SmallProps = { "tyre", "trashbag", "cardboard-box", "crate", "barrel", "manhole", "security-light",
+            "newspaper-box", "mailbox", "utility-box-1", "utility-box-2", "aircon", "bus-stop-sign", "sign-post" };
+
+        static bool Crisp(string path) => path.Contains("chainlink-panel__modular_chainlink_fence_wire") || path.Contains("street-blade") || path.Contains("stop-sign__stop");
+
+        /// <summary>Prop texture sizes: hero color 2048 with 1024 normals, glass 256, metal and smoothness 512,
+        /// small clutter 512, the rest 1024 color and 512 normals.</summary>
+        static int Size(string path, bool normal, bool data, bool hero)
+        {
+            var file = System.IO.Path.GetFileName(path);
+            if (file.Contains("glass")) return 256;
+            if (data) return 512;
+            if (hero) return normal ? 1024 : 2048;
+            if (normal) return 512;
+            foreach (var p in SmallProps) if (file.StartsWith(p + "__")) return 512;
+            return 1024;
         }
 
         /// <summary>Blender takes come out as "Armature|Idle_Loop_Armature"; keep "Idle_Loop".</summary>

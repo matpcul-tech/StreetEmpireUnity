@@ -81,15 +81,20 @@ namespace StreetEmpire.Tests
             SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
             var s = GameSession.Instance;
-            var lines = Object.FindObjectsByType<Transform>(FindObjectsSortMode.None).Where(t => t.name.StartsWith("Line ")).ToArray();
-            Assert.Greater(lines.Length, 16);
-            foreach (var l in lines)
+            // the center lines are part of the combined street mesh: no triangle of the line submesh reaches a crossing
+            var streets = GameObject.Find("Streets Combined"); Assert.IsNotNull(streets, "combined street mesh");
+            var mesh = streets.GetComponent<MeshFilter>().sharedMesh; var mats = streets.GetComponent<MeshRenderer>().sharedMaterials;
+            int sub = System.Array.FindIndex(mats, m => m != null && m.name.StartsWith("LaneYellow"));
+            Assert.GreaterOrEqual(sub, 0, "center line material in the combined mesh");
+            var v = mesh.vertices; var tri = mesh.GetTriangles(sub);
+            Assert.Greater(tri.Length / 36, 16, "center line boxes");
+            for (int i = 0; i < tri.Length; i += 3)
             {
-                var c = l.position; var h = l.lossyScale * 0.5f;
+                var b = new Bounds(v[tri[i]], Vector3.zero); b.Encapsulate(v[tri[i + 1]]); b.Encapsulate(v[tri[i + 2]]);
                 foreach (var x in s.streetX) foreach (var z in s.streetZ)
                 {
-                    bool inside = Mathf.Abs(x - c.x) < h.x + 3f && Mathf.Abs(z - c.z) < h.z + 3f;
-                    Assert.IsFalse(inside, $"{l.name} crosses the intersection at ({x:F0}, {z:F0})");
+                    bool inside = Mathf.Abs(x - b.center.x) < b.extents.x + 3f && Mathf.Abs(z - b.center.z) < b.extents.z + 3f;
+                    Assert.IsFalse(inside, $"a center line crosses the intersection at ({x:F0}, {z:F0})");
                 }
             }
             // M5 buildings: the new Eastside models are in, and no block repeats one

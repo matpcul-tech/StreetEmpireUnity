@@ -49,18 +49,20 @@ namespace StreetEmpire.EditorTools
         static List<(Vector3 p, float r)> keep;
         static System.Random rng;
         static TrafficSignalCycle signals;
-        static readonly List<Renderer>[] lens = Enumerable.Range(0, 6).Select(_ => new List<Renderer>()).ToArray();
+        static readonly Dictionary<string, PropBatch> batches = new();
+        static readonly Dictionary<string, List<Matrix4x4>> placed = new();
 
         public struct BlockInfo { public int id; public Vector3 center; }
 
         public static void Build(IList<BlockInfo> blocks, float[] streetX, float[] streetZ, Transform parent)
         {
             LoadManifest(); mats.Clear(); counts.Clear(); tris = 0; rng = new System.Random(1931);
-            foreach (var l in lens) l.Clear();
+            batches.Clear(); placed.Clear();
             KeepClear();
             var root = new GameObject("Props").transform; root.SetParent(parent, false);
             var cycle = new GameObject("Traffic Signals"); cycle.transform.SetParent(root, false);
             signals = cycle.AddComponent<TrafficSignalCycle>();
+            var instancer = new GameObject("Prop Instancer").AddComponent<PropInstancer>(); instancer.transform.SetParent(root, false);
 
             var marks = new Marks();
             foreach (var b in blocks)
@@ -76,9 +78,18 @@ namespace StreetEmpire.EditorTools
             PowerLines(blocks, streets);
             marks.Save(root);
 
-            signals.redA = lens[0].ToArray(); signals.yellowA = lens[1].ToArray(); signals.greenA = lens[2].ToArray();
-            signals.redB = lens[3].ToArray(); signals.yellowB = lens[4].ToArray(); signals.greenB = lens[5].ToArray();
-            Debug.Log($"[PropBuilder] {counts.Values.Sum()} props, {tris} triangles: " + string.Join(", ", counts.OrderBy(kv => kv.Key).Select(kv => $"{kv.Key} {kv.Value}")));
+            foreach (var kv in batches) kv.Value.matrices = placed[kv.Key].ToArray();
+            instancer.batches = batches.Values.Where(b => b.matrices.Length > 0).OrderBy(b => b.name).ToArray();
+            signals.instancer = instancer;
+            Material Lens(string group, string color) => batches.TryGetValue("traffic-signal@mx#" + group, out var sb)
+                ? sb.materials.FirstOrDefault(m => m != null && m.name.Contains("lens_" + color)) : null;
+            signals.lenses = new[] { Lens("A", "red"), Lens("A", "yellow"), Lens("A", "green"), Lens("B", "red"), Lens("B", "yellow"), Lens("B", "green") };
+            int draws = instancer.batches.Sum(b => b.materials.Length * (b.lod1 ? 2 : 1));
+            Debug.Log($"[PropBuilder] {counts.Values.Sum()} props, {tris} triangles at full detail, {instancer.batches.Length} instanced models " +
+                $"({draws} draws at most): " + string.Join(", ", counts.OrderBy(kv => kv.Key).Select(kv => $"{kv.Key} {kv.Value}")));
+            foreach (var b in instancer.batches)
+                Debug.Log($"[PropBuilder] {b.name}: {b.matrices.Length} x {MeshMerge.Triangles(b.lod0)} tris, {b.materials.Length} materials, " +
+                    $"lod1 {(b.lod1 ? MeshMerge.Triangles(b.lod1) + " tris at " + b.lod1Distance + " m" : "none")}, drawn to {b.cullDistance} m, shadows {(b.castShadows ? "on" : "off")}");
         }
 
         // ---------------------------------------------------------------- per block side
@@ -257,19 +268,11 @@ namespace StreetEmpire.EditorTools
         static void Signal(Vector3 corner, Vector3 arm, bool avenue, Transform parent)
         {
             var fwd = new Vector3(-arm.z, 0, arm.x);    // right = arm, so forward = (-arm.z, 0, arm.x)
-            var holder = Place("traffic-signal", "traffic signal", -1, corner + arm * 2.35f, Face(fwd), parent, Col.None, 0f, mirrorX: true);
+            var holder = Place("traffic-signal", "traffic signal", -1, corner + arm * 2.35f, Face(fwd), parent, Col.None, 0f, mirrorX: true, variant: avenue ? "A" : "B");
             if (holder == null) return;
             var pole = new GameObject("Pole collider"); pole.transform.SetParent(holder.transform, false);
             pole.transform.position = corner + Vector3.up * 2.8f;
             var c = pole.AddComponent<BoxCollider>(); c.size = new Vector3(0.24f, 5.6f, 0.24f);
-            int g = avenue ? 0 : 3;
-            foreach (var r in holder.GetComponentsInChildren<Renderer>())
-            {
-                var names = r.sharedMaterials.Where(m => m != null).Select(m => m.name).ToArray();
-                if (names.Any(n => n.Contains("lens_red"))) lens[g].Add(r);
-                else if (names.Any(n => n.Contains("lens_yellow"))) lens[g + 1].Add(r);
-                else if (names.Any(n => n.Contains("lens_green"))) lens[g + 2].Add(r);
-            }
         }
 
         /// <summary>Zebra crosswalks on all four approaches and a stop bar in the lane that comes in.</summary>
@@ -351,58 +354,116 @@ namespace StreetEmpire.EditorTools
         static void Car(string kind, bool painted, BlockInfo b, Vector3 at, Quaternion rot, Transform parent, float jitter = 0f)
         {
             if (Blocked(at, 4f)) return;
-            var car = VehicleBuilder.ParkedCar(kind, painted);
+            string key = $"car-{kind}{(painted && kind != "police" ? "-painted" : "")}";
+            if (!batches.TryGetValue(key, out var batch))
+            {
+                // the full kit car up close and its Sovereign Asset cut (Models/Cars/LOD1) past 25 m, fitted the same way
+                var near = VehicleBuilder.ParkedCar(kind, painted);
+                var order = new List<Material>();
+                var lod0 = MeshMerge.Merge(near, m => m, order, false, $"{MeshDir}/Props/{key}.asset");
+                Mesh lod1 = null;
+                var glb = $"Assets/Art/Models/Cars/LOD1/{kind}.glb";
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(glb) != null)
+                {
+                    var far = VehicleBuilder.ParkedCar(kind, painted, glb);
+                    lod1 = MeshMerge.Merge(far, m => m, order, false, $"{MeshDir}/Props/{key}-lod1.asset");
+                    Object.DestroyImmediate(far);
+                }
+                Object.DestroyImmediate(near);
+                batch = NewBatch(key, lod0, lod1, order, 25f, 150f, true);
+            }
+            var car = new GameObject(kind == "police" ? "Parked cruiser" : painted ? "Parked sedan (red)" : "Parked sedan");
             car.transform.SetParent(parent, false);
             car.transform.SetPositionAndRotation(at, rot * Quaternion.Euler(0, Jit(jitter * 6f), 0));
-            var m = car.AddComponent<PropMarker>(); m.kind = "parked car"; m.model = kind; m.blockId = b.id;
-            Static(car);
-            var rs = car.GetComponentsInChildren<Renderer>();
-            var lod = car.AddComponent<RuntimeLod>(); lod.near = rs; lod.far = new Renderer[0]; lod.nearHeight = 0.02f; lod.farHeight = 0.01f;
-            foreach (var mf in car.GetComponentsInChildren<MeshFilter>()) if (mf.sharedMesh) tris += mf.sharedMesh.triangles.Length / 3;
+            var box = car.AddComponent<BoxCollider>(); box.center = batch.lod0.bounds.center; box.size = batch.lod0.bounds.size;
+            var mk = car.AddComponent<PropMarker>(); mk.kind = "parked car"; mk.model = kind; mk.blockId = b.id;
+            placed[key].Add(car.transform.localToWorldMatrix);
+            tris += MeshMerge.Triangles(batch.lod0);
             Count("parked car");
         }
 
-        static GameObject Place(string model, string kind, int blockId, Vector3 pos, Quaternion rot, Transform parent, Col col, float cull,
-            Vector3? scale = null, float pole = 0.1f, Vector3? poleAt = null, bool mirrorX = false, float lift = 0f)
+        static PropBatch NewBatch(string key, Mesh lod0, Mesh lod1, List<Material> order, float lod1At, float cullAt, bool shadows)
         {
-            if (col != Col.None && Blocked(pos, 1.2f)) return null;
+            var bs = lod0.bounds; if (lod1) bs.Encapsulate(lod1.bounds);
+            foreach (var m in order) if (m != null && !m.enableInstancing) { m.enableInstancing = true; EditorUtility.SetDirty(m); }
+            var batch = new PropBatch
+            {
+                name = key, lod0 = lod0, lod1 = lod1, materials = order.ToArray(), lod1Distance = lod1At, cullDistance = cullAt,
+                castShadows = shadows, center = bs.center, radius = bs.extents.magnitude,
+            };
+            batches[key] = batch; placed[key] = new List<Matrix4x4>();
+            return batch;
+        }
+
+        /// <summary>Draw rules per model: where the lower detail mesh takes over, how far it draws, shadows.</summary>
+        static (float lod1, float cull, bool shadows) Rule(string model)
+        {
+            if (model is "street-lamp-1" or "utility-pole" or "traffic-signal" or "stop-sign" or "sign-post" or "bus-shelter" or "bus-stop-sign"
+                || model.StartsWith("tree-") || model.StartsWith("street-blade")) return (40f, 170f, true);
+            if (model is "manhole" or "cardboard-box" or "crate" or "trashbag" or "tyre") return (15f, 45f, false);
+            if (model is "wood-fence" or "chainlink-panel" or "chainlink-post" or "hedge" or "dumpster" or "road-barrier" or "bench") return (22f, 80f, true);
+            return (18f, 60f, true);
+        }
+
+        /// <summary>The model merged into one mesh per material (and its LOD1, from Models/Props/LOD1), made once.</summary>
+        static PropBatch Batch(string model, bool mirrorX, string variant)
+        {
+            string key = model + (mirrorX ? "@mx" : "") + (variant != null ? "#" + variant : "");
+            if (batches.TryGetValue(key, out var have)) return have;
             var asset = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/{model}.glb");
             if (asset == null) { Debug.LogError($"[PropBuilder] missing prop model {model}"); return null; }
+            Func<Material, Material> map = m => Variant(PropMat(model, m), variant);
+            var order = new List<Material>();
+            string name = key.Replace("#", "-").Replace("@", "-");
+            var inst = (GameObject)PrefabUtility.InstantiatePrefab(asset);
+            var lod0 = MeshMerge.Merge(inst, map, order, mirrorX, $"{MeshDir}/Props/{name}.asset");
+            Object.DestroyImmediate(inst);
+            Mesh lod1 = null;
+            var low = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/LOD1/{model}.glb");
+            if (low != null)
+            {
+                inst = (GameObject)PrefabUtility.InstantiatePrefab(low);
+                lod1 = MeshMerge.Merge(inst, map, order, mirrorX, $"{MeshDir}/Props/{name}-lod1.asset");
+                Object.DestroyImmediate(inst);
+            }
+            var (l1, cull, sh) = Rule(model);
+            return NewBatch(key, lod0, lod1, order, l1, cull, sh);
+        }
+
+        /// <summary>The second signal group (the east-west streets) lights its own copies of the lens materials.</summary>
+        static Material Variant(Material m, string variant)
+        {
+            if (m == null || variant != "B" || !m.name.Contains("lens_")) return m;
+            string path = $"{MatDir}/{m.name}_B.mat";
+            var b = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (b == null) { b = new Material(m); AssetDatabase.CreateAsset(b, path); } else b.CopyPropertiesFromMaterial(m);
+            b.shader = m.shader; b.shaderKeywords = m.shaderKeywords; b.enableInstancing = true;
+            EditorUtility.SetDirty(b);
+            return b;
+        }
+
+        static GameObject Place(string model, string kind, int blockId, Vector3 pos, Quaternion rot, Transform parent, Col col, float cull,
+            Vector3? scale = null, float pole = 0.1f, Vector3? poleAt = null, bool mirrorX = false, float lift = 0f, string variant = null)
+        {
+            if (col != Col.None && Blocked(pos, 1.2f)) return null;
+            var batch = Batch(model, mirrorX, variant);
+            if (batch == null) return null;
+            var sc = scale ?? Vector3.one;
             var holder = new GameObject($"{kind} ({model})");
             holder.transform.SetParent(parent, false);
-            var inst = (GameObject)PrefabUtility.InstantiatePrefab(asset);
-            inst.name = "Model"; inst.transform.SetParent(holder.transform, false);
-            var ls = inst.transform.localScale;
-            if (scale.HasValue) ls = Vector3.Scale(ls, scale.Value);
-            if (mirrorX) ls.x = -ls.x;
-            inst.transform.localScale = ls;
-            var rs = inst.GetComponentsInChildren<Renderer>();
-            foreach (var r in rs)
-            {
-                r.sharedMaterials = r.sharedMaterials.Select(m => PropMat(model, m)).ToArray();
-                r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true;
-                foreach (var mf in r.GetComponents<MeshFilter>()) if (mf.sharedMesh) tris += mf.sharedMesh.triangles.Length / 3;
-            }
             // the collider is fitted in the holder's own space before it is posed
-            if (col == Col.Bounds && rs.Length > 0)
+            var b = batch.lod0.bounds; b = new Bounds(Vector3.Scale(b.center, sc), Vector3.Scale(b.size, sc));
+            if (col == Col.Bounds) { var c = holder.AddComponent<BoxCollider>(); c.center = b.center; c.size = b.size; }
+            else if (col == Col.Pole)
             {
-                var b = rs[0].bounds; foreach (var r in rs.Skip(1)) b.Encapsulate(r.bounds);
-                var c = holder.AddComponent<BoxCollider>(); c.center = b.center; c.size = b.size;
-            }
-            else if (col == Col.Pole && rs.Length > 0)
-            {
-                var b = rs[0].bounds; foreach (var r in rs.Skip(1)) b.Encapsulate(r.bounds);
                 var c = holder.AddComponent<BoxCollider>();
                 var at = poleAt ?? Vector3.zero;
                 c.center = new Vector3(at.x, Mathf.Min(b.size.y, 4f) / 2, at.z); c.size = new Vector3(pole * 2, Mathf.Min(b.size.y, 4f), pole * 2);
             }
             holder.transform.SetPositionAndRotation(pos + Vector3.up * lift, rot);
             var mk = holder.AddComponent<PropMarker>(); mk.kind = kind; mk.model = model; mk.blockId = blockId;
-            Static(holder);
-            if (cull > 0)
-            {
-                var lod = holder.AddComponent<RuntimeLod>(); lod.near = rs; lod.far = new Renderer[0]; lod.nearHeight = cull; lod.farHeight = cull * 0.5f;
-            }
+            placed[batch.name].Add(holder.transform.localToWorldMatrix * Matrix4x4.Scale(sc));
+            tris += MeshMerge.Triangles(batch.lod0);
             Count(kind);
             return holder;
         }

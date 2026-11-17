@@ -90,7 +90,7 @@ namespace StreetEmpire.EditorTools
                     }
             }
 
-            int placed = 0; dealt.Clear();
+            int placed = 0; dealt.Clear(); compressed.Clear();
             var blockInfo = new List<PropBuilder.BlockInfo>();
             foreach (int id in EastsideBlocks)
             {
@@ -111,6 +111,7 @@ namespace StreetEmpire.EditorTools
                 foreach (var spot in CityLayout.BuildingsFor(w, b)) if (PlaceBuilding(spot, bgo.transform)) placed++;
             }
 
+            Combine(root.transform);
             Lighting(root.transform);
             var player = PlayerBuilder.Build(w, s.blocks[0]);
             VehicleBuilder.BuildSedan(data, s.blocks[0]);
@@ -132,8 +133,8 @@ namespace StreetEmpire.EditorTools
             var variants = Kit[spot.kind];
             dealt.TryGetValue(spot.kind, out int n); dealt[spot.kind] = n + 1;
             string name = variants[n % variants.Length];
-            // the near model is the Blender decimated copy (45%, about 26k triangles, tools/decimate_far.py) when
-            // there is one: the 58k triangle source meshes were most of the APK and of the phone's mesh memory
+            // the near model is the Sovereign Asset se-building cut of the READY source (about 26k triangles,
+            // docs/sovereign-assets/buildings-lods): the 58k triangle sources were most of the APK and the phone's mesh memory
             var model = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/Near/{name}.glb") ?? AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/{name}.glb");
             var holder = new GameObject($"{spot.kind} {spot.index} ({name})");
             var marker = holder.AddComponent<BuildingMarker>();
@@ -156,6 +157,7 @@ namespace StreetEmpire.EditorTools
             BindTextures(inst, name);
             var near = inst.GetComponentsInChildren<Renderer>();
             foreach (var r in near) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
+            Compress(inst, name, "Near");
             AddFar(holder, inst, name, bounds, near);
             // not batching static: with 20 models of about 58k triangles, static batching would copy every placed
             // mesh (36 of them) into combined buffers, roughly doubling mesh memory on phones and WebGL. The SRP
@@ -187,26 +189,52 @@ namespace StreetEmpire.EditorTools
             }
         }
 
-        /// <summary>LOD1: the Blender decimated far version (22%, about 12.8k triangles, tools/decimate_far.py; 10% tore holes in
-        /// the Meshy walls) from about 120 m, with the
-        /// near model's material, fitted to the near bounds. Phones draw the 58k triangle model only up close.</summary>
+        /// <summary>The lower detail levels, both with the near model's material and fitted to the near bounds:
+        /// LOD1 Far (Blender decimate to 22%, about 12.8k triangles, then a Sovereign Asset check) and LOD2 Low
+        /// (6%, about 3.5k). Sovereign Asset itself will not cut these Meshy meshes below about 25k ("going lower
+        /// would visibly change the shape"), so the near model is its 26k cut and the two far levels are Blender's.</summary>
         static void AddFar(GameObject holder, GameObject inst, string name, Bounds nearBounds, Renderer[] near)
         {
-            var farAsset = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/Far/{name}.glb");
-            if (farAsset == null) return;
-            var far = (GameObject)PrefabUtility.InstantiatePrefab(farAsset);
-            far.name = "Far"; far.transform.SetParent(holder.transform, false);
-            var mat = near[0].sharedMaterial;
-            var farRs = far.GetComponentsInChildren<Renderer>();
-            foreach (var r in farRs) { r.sharedMaterials = Enumerable.Repeat(mat, r.sharedMaterials.Length).ToArray(); r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
-            var b = WorldBounds(far);
-            far.transform.localScale *= Mathf.Max(nearBounds.size.x, nearBounds.size.z) / Mathf.Max(b.size.x, b.size.z, 1e-4f);
-            b = WorldBounds(far);
-            far.transform.localPosition += new Vector3(nearBounds.center.x - b.center.x, nearBounds.min.y - b.min.y, nearBounds.center.z - b.center.z);
-            // the LODGroup itself is added at load time (RuntimeLod): a saved one made the phone reject the scene file
+            var far = Level(holder, "Far", name, nearBounds, near[0].sharedMaterial);
+            if (far == null) return;
+            var low = Level(holder, "Low", name, nearBounds, near[0].sharedMaterial);
+            // the LODGroup itself is added at load time (RuntimeLod): a saved one made the phone reject the scene file.
+            // A 13 m building leaves the near model at about 55 m and the far one at about 190 m.
             var lod = holder.AddComponent<StreetEmpire.City.RuntimeLod>();
-            lod.near = near; lod.far = farRs;
+            lod.near = near; lod.far = far; lod.low = low ?? new Renderer[0];
+            lod.nearHeight = 0.2f; lod.farHeight = low != null ? 0.06f : 0.005f; lod.lowHeight = 0.003f;
         }
+
+        static Renderer[] Level(GameObject holder, string level, string name, Bounds nearBounds, Material mat)
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/{level}/{name}.glb");
+            if (asset == null) return null;
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(asset);
+            go.name = level; go.transform.SetParent(holder.transform, false);
+            var rs = go.GetComponentsInChildren<Renderer>();
+            foreach (var r in rs) { r.sharedMaterials = Enumerable.Repeat(mat, r.sharedMaterials.Length).ToArray(); r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
+            Compress(go, name, level);
+            var b = WorldBounds(go);
+            go.transform.localScale *= Mathf.Max(nearBounds.size.x, nearBounds.size.z) / Mathf.Max(b.size.x, b.size.z, 1e-4f);
+            b = WorldBounds(go);
+            go.transform.localPosition += new Vector3(nearBounds.center.x - b.center.x, nearBounds.min.y - b.min.y, nearBounds.center.z - b.center.z);
+            return rs;
+        }
+
+        /// <summary>Points the building's mesh filters at compressed copies of the imported meshes (glTFast meshes
+        /// go into the build uncompressed and were the bulk of the APK's mesh data). Made once per model and level.</summary>
+        static void Compress(GameObject go, string name, string level)
+        {
+            int i = 0;
+            foreach (var mf in go.GetComponentsInChildren<MeshFilter>())
+            {
+                if (mf.sharedMesh == null) continue;
+                string path = $"Assets/Art/Meshes/Buildings/{name}-{level.ToLowerInvariant()}-{i++}.asset";
+                if (!compressed.TryGetValue(path, out var m)) compressed[path] = m = MeshMerge.Save(mf.sharedMesh, path, copy: true);
+                mf.sharedMesh = m;
+            }
+        }
+        static readonly Dictionary<string, Mesh> compressed = new();
 
         /// <summary>The global post volume, post processing on the main camera, and the Ultra / High switch
         /// with its HUD button (top right, under the wanted stars).</summary>
@@ -315,6 +343,26 @@ namespace StreetEmpire.EditorTools
             cam.transform.LookAt(new Vector3(cx, 0, cz - 10));
             cam.fieldOfView = 55; cam.nearClipPlane = 0.3f; cam.farClipPlane = 600;
             cam.clearFlags = CameraClearFlags.Skybox;
+        }
+
+        /// <summary>The center lines, sidewalks, curbs and yards drawn as one mesh (one draw per material) instead of
+        /// about 130 boxes. The center line boxes go; the sidewalk slabs keep their colliders without a renderer.</summary>
+        static void Combine(Transform root)
+        {
+            var parts = root.GetComponentsInChildren<MeshRenderer>()
+                .Where(r => r.name.StartsWith("Line ") || r.name == "Sidewalk" || r.name == "Curb" || r.name == "Yard").ToArray();
+            if (parts.Length == 0) return;
+            var order = new List<Material>();
+            var mesh = MeshMerge.Merge(parts, Matrix4x4.identity, m => m, order, false, "Assets/Art/Meshes/Streets-Combined.asset", compress: false);
+            var go = new GameObject("Streets Combined"); go.transform.SetParent(root, false);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterials = order.ToArray();
+            mr.shadowCastingMode = ShadowCastingMode.On; mr.receiveShadows = true;
+            foreach (var r in parts)
+            {
+                if (r.name.StartsWith("Line ")) { Object.DestroyImmediate(r.gameObject); continue; }
+                var mf = r.GetComponent<MeshFilter>(); Object.DestroyImmediate(r); if (mf) Object.DestroyImmediate(mf);
+            }
         }
 
         static GameObject Box(string name, Transform parent, Material m, Vector3 pos, Vector3 size, bool collider = true)

@@ -1,0 +1,19 @@
+{
+ "name": "house-03-duplex",
+ "banner": "NOT READY",
+ "preset": "se-building",
+ "tris_before": 40429,
+ "tris_after": 31112,
+ "maxTex": "1024",
+ "sum": "2 checks failed: Faces point outward, Triangle target.",
+ "failed": [
+  "FAIL Faces point outward 1 shell is inside out. Turn on Fix inside-out faces.",
+  "FAIL Triangle target 31112 triangles. Target 26000. Going lower would visibly change the shape. Raise the target, or simplify the source model.",
+  "NOTE Open edges 8453 open edges and 179 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 0.935 wide, 0.516 tall, 0.949 long (meters). No size was set.",
+  "NOTE File size 2.9 MB, was 3.3 MB."
+ ],
+ "found": "No broken geometry found. 10,463 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}
