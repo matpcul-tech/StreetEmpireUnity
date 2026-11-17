@@ -198,9 +198,9 @@ namespace StreetEmpire.EditorTools
             var far = Level(holder, "Far", name, nearBounds, near[0].sharedMaterial);
             if (far == null) return;
             var low = Level(holder, "Low", name, nearBounds, near[0].sharedMaterial);
-            // shadows come from one always-on copy of the far mesh (12.8k triangles) instead of whichever level is
-            // drawn: the near models are 26k to 49k triangles and the three Ultra cascades each draw the casters again
-            var shadow = Level(holder, "Far", name, nearBounds, near[0].sharedMaterial, "Shadow");
+            // shadows come from one always-on copy of the low mesh (about 3.5k triangles) instead of whichever level
+            // is drawn: the near models are about 26k and the three Ultra cascades each draw the casters again
+            var shadow = Level(holder, low != null ? "Low" : "Far", name, nearBounds, near[0].sharedMaterial, "Shadow");
             foreach (var r in shadow) r.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
             foreach (var r in near.Concat(far).Concat(low ?? new Renderer[0])) r.shadowCastingMode = ShadowCastingMode.Off;
             // the LODGroup itself is added at load time (RuntimeLod): a saved one made the phone reject the scene file.
