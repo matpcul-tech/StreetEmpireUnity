@@ -14,6 +14,8 @@ namespace StreetEmpire.City
         public Material[] materials;
         public float lod1Distance = 25f, cullDistance = 80f;
         public bool castShadows = true;
+        /// <summary>Copies farther than this draw without a shadow.</summary>
+        public float shadowDistance = 35f;
         public Matrix4x4[] matrices;
         public Vector3 center; public float radius = 1f;   // bounding sphere in mesh space
     }

@@ -89,7 +89,7 @@ namespace StreetEmpire.EditorTools
                 $"({draws} draws at most): " + string.Join(", ", counts.OrderBy(kv => kv.Key).Select(kv => $"{kv.Key} {kv.Value}")));
             foreach (var b in instancer.batches)
                 Debug.Log($"[PropBuilder] {b.name}: {b.matrices.Length} x {MeshMerge.Triangles(b.lod0)} tris, {b.materials.Length} materials, " +
-                    $"lod1 {(b.lod1 ? MeshMerge.Triangles(b.lod1) + " tris at " + b.lod1Distance + " m" : "none")}, drawn to {b.cullDistance} m, shadows {(b.castShadows ? "on" : "off")}");
+                    $"lod1 {(b.lod1 ? MeshMerge.Triangles(b.lod1) + " tris at " + b.lod1Distance + " m" : "none")}, drawn to {b.cullDistance} m, shadows {(b.castShadows ? "to " + b.shadowDistance + " m" : "off")}");
         }
 
         // ---------------------------------------------------------------- per block side
@@ -371,6 +371,7 @@ namespace StreetEmpire.EditorTools
                 }
                 Object.DestroyImmediate(near);
                 batch = NewBatch(key, lod0, lod1, order, 15f, 150f, true);
+                batch.shadowDistance = 40f;
             }
             var car = new GameObject(kind == "police" ? "Parked cruiser" : painted ? "Parked sedan (red)" : "Parked sedan");
             car.transform.SetParent(parent, false);
@@ -398,12 +399,18 @@ namespace StreetEmpire.EditorTools
         /// <summary>Draw rules per model: where the lower detail mesh takes over, how far it draws, shadows.</summary>
         static (float lod1, float cull, bool shadows) Rule(string model)
         {
-            if (model is "street-lamp-1" or "utility-pole" or "traffic-signal" or "stop-sign" or "sign-post" or "bus-shelter" or "bus-stop-sign"
+            if (model is "street-lamp-1") return (20f, 170f, true);
+            if (model is "utility-pole" or "traffic-signal" or "stop-sign" or "sign-post" or "bus-shelter" or "bus-stop-sign"
                 || model.StartsWith("tree-") || model.StartsWith("street-blade")) return (40f, 170f, true);
             if (model is "manhole" or "cardboard-box" or "crate" or "trashbag" or "tyre") return (15f, 45f, false);
             if (model is "wood-fence" or "chainlink-panel" or "chainlink-post" or "hedge" or "dumpster" or "road-barrier" or "bench") return (22f, 80f, true);
             return (18f, 60f, true);
         }
+
+        /// <summary>How far a prop's shadow is drawn: tall ones throw long shadows that read from farther away;
+        /// the rest stop at 30 m (the buildings keep the full Ultra 100 m).</summary>
+        static float ShadowReach(string model) =>
+            model is "street-lamp-1" or "utility-pole" or "traffic-signal" or "bus-shelter" || model.StartsWith("tree-") ? 60f : 30f;
 
         /// <summary>The model merged into one mesh per material (and its LOD1, from Models/Props/LOD1), made once.</summary>
         static PropBatch Batch(string model, bool mirrorX, string variant, Vector3 scale)
@@ -429,7 +436,9 @@ namespace StreetEmpire.EditorTools
                 Object.DestroyImmediate(inst);
             }
             var (l1, cull, sh) = Rule(model);
-            return NewBatch(key, lod0, lod1, order, l1, cull, sh);
+            var nb = NewBatch(key, lod0, lod1, order, l1, cull, sh);
+            nb.shadowDistance = ShadowReach(model);
+            return nb;
         }
 
         /// <summary>The second signal group (the east-west streets) lights its own copies of the lens materials.</summary>
