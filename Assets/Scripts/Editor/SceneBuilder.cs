@@ -188,9 +188,9 @@ namespace StreetEmpire.EditorTools
             far.transform.localScale *= Mathf.Max(nearBounds.size.x, nearBounds.size.z) / Mathf.Max(b.size.x, b.size.z, 1e-4f);
             b = WorldBounds(far);
             far.transform.localPosition += new Vector3(nearBounds.center.x - b.center.x, nearBounds.min.y - b.min.y, nearBounds.center.z - b.center.z);
-            var lod = holder.AddComponent<LODGroup>();
-            lod.SetLODs(new[] { new LOD(0.1f, near), new LOD(0.005f, farRs) });
-            lod.RecalculateBounds();
+            // the LODGroup itself is added at load time (RuntimeLod): a saved one made the phone reject the scene file
+            var lod = holder.AddComponent<StreetEmpire.City.RuntimeLod>();
+            lod.near = near; lod.far = farRs;
         }
 
         static void Lighting(Transform root)
