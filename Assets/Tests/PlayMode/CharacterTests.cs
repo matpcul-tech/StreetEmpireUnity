@@ -17,11 +17,14 @@ namespace StreetEmpire.Tests
     {
         static string MatOf(GameObject go) => go.GetComponentInChildren<SkinnedMeshRenderer>(true)?.sharedMaterial?.name ?? "";
 
+        /// <summary>Standing height from the posed skeleton: head bone over the lowest foot bone, plus the crown
+        /// above the head bone (skinned mesh bounds are padded per bone and read 10 cm or more over).</summary>
         static float Height(GameObject go)
         {
-            var rs = go.GetComponentsInChildren<SkinnedMeshRenderer>(true);
-            var b = rs[0].bounds; foreach (var r in rs.Skip(1)) b.Encapsulate(r.bounds);
-            return b.size.y;
+            var a = go.GetComponentInChildren<Animator>();
+            float Y(HumanBodyBones b) { var t = a.GetBoneTransform(b); return t != null ? t.position.y : float.MaxValue; }
+            float feet = Mathf.Min(Y(HumanBodyBones.LeftToes), Y(HumanBodyBones.RightToes), Y(HumanBodyBones.LeftFoot) - 0.08f, Y(HumanBodyBones.RightFoot) - 0.08f);
+            return Y(HumanBodyBones.Head) + 0.2f - feet;
         }
 
         [UnityTest]
