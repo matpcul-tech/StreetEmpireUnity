@@ -19,6 +19,8 @@ namespace StreetEmpire.Tests
             yield return null; yield return null;
             var peds = Object.FindObjectsByType<Ped>(FindObjectsSortMode.None);
             Assert.AreEqual(4, peds.Length);
+            // no camera draws in batch mode, so let the Animators pose every frame and the lean is measured on a real walk
+            foreach (var p in peds) p.GetComponent<NpcBody>().animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             var start = peds.Select(p => p.transform.position).ToArray();
             yield return new WaitForSeconds(3f);
             float minRing = 99, maxRing = 0, maxLean = 0, maxHover = 0, minParam = 99; int samples = 0;
