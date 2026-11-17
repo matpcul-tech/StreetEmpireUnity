@@ -1,0 +1,18 @@
+{
+ "name": "covered-car",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 5994,
+ "tris_after": 5994,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 1025 open edges and 2 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Triangles 5994 triangles. No target was set.",
+  "NOTE Draw calls 5 draw calls, 1 material.",
+  "NOTE Size 1.79 wide, 1.41 tall, 4.37 long (meters). No size was set.",
+  "NOTE File size 2.1 MB, was 2.1 MB."
+ ],
+ "found": "40 triangles are lit from the wrong side 1,025 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

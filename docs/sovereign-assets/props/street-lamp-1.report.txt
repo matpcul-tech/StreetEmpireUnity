@@ -1,0 +1,30 @@
+Sovereign Asset report
+Source: street-lamp-1
+Finish: Game ready
+Output: street-lamp-1-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (3 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 293 open edges and 1 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.
+PASS  Triangle target: 6002 triangles. Target 6000.
+NOTE  Draw calls: 3 draw calls, 2 materials.
+PASS  Texture size: All 4 readable textures are 2048 px or under.
+NOTE  Size: 0.703 wide, 3.87 tall, 0.386 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 2 materials, 4 textures. (1 unused or identical materials merged.)
+NOTE  File size: 7.6 MB, was 8.1 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- Turned 1 inside-out shell the right way round.
+- Closed 22 holes. 12 openings left open: too large or not a simple loop.
+- Reduced 30822 triangles to 6002. The surface moved by at most 0.3 percent of the model size. Edges between parts were held in place.
+- The model was set on the ground, centered.

@@ -46,19 +46,24 @@ namespace StreetEmpire.EditorTools
             bool data = assetPath.Contains("_metalsmooth");   // URP metallic (R) and smoothness (A): linear, keeps alpha
             if (normal) t.textureType = TextureImporterType.NormalMap;
             if (data) { t.sRGBTexture = false; t.alphaSource = TextureImporterAlphaSource.FromInput; }
-            t.mipmapEnabled = true; t.maxTextureSize = 1024;
+            // hero props seen up close keep 2048 px (tools/extract_prop_textures.mjs names them _2k)
+            int max = assetPath.Contains("_2k_") ? 2048 : 1024;
+            t.mipmapEnabled = true; t.maxTextureSize = max;
+            // ground textures tile across big boxes and are seen at grazing angles
+            if (assetPath.StartsWith("Assets/Art/Textures/Ground/")) { t.wrapMode = UnityEngine.TextureWrapMode.Repeat; t.anisoLevel = 8; }
+            if (assetPath.StartsWith("Assets/Art/Textures/Props/") && assetPath.Contains("chainlink")) t.wrapMode = UnityEngine.TextureWrapMode.Repeat;
             t.textureCompression = TextureImporterCompression.Compressed;
             // M5: compressed on the GPU, not RGBA32. Android ASTC (6x6 color, 5x5 normals), WebGL DXT
             // (DXT1 color, DXT5 normals), which desktop browsers decode in hardware.
             t.SetPlatformTextureSettings(new TextureImporterPlatformSettings
             {
-                name = "Android", overridden = true, maxTextureSize = 1024,
+                name = "Android", overridden = true, maxTextureSize = max,
                 format = normal ? TextureImporterFormat.ASTC_5x5 : TextureImporterFormat.ASTC_6x6,
                 compressionQuality = 50,
             });
             t.SetPlatformTextureSettings(new TextureImporterPlatformSettings
             {
-                name = "WebGL", overridden = true, maxTextureSize = 1024,
+                name = "WebGL", overridden = true, maxTextureSize = max,
                 format = normal || data ? TextureImporterFormat.DXT5 : TextureImporterFormat.DXT1,
                 compressionQuality = 50,
             });

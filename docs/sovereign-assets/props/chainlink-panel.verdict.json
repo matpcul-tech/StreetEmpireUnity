@@ -1,0 +1,17 @@
+{
+ "name": "chainlink-panel",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 3028,
+ "tris_after": 3026,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 14 open edges. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 2 draw calls, 2 materials.",
+  "NOTE Size 0.934 wide, 2.37 tall, 0.049 long (meters). No size was set.",
+  "NOTE File size 2.5 MB, was 13.9 MB."
+ ],
+ "found": "No broken geometry found. 246 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

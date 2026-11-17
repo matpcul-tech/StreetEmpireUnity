@@ -1,0 +1,18 @@
+{
+ "name": "street-blade-5",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 12,
+ "tris_after": 12,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Triangles 12 triangles. No target was set.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 0.920 wide, 0.150 tall, 0.012 long (meters). No size was set.",
+  "NOTE File size 11 KB, was 11 KB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

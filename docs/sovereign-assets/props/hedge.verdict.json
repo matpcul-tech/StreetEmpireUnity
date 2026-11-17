@@ -1,0 +1,18 @@
+{
+ "name": "hedge",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 1280,
+ "tris_after": 1280,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Triangles 1280 triangles. No target was set.",
+  "NOTE Draw calls 4 draw calls, 1 material.",
+  "NOTE Size 3.01 wide, 1.41 tall, 1.10 long (meters). No size was set.",
+  "NOTE File size 0.3 MB, was 0.3 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

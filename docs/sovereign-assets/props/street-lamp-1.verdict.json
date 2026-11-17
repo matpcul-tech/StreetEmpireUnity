@@ -1,0 +1,17 @@
+{
+ "name": "street-lamp-1",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 30610,
+ "tris_after": 6002,
+ "maxTex": "2048",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 293 open edges and 1 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 3 draw calls, 2 materials.",
+  "NOTE Size 0.703 wide, 3.87 tall, 0.386 long (meters). No size was set.",
+  "NOTE File size 7.6 MB, was 8.1 MB."
+ ],
+ "found": "1 shell is inside out 540 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

@@ -1,0 +1,17 @@
+{
+ "name": "trash-can-rust",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 7532,
+ "tris_after": 2996,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 80 open edges. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 4 draw calls, 1 material.",
+  "NOTE Size 0.773 wide, 0.906 tall, 0.547 long (meters). No size was set.",
+  "NOTE File size 1.0 MB, was 9.0 MB."
+ ],
+ "found": "No broken geometry found. 96 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

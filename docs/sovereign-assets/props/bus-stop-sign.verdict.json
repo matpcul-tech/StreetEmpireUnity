@@ -1,0 +1,18 @@
+{
+ "name": "bus-stop-sign",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 48,
+ "tris_after": 48,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Triangles 48 triangles. No target was set.",
+  "NOTE Draw calls 2 draw calls, 2 materials.",
+  "NOTE Size 0.300 wide, 2.90 tall, 0.070 long (meters). No size was set.",
+  "NOTE File size 0.1 MB, was 0.1 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

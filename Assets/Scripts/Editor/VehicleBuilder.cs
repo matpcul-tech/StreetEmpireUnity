@@ -41,6 +41,28 @@ namespace StreetEmpire.EditorTools
             return car;
         }
 
+        /// <summary>A parked, static copy of a kit car for the curbs (no controller, no rigidbody): the stock
+        /// or painted sedan, or the police cruiser. Root at the ground center, nose along +Z, box collider.</summary>
+        public static GameObject ParkedCar(string kind, bool painted)
+        {
+            bool police = kind == "police";
+            var root = new GameObject(police ? "Parked cruiser" : painted ? "Parked sedan (red)" : "Parked sedan");
+            var model = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(police ? PoliceGlb : SedanGlb));
+            model.name = "Model"; model.transform.SetParent(root.transform, false);
+            string name = police ? "police" : "sedan";
+            UrpMaterials.Apply(model, name);
+            BindTextures(model, name);
+            if (painted && !police) Paint(model, "sedan", SedanPaint);
+            var bounds = Bounds(model);
+            model.transform.localScale *= (police ? 5.2f : 4.5f) / Mathf.Max(bounds.size.z, 1e-3f);
+            bounds = Bounds(model);
+            model.transform.localPosition += new Vector3(-bounds.center.x, -bounds.min.y, -bounds.center.z);
+            bounds = Bounds(model);
+            var box = root.AddComponent<BoxCollider>(); box.center = bounds.center; box.size = bounds.size;
+            foreach (var r in model.GetComponentsInChildren<Renderer>()) { r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On; r.receiveShadows = true; }
+            return root;
+        }
+
         static CarController BuildCar(string name, string glb, string modelName, float length, VehicleData stats)
         {
             // fit the model with the root at the origin, then place the root (bounds are world space)

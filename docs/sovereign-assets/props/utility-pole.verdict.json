@@ -1,0 +1,18 @@
+{
+ "name": "utility-pole",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 224,
+ "tris_after": 224,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Triangles 224 triangles. No target was set.",
+  "NOTE Draw calls 6 draw calls, 3 materials.",
+  "NOTE Size 2.40 wide, 10.0 tall, 0.710 long (meters). No size was set.",
+  "NOTE File size 0.2 MB, was 0.2 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

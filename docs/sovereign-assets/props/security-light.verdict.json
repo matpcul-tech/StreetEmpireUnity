@@ -1,0 +1,17 @@
+{
+ "name": "security-light",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 4668,
+ "tris_after": 1496,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 101 open edges and 6 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 3 draw calls, 2 materials.",
+  "NOTE Size 0.320 wide, 0.531 tall, 0.413 long (meters). No size was set.",
+  "NOTE File size 2.5 MB, was 12.5 MB."
+ ],
+ "found": "No broken geometry found. 149 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

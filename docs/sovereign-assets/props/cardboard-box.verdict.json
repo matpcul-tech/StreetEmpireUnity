@@ -1,0 +1,17 @@
+{
+ "name": "cardboard-box",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 16952,
+ "tris_after": 1000,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 0.385 wide, 0.341 tall, 0.516 long (meters). No size was set.",
+  "NOTE File size 0.6 MB, was 6.4 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

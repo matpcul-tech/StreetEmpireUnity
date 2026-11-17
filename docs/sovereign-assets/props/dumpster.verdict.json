@@ -1,0 +1,18 @@
+{
+ "name": "dumpster",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 300,
+ "tris_after": 300,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Triangles 300 triangles. No target was set.",
+  "NOTE Draw calls 9 draw calls, 2 materials.",
+  "NOTE Size 1.96 wide, 1.42 tall, 1.27 long (meters). No size was set.",
+  "NOTE File size 0.2 MB, was 0.2 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

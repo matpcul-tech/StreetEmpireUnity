@@ -1,0 +1,17 @@
+{
+ "name": "bench",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 630,
+ "tris_after": 630,
+ "maxTex": "2048",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.16 wide, 0.889 tall, 0.497 long (meters). No size was set.",
+  "NOTE File size 7.6 MB, was 7.6 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

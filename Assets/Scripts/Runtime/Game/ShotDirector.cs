@@ -8,6 +8,8 @@
 //   shot=cruiser two stars, standing still while a cruiser drives in
 //   shot=peds    side view following a walking pedestrian (posture, feet, corners); logs each ped's lean
 //   shot=legs    side view of the player: idle, then keys 2 walk, 3 sprint, 1 stand; logs the knee angles
+//   shot=tour    fixed street views of the Eastside build-out, keys 1 to 8 pick the view (view=N in the URL
+//                starts on one); logs the frame's draw call, batch and triangle counters where the player has them
 using System.Collections;
 using StreetEmpire.Player;
 using StreetEmpire.Vehicles;
@@ -57,6 +59,9 @@ namespace StreetEmpire.Game
                 case "legs":
                     StartCoroutine(PlayerLegs(p));
                     break;
+                case "tour":
+                    StartCoroutine(Tour(url));
+                    break;
                 case "car":
                     var car = FindFirstObjectByType<CarController>();
                     p.Teleport(car.transform.position - car.transform.right * 2.4f, car.transform.eulerAngles.y);
@@ -65,6 +70,52 @@ namespace StreetEmpire.Game
                     break;
             }
             Debug.Log($"[ShotDirector] {shot}");
+        }
+
+        /// <summary>Views for the build-out shots, from the block markers: 1 an avenue at eye height, 2 a
+        /// signal crossing, 3 into an open lot, 4 a block from above, 5 the backyards, 6 a stop sign crossing,
+        /// 7 the whole district, 8 a curb with parked cars.</summary>
+        IEnumerator Tour(string url)
+        {
+            var cam = Camera.main;
+            var brain = cam.GetComponent<Unity.Cinemachine.CinemachineBrain>(); if (brain) brain.enabled = false;
+            cam.farClipPlane = 800f;
+            Vector3 B(int id) { foreach (var m in FindObjectsByType<StreetEmpire.City.BlockMarker>(FindObjectsSortMode.None)) if (m.blockId == id) return m.transform.position; return Vector3.zero; }
+            var b10 = B(10); var b0 = B(0); var b20 = B(20); var b2 = B(2);
+            var views = new (Vector3 pos, Vector3 at)[]
+            {
+                (b10 + new Vector3(28f, 1.7f, -24f), b10 + new Vector3(27f, 1.5f, 30f)),
+                (b10 + new Vector3(-34f, 2.2f, 36f), b10 + new Vector3(-22f, 1.5f, 24f)),
+                (b10 + new Vector3(0f, 1.8f, -27f), b10 + new Vector3(0f, 1.2f, -12f)),
+                (b20 + new Vector3(-36f, 26f, -36f), b20 + new Vector3(0f, 0f, 0f)),
+                (b0 + new Vector3(5.5f, 1.7f, -5.5f), b0 + new Vector3(-6f, 1.4f, 6f)),
+                (b2 + new Vector3(32f, 1.8f, 12f), b2 + new Vector3(24f, 1.5f, 24f)),
+                ((b0 + b20) / 2 + new Vector3(80f, 110f, -150f), (b0 + b20) / 2),
+                (b20 + new Vector3(-26.5f, 1.6f, -16f), b20 + new Vector3(-24.5f, 1.0f, 12f)),
+            };
+            int view = 0; int q = url.IndexOf("view="); if (q >= 0 && int.TryParse(url.Substring(q + 5).Split('&')[0], out int v0)) view = Mathf.Clamp(v0 - 1, 0, views.Length - 1);
+            var draws = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "Draw Calls Count");
+            var batches = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "Batches Count");
+            var setpass = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "SetPass Calls Count");
+            var trisRec = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "Triangles Count");
+            float nextLog = 2f; int shown = -1;
+            while (true)
+            {
+                var kb = UnityEngine.InputSystem.Keyboard.current;
+                if (kb != null)
+                {
+                    var keys = new[] { kb.digit1Key, kb.digit2Key, kb.digit3Key, kb.digit4Key, kb.digit5Key, kb.digit6Key, kb.digit7Key, kb.digit8Key };
+                    for (int i = 0; i < keys.Length; i++) if (keys[i].isPressed) view = i;
+                }
+                cam.transform.position = views[view].pos; cam.transform.LookAt(views[view].at);
+                if (view != shown) { shown = view; nextLog = Time.time + 1.5f; }
+                if (Time.time > nextLog)
+                {
+                    nextLog = Time.time + 3f;
+                    Debug.Log($"[ShotDirector] tour view {view + 1} draws {draws.LastValue} batches {batches.LastValue} setpass {setpass.LastValue} tris {trisRec.LastValue} frame {Time.smoothDeltaTime * 1000f:0} ms (software renderer here, not a phone number)");
+                }
+                yield return null;
+            }
         }
 
         /// <summary>Upper body lean of a character from hips to neck, degrees, positive forward.</summary>

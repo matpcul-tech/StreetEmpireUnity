@@ -12,9 +12,7 @@ namespace StreetEmpire.EditorTools
     [InitializeOnLoad]
     public static class ProjectBootstrap
     {
-        const string PipelinePath = "Assets/Settings/URP-Default.asset";
-        const string RendererPath = "Assets/Settings/URP-Default-Renderer.asset";
-        const string DatabasePath = "Assets/Data/GameDatabase.asset";
+                const string DatabasePath = "Assets/Data/GameDatabase.asset";
 
         public static string[] BuildScenes => new[] { BootSceneBuilder.BootScene, SceneBuilder.EastsideScene };
 
@@ -63,21 +61,9 @@ namespace StreetEmpire.EditorTools
         static void EnsurePipeline()
         {
             Directory.CreateDirectory("Assets/Settings");
-            var pipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(PipelinePath);
-            if (pipeline == null)
-            {
-                var renderer = ScriptableObject.CreateInstance<UniversalRendererData>();
-                AssetDatabase.CreateAsset(renderer, RendererPath);
-                pipeline = UniversalRenderPipelineAsset.Create(renderer);
-                AssetDatabase.CreateAsset(pipeline, PipelinePath);
-            }
-            // mobile and WebGL friendly: no HDR, 2x MSAA, one shadow cascade over the near streets
-            pipeline.supportsHDR = false;
-            pipeline.msaaSampleCount = 2;
-            pipeline.renderScale = 1f;
-            pipeline.shadowDistance = 90f;
-            pipeline.shadowCascadeCount = 1;
-            EditorUtility.SetDirty(pipeline);
+            // Ultra (the default) and High tiers with soft shadows, SSAO and HDR post (GraphicsSetup). The
+            // Eastside's GraphicsQuality component swaps between them at run time.
+            var pipeline = GraphicsSetup.Ensure();
             GraphicsSettings.defaultRenderPipeline = pipeline;
             int keep = QualitySettings.GetQualityLevel();
             for (int i = 0; i < QualitySettings.names.Length; i++) { QualitySettings.SetQualityLevel(i, false); QualitySettings.renderPipeline = pipeline; }

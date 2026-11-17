@@ -1,0 +1,1255 @@
+{
+ "materials": [
+  {
+   "prop": "aircon",
+   "material": "exterior_aircon_unit_01",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "aircon__exterior_aircon_unit_01_basecolor.jpg",
+   "normal": "aircon__exterior_aircon_unit_01_normal.jpg",
+   "metalsmooth": "aircon__exterior_aircon_unit_01_metalsmooth.png"
+  },
+  {
+   "prop": "aircon",
+   "material": "exterior_aircon_unit_02",
+   "alpha": "BLEND",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "aircon__exterior_aircon_unit_02_basecolor.png",
+   "normal": "aircon__exterior_aircon_unit_02_normal.jpg",
+   "metalsmooth": "aircon__exterior_aircon_unit_02_metalsmooth.png"
+  },
+  {
+   "prop": "barrel",
+   "material": "barrel_03",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "barrel__barrel_03_basecolor.jpg",
+   "normal": "barrel__barrel_03_normal.jpg",
+   "metalsmooth": "barrel__barrel_03_metalsmooth.png"
+  },
+  {
+   "prop": "bench",
+   "material": "painted_wooden_bench",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "bench__painted_wooden_bench_2k_basecolor.jpg",
+   "normal": "bench__painted_wooden_bench_2k_normal.jpg",
+   "metalsmooth": "bench__painted_wooden_bench_2k_metalsmooth.png"
+  },
+  {
+   "prop": "bus-shelter",
+   "material": "shelter_frame",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    0.20000000298023224,
+    0.2199999988079071,
+    0.23999999463558197,
+    1
+   ],
+   "metallic": 0.800000011920929,
+   "roughness": 0.4000000059604645,
+   "tiling": [
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "bus-shelter",
+   "material": "shelter_glass",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    0.699999988079071,
+    0.800000011920929,
+    0.8500000238418579,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.05000000074505806,
+   "tiling": [
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "bus-shelter",
+   "material": "seat",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    0.30000001192092896,
+    0.30000001192092896,
+    0.30000001192092896,
+    1
+   ],
+   "metallic": 0.699999988079071,
+   "roughness": 0.5,
+   "tiling": [
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "bus-stop-sign",
+   "material": "galvanized",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.699999988079071,
+   "roughness": 0.44999998807907104,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "bus-stop-sign__galvanized_basecolor.jpg"
+  },
+  {
+   "prop": "bus-stop-sign",
+   "material": "bus",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.30000001192092896,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "bus-stop-sign__bus_basecolor.jpg"
+  },
+  {
+   "prop": "bush",
+   "material": "bush",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8999999761581421,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "bush__bush_basecolor.jpg"
+  },
+  {
+   "prop": "cardboard-box",
+   "material": "cardboard_box_01",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "cardboard-box__cardboard_box_01_basecolor.jpg",
+   "normal": "cardboard-box__cardboard_box_01_normal.jpg",
+   "metalsmooth": "cardboard-box__cardboard_box_01_metalsmooth.png"
+  },
+  {
+   "prop": "chainlink-panel",
+   "material": "modular_chainlink_fence_wire",
+   "alpha": "BLEND",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    4,
+    4
+   ],
+   "basecolor": "chainlink-panel__modular_chainlink_fence_wire_basecolor.png",
+   "normal": "chainlink-panel__modular_chainlink_fence_wire_normal.jpg",
+   "metalsmooth": "chainlink-panel__modular_chainlink_fence_wire_metalsmooth.png"
+  },
+  {
+   "prop": "chainlink-panel",
+   "material": "modular_chainlink_fence_posts",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "chainlink-panel__modular_chainlink_fence_posts_basecolor.jpg",
+   "normal": "chainlink-panel__modular_chainlink_fence_posts_normal.jpg",
+   "metalsmooth": "chainlink-panel__modular_chainlink_fence_posts_metalsmooth.png"
+  },
+  {
+   "prop": "chainlink-post",
+   "material": "modular_chainlink_fence_posts",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "chainlink-post__modular_chainlink_fence_posts_basecolor.jpg",
+   "normal": "chainlink-post__modular_chainlink_fence_posts_normal.jpg",
+   "metalsmooth": "chainlink-post__modular_chainlink_fence_posts_metalsmooth.png"
+  },
+  {
+   "prop": "covered-car",
+   "material": "covered_car",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "covered-car__covered_car_basecolor.jpg",
+   "normal": "covered-car__covered_car_normal.jpg",
+   "metalsmooth": "covered-car__covered_car_metalsmooth.png"
+  },
+  {
+   "prop": "crate",
+   "material": "plastic_crate_02",
+   "alpha": "BLEND",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    0.40816283226013184,
+    0,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "crate__plastic_crate_02_basecolor.png",
+   "normal": "crate__plastic_crate_02_normal.jpg",
+   "metalsmooth": "crate__plastic_crate_02_metalsmooth.png"
+  },
+  {
+   "prop": "dumpster",
+   "material": "dumpster",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.4000000059604645,
+   "roughness": 0.699999988079071,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "dumpster__dumpster_basecolor.jpg"
+  },
+  {
+   "prop": "dumpster",
+   "material": "lid",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    0.07999999821186066,
+    0.07999999821186066,
+    0.07999999821186066,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.800000011920929,
+   "tiling": [
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "hedge",
+   "material": "hedge",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8999999761581421,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "hedge__hedge_basecolor.jpg"
+  },
+  {
+   "prop": "hydrant-aged",
+   "material": "fire_hydrant_aged",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "hydrant-aged__fire_hydrant_aged_2k_basecolor.jpg",
+   "normal": "hydrant-aged__fire_hydrant_aged_2k_normal.jpg",
+   "metalsmooth": "hydrant-aged__fire_hydrant_aged_2k_metalsmooth.png"
+  },
+  {
+   "prop": "hydrant",
+   "material": "fire_hydrant",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "hydrant__fire_hydrant_2k_basecolor.jpg",
+   "normal": "hydrant__fire_hydrant_2k_normal.jpg",
+   "metalsmooth": "hydrant__fire_hydrant_2k_metalsmooth.png"
+  },
+  {
+   "prop": "mailbox",
+   "material": "usps",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.3499999940395355,
+   "roughness": 0.44999998807907104,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "mailbox__usps_basecolor.jpg"
+  },
+  {
+   "prop": "mailbox",
+   "material": "legs",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    0.11999999731779099,
+    0.11999999731779099,
+    0.11999999731779099,
+    1
+   ],
+   "metallic": 0.6000000238418579,
+   "roughness": 0.6000000238418579,
+   "tiling": [
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "mailbox",
+   "material": "slot",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    0.05000000074505806,
+    0.05000000074505806,
+    0.05999999865889549,
+    1
+   ],
+   "metallic": 0.800000011920929,
+   "roughness": 0.4000000059604645,
+   "tiling": [
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "manhole",
+   "material": "water_manhole_cover",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "manhole__water_manhole_cover_basecolor.jpg",
+   "normal": "manhole__water_manhole_cover_normal.jpg",
+   "metalsmooth": "manhole__water_manhole_cover_metalsmooth.png"
+  },
+  {
+   "prop": "newspaper-box",
+   "material": "news",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.30000001192092896,
+   "roughness": 0.44999998807907104,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "newspaper-box__news_basecolor.jpg"
+  },
+  {
+   "prop": "newspaper-box",
+   "material": "stand",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    0.15000000596046448,
+    0.15000000596046448,
+    0.15000000596046448,
+    1
+   ],
+   "metallic": 0.6000000238418579,
+   "roughness": 0.6000000238418579,
+   "tiling": [
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "road-barrier",
+   "material": "concrete_road_barrier",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "road-barrier__concrete_road_barrier_basecolor.jpg",
+   "normal": "road-barrier__concrete_road_barrier_normal.jpg",
+   "metalsmooth": "road-barrier__concrete_road_barrier_metalsmooth.png"
+  },
+  {
+   "prop": "security-light",
+   "material": "security_light",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "security-light__security_light_basecolor.jpg",
+   "normal": "security-light__security_light_normal.jpg",
+   "metalsmooth": "security-light__security_light_metalsmooth.png"
+  },
+  {
+   "prop": "security-light",
+   "material": "security_light_glass",
+   "alpha": "BLEND",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "security-light__security_light_glass_basecolor.png",
+   "normal": "security-light__security_light_glass_normal.jpg",
+   "metalsmooth": "security-light__security_light_glass_metalsmooth.png"
+  },
+  {
+   "prop": "sign-post",
+   "material": "galvanized",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.699999988079071,
+   "roughness": 0.44999998807907104,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "sign-post__galvanized_basecolor.jpg"
+  },
+  {
+   "prop": "stop-sign",
+   "material": "galvanized",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.699999988079071,
+   "roughness": 0.44999998807907104,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "stop-sign__galvanized_basecolor.jpg"
+  },
+  {
+   "prop": "stop-sign",
+   "material": "stop",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.3499999940395355,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "stop-sign__stop_basecolor.jpg"
+  },
+  {
+   "prop": "street-blade-0",
+   "material": "blade",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.10000000149011612,
+   "roughness": 0.30000001192092896,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "street-blade-0__blade_basecolor.jpg"
+  },
+  {
+   "prop": "street-blade-1",
+   "material": "blade",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.10000000149011612,
+   "roughness": 0.30000001192092896,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "street-blade-1__blade_basecolor.jpg"
+  },
+  {
+   "prop": "street-blade-2",
+   "material": "blade",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.10000000149011612,
+   "roughness": 0.30000001192092896,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "street-blade-2__blade_basecolor.jpg"
+  },
+  {
+   "prop": "street-blade-3",
+   "material": "blade",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.10000000149011612,
+   "roughness": 0.30000001192092896,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "street-blade-3__blade_basecolor.jpg"
+  },
+  {
+   "prop": "street-blade-4",
+   "material": "blade",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.10000000149011612,
+   "roughness": 0.30000001192092896,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "street-blade-4__blade_basecolor.jpg"
+  },
+  {
+   "prop": "street-blade-5",
+   "material": "blade",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.10000000149011612,
+   "roughness": 0.30000001192092896,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "street-blade-5__blade_basecolor.jpg"
+  },
+  {
+   "prop": "street-blade-6",
+   "material": "blade",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.10000000149011612,
+   "roughness": 0.30000001192092896,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "street-blade-6__blade_basecolor.jpg"
+  },
+  {
+   "prop": "street-blade-7",
+   "material": "blade",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.10000000149011612,
+   "roughness": 0.30000001192092896,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "street-blade-7__blade_basecolor.jpg"
+  },
+  {
+   "prop": "street-lamp-1",
+   "material": "street_lamp_01",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "street-lamp-1__street_lamp_01_2k_basecolor.jpg",
+   "normal": "street-lamp-1__street_lamp_01_2k_normal.jpg",
+   "metalsmooth": "street-lamp-1__street_lamp_01_2k_metalsmooth.png"
+  },
+  {
+   "prop": "street-lamp-1",
+   "material": "street_lamp_01_glass",
+   "alpha": "BLEND",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "street-lamp-1__street_lamp_01_glass_2k_basecolor.png",
+   "normal": "street-lamp-1__street_lamp_01_glass_2k_normal.jpg",
+   "metalsmooth": "street-lamp-1__street_lamp_01_glass_2k_metalsmooth.png"
+  },
+  {
+   "prop": "traffic-signal",
+   "material": "signal_pole",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0.6000000238418579,
+   "roughness": 0.5,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "traffic-signal__signal_pole_basecolor.jpg"
+  },
+  {
+   "prop": "traffic-signal",
+   "material": "signal_head",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    0.550000011920929,
+    0.44999998807907104,
+    0.07999999821186066,
+    1
+   ],
+   "metallic": 0.20000000298023224,
+   "roughness": 0.5,
+   "tiling": [
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "traffic-signal",
+   "material": "lens_red",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    0.75,
+    0.05000000074505806,
+    0.029999999329447746,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.20000000298023224,
+   "tiling": [
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "traffic-signal",
+   "material": "lens_yellow",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    0.75,
+    0.550000011920929,
+    0.05000000074505806,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.20000000298023224,
+   "tiling": [
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "traffic-signal",
+   "material": "lens_green",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    0.05000000074505806,
+    0.550000011920929,
+    0.11999999731779099,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.20000000298023224,
+   "tiling": [
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "trash-can-rust",
+   "material": "metal_trash_can_rust",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "trash-can-rust__metal_trash_can_rust_basecolor.jpg",
+   "normal": "trash-can-rust__metal_trash_can_rust_normal.jpg",
+   "metalsmooth": "trash-can-rust__metal_trash_can_rust_metalsmooth.png"
+  },
+  {
+   "prop": "trash-can",
+   "material": "metal_trash_can",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "trash-can__metal_trash_can_2k_basecolor.jpg",
+   "normal": "trash-can__metal_trash_can_2k_normal.jpg",
+   "metalsmooth": "trash-can__metal_trash_can_2k_metalsmooth.png"
+  },
+  {
+   "prop": "trashbag",
+   "material": "trashbag",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "trashbag__trashbag_basecolor.jpg",
+   "normal": "trashbag__trashbag_normal.jpg",
+   "metalsmooth": "trashbag__trashbag_metalsmooth.png"
+  },
+  {
+   "prop": "tree-elm",
+   "material": "bark",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8500000238418579,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "tree-elm__bark_basecolor.jpg"
+  },
+  {
+   "prop": "tree-elm",
+   "material": "leaves",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8999999761581421,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "tree-elm__leaves_basecolor.jpg"
+  },
+  {
+   "prop": "tree-maple",
+   "material": "bark",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8500000238418579,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "tree-maple__bark_basecolor.jpg"
+  },
+  {
+   "prop": "tree-maple",
+   "material": "leaves",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8999999761581421,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "tree-maple__leaves_basecolor.jpg"
+  },
+  {
+   "prop": "tree-young",
+   "material": "bark",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8500000238418579,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "tree-young__bark_basecolor.jpg"
+  },
+  {
+   "prop": "tree-young",
+   "material": "leaves",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8999999761581421,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "tree-young__leaves_basecolor.jpg"
+  },
+  {
+   "prop": "tyre",
+   "material": "old_tyre",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "tyre__old_tyre_basecolor.jpg",
+   "normal": "tyre__old_tyre_normal.jpg",
+   "metalsmooth": "tyre__old_tyre_metalsmooth.png"
+  },
+  {
+   "prop": "utility-box-1",
+   "material": "utility_box_01",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "utility-box-1__utility_box_01_basecolor.jpg",
+   "normal": "utility-box-1__utility_box_01_normal.jpg",
+   "metalsmooth": "utility-box-1__utility_box_01_metalsmooth.png"
+  },
+  {
+   "prop": "utility-box-2",
+   "material": "utility_box_02",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 1,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "utility-box-2__utility_box_02_basecolor.jpg",
+   "normal": "utility-box-2__utility_box_02_normal.jpg",
+   "metalsmooth": "utility-box-2__utility_box_02_metalsmooth.png"
+  },
+  {
+   "prop": "utility-pole",
+   "material": "pole",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8500000238418579,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "utility-pole__pole_basecolor.jpg"
+  },
+  {
+   "prop": "utility-pole",
+   "material": "insulator",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    0.6200000047683716,
+    0.6800000071525574,
+    0.6200000047683716,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.25,
+   "tiling": [
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "utility-pole",
+   "material": "transformer",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    0.41999998688697815,
+    0.4399999976158142,
+    0.4399999976158142,
+    1
+   ],
+   "metallic": 0.6000000238418579,
+   "roughness": 0.5,
+   "tiling": [
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "wood-fence",
+   "material": "wood",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8500000238418579,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "wood-fence__wood_basecolor.jpg"
+  }
+ ]
+}

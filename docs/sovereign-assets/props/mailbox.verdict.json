@@ -1,0 +1,18 @@
+{
+ "name": "mailbox",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 244,
+ "tris_after": 244,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Triangles 244 triangles. No target was set.",
+  "NOTE Draw calls 7 draw calls, 3 materials.",
+  "NOTE Size 0.520 wide, 1.46 tall, 0.520 long (meters). No size was set.",
+  "NOTE File size 0.1 MB, was 0.1 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

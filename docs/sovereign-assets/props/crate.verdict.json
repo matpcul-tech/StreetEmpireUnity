@@ -1,0 +1,17 @@
+{
+ "name": "crate",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 5840,
+ "tris_after": 2000,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 0.506 wide, 0.254 tall, 0.406 long (meters). No size was set.",
+  "NOTE File size 1.7 MB, was 6.7 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

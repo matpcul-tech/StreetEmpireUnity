@@ -1,0 +1,18 @@
+{
+ "name": "tree-elm",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 2044,
+ "tris_after": 2044,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Triangles 2044 triangles. No target was set.",
+  "NOTE Draw calls 11 draw calls, 2 materials.",
+  "NOTE Size 11.5 wide, 13.2 tall, 10.5 long (meters). No size was set.",
+  "NOTE File size 0.6 MB, was 0.6 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

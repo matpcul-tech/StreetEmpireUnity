@@ -1,0 +1,18 @@
+{
+ "name": "sign-post",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 72,
+ "tris_after": 72,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Triangles 72 triangles. No target was set.",
+  "NOTE Draw calls 2 draw calls, 1 material.",
+  "NOTE Size 0.086 wide, 3.26 tall, 0.090 long (meters). No size was set.",
+  "NOTE File size 0.1 MB, was 0.1 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

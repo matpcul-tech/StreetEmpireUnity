@@ -15,3 +15,31 @@ Converted for Unity glTFast with tools/convert_glb.mjs: meshopt decoded, dequant
 | Models/Cars/police.glb | Street Empire kit police cruiser (public/models/kit/cars/police-v7.glb, made from the Meshy police-01 model). Converted with tools/convert_glb.mjs. |
 | Models/Cars/sedan_paint_6a2420.jpg | The sedan atlas repainted deep red by tools/paint_car.mjs, the same rule kit.js uses for car paint. |
 | Textures/Cars/police_* | Extracted from Models/Cars/police.glb by tools/extract_car_textures.mjs (metallic-roughness rewritten for URP) so Unity compresses them. |
+
+## Eastside build-out (November 2026)
+
+Every prop below was finished, exported and checked in Sovereign Asset (/asset.html in Sovereign-draft, "game" preset, keep format, ground and center, Fix normals) before it came into Unity. The finished files are Models/Props/*.glb; the Sovereign Asset reports and verdicts are in docs/sovereign-assets/props. Textures were pulled out of the finished files by tools/extract_prop_textures.mjs (Textures/Props, with manifest.json) so Unity compresses them.
+
+| File | Source |
+| --- | --- |
+| Models/Props/hydrant.glb, hydrant-aged.glb | Poly Haven "Fire Hydrant" (fire_hydrant), CC0 1.0 (public domain). polyhaven.com/a/fire_hydrant |
+| Models/Props/bench.glb | Poly Haven "Painted Wooden Bench" (painted_wooden_bench), CC0 1.0 |
+| Models/Props/trash-can.glb, trash-can-rust.glb | Poly Haven "Metal Trash Can" (metal_trash_can, plain and rust variants), CC0 1.0 |
+| Models/Props/street-lamp-1.glb | Poly Haven "Street Lamp 01" (street_lamp_01), CC0 1.0 |
+| Models/Props/utility-box-1.glb, utility-box-2.glb | Poly Haven "Utility Box 01" and "Utility Box 02", CC0 1.0 |
+| Models/Props/manhole.glb | Poly Haven "Water Manhole Cover" (water_manhole_cover), CC0 1.0 |
+| Models/Props/trashbag.glb | Poly Haven "Trash Bag" (trashbag), CC0 1.0 |
+| Models/Props/barrel.glb | Poly Haven "Barrel 03" (barrel_03), CC0 1.0 |
+| Models/Props/tyre.glb | Poly Haven "Old Tyre" (old_tyre), CC0 1.0 |
+| Models/Props/road-barrier.glb | Poly Haven "Concrete Road Barrier" (concrete_road_barrier), CC0 1.0 |
+| Models/Props/security-light.glb | Poly Haven "Security Light" (security_light), CC0 1.0 |
+| Models/Props/cardboard-box.glb | Poly Haven "Cardboard Box 01" (cardboard_box_01), CC0 1.0 |
+| Models/Props/crate.glb | Poly Haven "Plastic Crate 02" (plastic_crate_02), CC0 1.0 |
+| Models/Props/chainlink-panel.glb, chainlink-post.glb | Poly Haven "Modular Chainlink Fence" (modular_chainlink_fence), CC0 1.0 |
+| Models/Props/aircon.glb | Poly Haven "Exterior Aircon Unit" (exterior_aircon_unit), CC0 1.0 |
+| Models/Props/covered-car.glb | Poly Haven "Covered Car" (covered_car), CC0 1.0 (finished, not placed yet) |
+| Models/Props/stop-sign, sign-post, street-blade-0..7, traffic-signal, mailbox, newspaper-box, dumpster, utility-pole, wood-fence, bus-stop-sign, bus-shelter | Modeled for this project in Blender (own work, no third-party source). Sign faces and grime textures drawn for this project with PIL. The street names are made up for the game. |
+| Models/Props/tree-maple, tree-elm, tree-young, hedge, bush | Modeled for this project in Blender (own work), leaf and bark textures generated for this project. |
+| Textures/Ground/worn_asphalt, concrete_pavement, sparse_grass, leafy_grass, park_dirt, cracked_concrete | Poly Haven textures of the same names, CC0 1.0 (1k diffuse and OpenGL normal maps). |
+
+Poly Haven assets are CC0: no attribution is required; it is given here anyway.

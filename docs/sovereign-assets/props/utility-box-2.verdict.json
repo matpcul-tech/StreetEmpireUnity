@@ -1,0 +1,17 @@
+{
+ "name": "utility-box-2",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 6268,
+ "tris_after": 2500,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 792 open edges and 5 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 0.920 wide, 1.12 tall, 0.432 long (meters). No size was set.",
+  "NOTE File size 0.7 MB, was 6.8 MB."
+ ],
+ "found": "No broken geometry found. 936 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

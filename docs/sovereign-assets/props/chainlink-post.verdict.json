@@ -1,0 +1,17 @@
+{
+ "name": "chainlink-post",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 5062,
+ "tris_after": 1200,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 22 open edges. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 0.147 wide, 2.52 tall, 0.143 long (meters). No size was set.",
+  "NOTE File size 0.8 MB, was 7.1 MB."
+ ],
+ "found": "No broken geometry found. 54 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

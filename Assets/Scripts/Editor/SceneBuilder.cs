@@ -10,6 +10,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 
 namespace StreetEmpire.EditorTools
@@ -47,9 +48,12 @@ namespace StreetEmpire.EditorTools
             bool additive = prev.IsValid() && !string.IsNullOrEmpty(prev.path);
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, additive ? NewSceneMode.Additive : NewSceneMode.Single);
             SceneManager.SetActiveScene(scene);
-            var asphalt = Mat("Asphalt", new Color32(0x2e, 0x2e, 0x31, 255), 0.15f);
-            var sidewalk = Mat("Sidewalk", new Color32(0x8e, 0x8a, 0x84, 255), 0.1f);
-            var yard = Mat("Yard", new Color32(0x4f, 0x5c, 0x3a, 255), 0.05f);
+            // CC0 Poly Haven ground textures (Assets/Art/Textures/Ground), tiled to the size of the box they cover
+            float district = CityLayout.LineCoord(w, 3) - CityLayout.LineCoord(w, 0) + 60;
+            var asphalt = TexMat("Asphalt", "worn_asphalt", district / 4.5f, 0.12f, new Color(0.78f, 0.78f, 0.8f));
+            var sidewalk = TexMat("Sidewalk", "concrete_pavement", (w.block + 4) / 2.6f, 0.08f, Color.white);
+            var yard = TexMat("Yard", "sparse_grass", (w.block - 2) / 3.5f, 0.04f, new Color(0.92f, 0.95f, 0.88f));
+            var outer = TexMat("OuterGround", "leafy_grass", 1600f / 6f, 0.03f, new Color(0.8f, 0.85f, 0.78f));
             var line = Mat("LaneYellow", new Color32(0xd8, 0xc0, 0x4a, 255), 0.3f);
             var curb = Mat("Curb", new Color32(0x6e, 0x6b, 0x66, 255), 0.1f);
 
@@ -59,13 +63,17 @@ namespace StreetEmpire.EditorTools
             var (gx0, gz0) = WorldSpace.FromSource(min, min); var (gx1, gz1) = WorldSpace.FromSource(max, max);
             var ground = Box("Ground", root.transform, asphalt, new Vector3((gx0 + gx1) / 2, -0.05f, (gz0 + gz1) / 2), new Vector3(Mathf.Abs(gx1 - gx0), 0.1f, Mathf.Abs(gz1 - gz0)));
             GameObjectUtility.SetStaticEditorFlags(ground, StaticEditorFlags.BatchingStatic);
+            // grass out to the fog so the district does not end over nothing
+            Box("Outer Ground", root.transform, outer, new Vector3((gx0 + gx1) / 2, -0.1f, (gz0 + gz1) / 2), new Vector3(1600, 0.1f, 1600));
 
             var streets = new GameObject("Streets").transform; streets.SetParent(root.transform);
             // double yellow center lines, broken at every crossing so they do not run through the intersections
             float half = w.street / 2f;
             var spans = new System.Collections.Generic.List<(float a, float b)>();
             float from = min;
-            for (int j = 0; j <= 3; j++) { float cj = CityLayout.LineCoord(w, j); spans.Add((from, cj - half)); from = cj + half; }
+            // the center lines stop short of the crosswalks and stop bars (PropBuilder), 13.5 m from each crossing
+            float gap = half + 4.5f;
+            for (int j = 0; j <= 3; j++) { float cj = CityLayout.LineCoord(w, j); spans.Add((from, cj - gap)); from = cj + gap; }
             spans.Add((from, max));
             for (int i = 0; i <= 3; i++)
             {
@@ -83,6 +91,7 @@ namespace StreetEmpire.EditorTools
             }
 
             int placed = 0; dealt.Clear();
+            var blockInfo = new List<PropBuilder.BlockInfo>();
             foreach (int id in EastsideBlocks)
             {
                 var b = s.blocks[id];
@@ -94,6 +103,7 @@ namespace StreetEmpire.EditorTools
                 var bm = bgo.AddComponent<BlockMarker>();
                 bm.blockId = b.id; bm.gx = b.gx; bm.gz = b.gz; bm.owner = b.owner; bm.hustle = b.hustle;
                 bm.district = CityLayout.DistrictOf(b.gx, b.gz, w.grid);
+                blockInfo.Add(new PropBuilder.BlockInfo { id = b.id, center = new Vector3(ux, 0, uz) });
                 // sidewalk slab with a curb edge, then the yard inside (city.js buildBlock)
                 Box("Sidewalk", bgo.transform, sidewalk, new Vector3(ux, 0.11f, uz), new Vector3(w.block + 4, 0.22f, w.block + 4));
                 Box("Curb", bgo.transform, curb, new Vector3(ux, 0.1f, uz), new Vector3(w.block + 4.3f, 0.2f, w.block + 4.3f), false);
@@ -105,6 +115,11 @@ namespace StreetEmpire.EditorTools
             var player = PlayerBuilder.Build(w, s.blocks[0]);
             VehicleBuilder.BuildSedan(data, s.blocks[0]);
             GameBuilder.Build(data, s, player);
+            // after the people and cars, so the props keep clear of where they start
+            var xs = Enumerable.Range(0, 4).Select(i => WorldSpace.FromSource(CityLayout.LineCoord(w, i), 0).x).ToArray();
+            var zs = Enumerable.Range(0, 4).Select(i => WorldSpace.FromSource(0, CityLayout.LineCoord(w, i)).z).ToArray();
+            PropBuilder.Build(blockInfo, xs, zs, root.transform);
+            PostAndQuality(root.transform);
 
             Directory.CreateDirectory("Assets/Scenes");
             EditorSceneManager.SaveScene(scene, EastsideScene);
@@ -193,12 +208,85 @@ namespace StreetEmpire.EditorTools
             lod.near = near; lod.far = farRs;
         }
 
+        /// <summary>The global post volume, post processing on the main camera, and the Ultra / High switch
+        /// with its HUD button (top right, under the wanted stars).</summary>
+        static void PostAndQuality(Transform root)
+        {
+            var vol = new GameObject("Post Volume"); vol.transform.SetParent(root, false);
+            var v = vol.AddComponent<Volume>(); v.isGlobal = true; v.priority = 0; v.sharedProfile = GraphicsSetup.PostProfile();
+            foreach (var cam in Object.FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (!cam.CompareTag("MainCamera")) continue;
+                var data = cam.GetUniversalAdditionalCameraData();
+                data.renderPostProcessing = true; data.antialiasing = AntialiasingMode.None; // MSAA does the edges
+                data.renderShadows = true;
+                cam.allowHDR = true; cam.allowMSAA = true;
+            }
+            var gq = new GameObject("Graphics Quality").AddComponent<StreetEmpire.UI.GraphicsQuality>();
+            gq.transform.SetParent(root, false);
+            gq.ultra = GraphicsSetup.Ultra; gq.high = GraphicsSetup.High;
+            var canvas = GameObject.Find("HUD");
+            if (canvas == null) return;
+            var r = PlayerBuilder.Rect("Graphics Button", canvas.transform, Vector2.one, Vector2.one, new Vector2(-30, -92), new Vector2(190, 52));
+            r.pivot = Vector2.one;
+            var img = r.gameObject.AddComponent<UnityEngine.UI.Image>(); img.color = new Color(0, 0, 0, 0.45f);
+            var btn = r.gameObject.AddComponent<UnityEngine.UI.Button>(); btn.targetGraphic = img;
+            var lr = PlayerBuilder.Rect("Label", r, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var t = lr.gameObject.AddComponent<UnityEngine.UI.Text>(); t.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            t.fontSize = 24; t.alignment = TextAnchor.MiddleCenter; t.color = Color.white; t.raycastTarget = false; t.text = "GFX ULTRA";
+            gq.label = t;
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btn.onClick, gq.Toggle);
+        }
+
+        static Material TexMat(string name, string tex, float tile, float smooth, Color tint)
+        {
+            var m = Mat(name, tint, smooth);
+            const string dir = "Assets/Art/Textures/Ground";
+            var bc = AssetDatabase.LoadAssetAtPath<Texture2D>($"{dir}/{tex}_basecolor.jpg");
+            var nm = AssetDatabase.LoadAssetAtPath<Texture2D>($"{dir}/{tex}_normal.jpg");
+            m.SetTexture("_BaseMap", bc); m.SetTextureScale("_BaseMap", new Vector2(tile, tile));
+            m.SetTexture("_BumpMap", nm); m.SetFloat("_BumpScale", 1f);
+            if (nm != null) m.EnableKeyword("_NORMALMAP"); else m.DisableKeyword("_NORMALMAP");
+            m.enableInstancing = true;
+            EditorUtility.SetDirty(m);
+            return m;
+        }
+
+        /// <summary>A small sky and ground cube for reflections. Nothing is baked in CI, so without this the
+        /// metal props (hydrants, bins, lamps) would reflect black.</summary>
+        static Cubemap Reflection()
+        {
+            const string path = "Assets/Art/Materials/SkyReflection.cubemap";
+            var cube = AssetDatabase.LoadAssetAtPath<Cubemap>(path);
+            if (cube == null) { cube = new Cubemap(64, TextureFormat.RGBA32, true); AssetDatabase.CreateAsset(cube, path); }
+            Color sky = new(0.58f, 0.68f, 0.84f), horizon = new(0.78f, 0.8f, 0.82f), ground = new(0.24f, 0.23f, 0.22f);
+            var px = new Color[64 * 64];
+            foreach (CubemapFace f in new[] { CubemapFace.PositiveX, CubemapFace.NegativeX, CubemapFace.PositiveY, CubemapFace.NegativeY, CubemapFace.PositiveZ, CubemapFace.NegativeZ })
+            {
+                for (int y = 0; y < 64; y++)
+                    for (int x = 0; x < 64; x++)
+                    {
+                        // face rows run top to bottom; the side faces blend sky, horizon and ground by height
+                        float v = 1f - (y + 0.5f) / 64f;
+                        Color c = f == CubemapFace.PositiveY ? sky : f == CubemapFace.NegativeY ? ground
+                            : v > 0.5f ? Color.Lerp(horizon, sky, (v - 0.5f) * 2f) : Color.Lerp(ground, horizon, Mathf.Pow(v * 2f, 3f));
+                        px[y * 64 + x] = c;
+                    }
+                cube.SetPixels(px, f);
+            }
+            cube.Apply(true);
+            EditorUtility.SetDirty(cube);
+            return cube;
+        }
+
         static void Lighting(Transform root)
         {
             // one shadowed sun, trilight ambient, light fog: cheap on phones and WebGL
             var sun = new GameObject("Sun").AddComponent<Light>();
-            sun.type = LightType.Directional; sun.color = new Color(1f, 0.95f, 0.86f); sun.intensity = 1.25f;
-            sun.shadows = LightShadows.Soft; sun.shadowStrength = 0.8f;
+            // brighter than before: ACES tonemapping (GraphicsSetup) pulls the midtones down
+            sun.type = LightType.Directional; sun.color = new Color(1f, 0.94f, 0.84f); sun.intensity = 1.7f;
+            sun.shadows = LightShadows.Soft; sun.shadowStrength = 0.85f;
+            sun.shadowBias = 0.05f; sun.shadowNormalBias = 0.4f;
             sun.transform.rotation = Quaternion.Euler(48, -35, 0);
             RenderSettings.sun = sun;
             RenderSettings.ambientMode = AmbientMode.Trilight;
@@ -212,6 +300,9 @@ namespace StreetEmpire.EditorTools
             if (sky == null) { sky = new Material(Shader.Find("Skybox/Procedural")); AssetDatabase.CreateAsset(sky, $"{Mats}/Sky.mat"); }
             sky.SetFloat("_SunSize", 0.03f); sky.SetFloat("_AtmosphereThickness", 0.9f); sky.SetFloat("_Exposure", 1.15f);
             RenderSettings.skybox = sky;
+            RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
+            RenderSettings.customReflectionTexture = Reflection();
+            RenderSettings.reflectionIntensity = 0.8f;
         }
 
         static void OverviewCamera(WorldFile w)

@@ -1,0 +1,17 @@
+{
+ "name": "trash-can",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 6428,
+ "tris_after": 2996,
+ "maxTex": "2048",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 80 open edges. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 4 draw calls, 1 material.",
+  "NOTE Size 0.778 wide, 0.906 tall, 0.554 long (meters). No size was set.",
+  "NOTE File size 7.6 MB, was 7.7 MB."
+ ],
+ "found": "No broken geometry found. 96 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

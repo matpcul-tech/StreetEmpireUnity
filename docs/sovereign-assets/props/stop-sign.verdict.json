@@ -1,0 +1,18 @@
+{
+ "name": "stop-sign",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 64,
+ "tris_after": 64,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Triangles 64 triangles. No target was set.",
+  "NOTE Draw calls 2 draw calls, 2 materials.",
+  "NOTE Size 0.722 wide, 2.86 tall, 0.302 long (meters). No size was set.",
+  "NOTE File size 0.1 MB, was 0.1 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}
