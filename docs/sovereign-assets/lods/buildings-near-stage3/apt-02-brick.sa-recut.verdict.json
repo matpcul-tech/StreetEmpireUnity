@@ -1,0 +1,18 @@
+{
+ "name": "apt-02-brick",
+ "banner": "NOT READY",
+ "preset": "se-building",
+ "tris_before": 49010,
+ "tris_after": 49010,
+ "maxTex": "1024",
+ "sum": "1 check failed: Triangle target.",
+ "failed": [
+  "FAIL Triangle target 49010 triangles. Target 26000. Going lower would visibly change the shape. Raise the target, or simplify the source model.",
+  "NOTE Open edges 12 open edges and 40 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.38 wide, 1.90 tall, 1.33 long (meters). No size was set.",
+  "NOTE File size 3.8 MB, was 3.8 MB."
+ ],
+ "found": "No broken geometry found. 12 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

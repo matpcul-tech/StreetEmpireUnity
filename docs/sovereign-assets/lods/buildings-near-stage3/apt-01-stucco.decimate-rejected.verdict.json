@@ -1,0 +1,18 @@
+{
+ "name": "apt-01-stucco",
+ "banner": "READY",
+ "preset": "se-building",
+ "tris_before": 25983,
+ "tris_after": 25995,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 40491 open edges. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Triangles 25995 triangles. No target was set.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.91 wide, 1.72 tall, 1.66 long (meters). No size was set.",
+  "NOTE File size 1.8 MB, was 1.8 MB."
+ ],
+ "found": "No broken geometry found. 40,523 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}
