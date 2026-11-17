@@ -38,7 +38,7 @@ namespace StreetEmpire.Tests
             Assert.AreEqual(32, Count("street name blade"), "two name blades on every post");
             Assert.GreaterOrEqual(Count("utility pole"), 12, "utility poles");
             Assert.GreaterOrEqual(Count("parked car"), 8, "parked cars");
-            Assert.GreaterOrEqual(Count("tree"), 20, "trees");
+            Assert.GreaterOrEqual(Count("tree"), 40, "palms in the lots, the yards and along the curbs");
             Assert.GreaterOrEqual(Count("manhole"), 24, "manholes");
             Assert.Greater(Count("wood fence"), 0, "wood fences"); Assert.Greater(Count("chain link fence"), 0, "chain link");
             Assert.Greater(Count("dumpster"), 0, "dumpsters"); Assert.Greater(Count("bench"), 0, "benches");

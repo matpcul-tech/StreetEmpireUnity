@@ -111,7 +111,7 @@ namespace StreetEmpire.EditorTools
             {
                 if ((deal * 7 + i * 3) % 3 == 0) continue;
                 float s = (i == 0 ? -1 : 1) * (k == 0 ? 6.5f : 12.8f) + Jit(0.6f);
-                Place((deal + i) % 3 == 0 ? "palm-short" : "palm-tall", "palm", b.id, At(b, k, CurbLine, s, SidewalkTop), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.25f);
+                Place((deal + i) % 3 == 0 ? "palm-short" : "palm-tall", "tree", b.id, At(b, k, CurbLine, s, SidewalkTop), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.25f);
             }
             if (k == b.id % 4) Place(b.id % 3 == 0 ? "hydrant-aged" : "hydrant", "hydrant", b.id, At(b, k, CurbLine, 3.2f, SidewalkTop), Face(-n) * Quaternion.Euler(0, Jit(25), 0), parent, Col.Bounds, 0.01f);
 
@@ -162,8 +162,8 @@ namespace StreetEmpire.EditorTools
             switch (type)
             {
                 case 0: // pocket park: two palms, a hedge along the walk, a bench looking out
-                    Place("palm-tall", "palm", b.id, L(12.5f, -3f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.28f);
-                    Place("palm-short", "palm", b.id, L(9.5f, 3.6f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.2f);
+                    Place("palm-tall", "tree", b.id, L(12.5f, -3f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.28f);
+                    Place("palm-short", "tree", b.id, L(9.5f, 3.6f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.2f);
                     Place("hedge", "hedge", b.id, L(18.2f, -3.6f), Face(n), parent, Col.Bounds, 0.01f);
                     Place("hedge", "hedge", b.id, L(18.2f, 3.6f), Face(n), parent, Col.Bounds, 0.01f);
                     Place("bench", "bench", b.id, L(15.2f, 0.4f), Face(n), parent, Col.Bounds, 0.012f);
@@ -196,7 +196,7 @@ namespace StreetEmpire.EditorTools
                 case 3: // side yard: wood fence along the walk, a tall palm, a bush
                     for (int i = 0; i < 5; i++)
                         Place("wood-fence", "wood fence", b.id, L(18.6f, -5f + i * 2.5f), Face(n), parent, Col.Bounds, 0.01f);
-                    Place("palm-tall", "palm", b.id, L(12f, 1.5f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.32f);
+                    Place("palm-tall", "tree", b.id, L(12f, 1.5f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.32f);
                     Place("bush", "bush", b.id, L(16.6f, -4.4f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
                     Place("aircon", "aircon", b.id, L(9f, -6.1f), Face(t), parent, Col.Bounds, 0.015f);
                     break;
@@ -226,8 +226,8 @@ namespace StreetEmpire.EditorTools
         {
             for (int i = 0; i < 5; i++)
                 Place("wood-fence", "wood fence", b.id, b.center + new Vector3(0, YardTop, -5f + i * 2.5f), Quaternion.Euler(0, 90, 0), parent, Col.Bounds, 0.01f);
-            Place(b.id % 2 == 0 ? "palm-short" : "palm-tall", "palm", b.id, b.center + new Vector3(-3.6f, YardTop, 3.4f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.3f);
-            Place("palm-short", "palm", b.id, b.center + new Vector3(3.8f, YardTop, -3.2f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.2f);
+            Place(b.id % 2 == 0 ? "palm-short" : "palm-tall", "tree", b.id, b.center + new Vector3(-3.6f, YardTop, 3.4f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.3f);
+            Place("palm-short", "tree", b.id, b.center + new Vector3(3.8f, YardTop, -3.2f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.2f);
             Place("barrel", "junk", b.id, b.center + new Vector3(1.2f, YardTop, 4.6f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Bounds, 0.02f);
             Place("tyre", "junk", b.id, b.center + new Vector3(-1.4f, YardTop, -4.4f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.02f);
             Place("bush", "bush", b.id, b.center + new Vector3(-5.6f, YardTop, -5.4f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
