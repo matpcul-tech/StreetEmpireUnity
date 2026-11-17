@@ -1,5 +1,7 @@
 // Third person orbit: drives the Cinemachine orbital follow from mouse (click to lock the cursor),
-// gamepad right stick, or a drag on the right side of a phone screen.
+// gamepad right stick, or a drag on the right side of a phone screen. Feels like the web game's camera
+// (main.js): 0.0026 rad a mouse pixel, over the right shoulder on foot, centered behind a car, and pulled in
+// when a building wall is behind (insideBuilding in the web), never by a pole or a palm.
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -10,7 +12,9 @@ namespace StreetEmpire.Player
     public class CameraRig : MonoBehaviour
     {
         public CinemachineOrbitalFollow orbit;
-        public float mouseSensitivity = 0.12f, stickSpeed = 150f, touchSensitivity = 0.22f;
+        public float mouseSensitivity = 0.149f, stickSpeed = 150f, touchSensitivity = 0.22f;
+        public CinemachineRotationComposer composer;
+        public float radius = 5.2f, shoulder = -0.05f;   // orbit radius wanted, and the on foot screen offset
         public Transform alignTo;           // while driving: swing back behind the car when the player is not looking around
         public float alignDelay = 1.2f, alignSpeed = 2.5f;
         static Vector2 touchDelta;
@@ -38,6 +42,28 @@ namespace StreetEmpire.Player
             orbit.HorizontalAxis.Value = Mathf.DeltaAngle(0f, h);
             var range = orbit.VerticalAxis.Range;
             orbit.VerticalAxis.Value = Mathf.Clamp(orbit.VerticalAxis.Value - look.y, range.x, range.y);
+
+            if (composer != null)
+            {
+                var c = composer.Composition; c.ScreenPosition.x = Mathf.Lerp(c.ScreenPosition.x, alignTo != null ? 0f : shoulder, 1f - Mathf.Exp(-6f * Time.deltaTime));
+                composer.Composition = c;
+            }
+            orbit.Radius = Mathf.Lerp(orbit.Radius, Clearance(), 1f - Mathf.Exp(-12f * Time.deltaTime));
+        }
+
+        static readonly RaycastHit[] hits = new RaycastHit[16];
+
+        /// <summary>How far back the camera can sit before a building wall gets between it and the player.</summary>
+        float Clearance()
+        {
+            var cm = orbit.GetComponent<CinemachineCamera>(); var t = cm != null ? cm.Follow : null;
+            if (t == null) return radius;
+            var dir = Quaternion.Euler(orbit.VerticalAxis.Value, orbit.HorizontalAxis.Value, 0) * Vector3.back;
+            int n = Physics.SphereCastNonAlloc(t.position, 0.25f, dir, hits, radius, ~0, QueryTriggerInteraction.Ignore);
+            float best = radius;
+            for (int i = 0; i < n; i++)
+                if (hits[i].distance > 0 && hits[i].collider.GetComponent<StreetEmpire.City.BuildingMarker>() != null) best = Mathf.Min(best, hits[i].distance);
+            return Mathf.Max(1.5f, best);
         }
     }
 }

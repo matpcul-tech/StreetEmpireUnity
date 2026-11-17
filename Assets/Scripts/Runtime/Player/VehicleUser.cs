@@ -78,7 +78,7 @@ namespace StreetEmpire.Player
             var orbit = followCamera.GetComponent<CinemachineOrbitalFollow>();
             if (orbit != null) orbit.Radius = radius;
             var rig = followCamera.GetComponent<CameraRig>();
-            if (rig != null) rig.alignTo = Car != null ? Car.transform : null;
+            if (rig != null) { rig.alignTo = Car != null ? Car.transform : null; rig.radius = radius; }
         }
     }
 }
