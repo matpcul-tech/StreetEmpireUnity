@@ -533,6 +533,82 @@
    ]
   },
   {
+   "prop": "palm-short",
+   "material": "palm_bark",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "palm-short__palm_bark_basecolor.jpg"
+  },
+  {
+   "prop": "palm-short",
+   "material": "palm_frond",
+   "alpha": "MASK",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8999999761581421,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "palm-short__palm_frond_basecolor.png"
+  },
+  {
+   "prop": "palm-tall",
+   "material": "palm_bark",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "palm-tall__palm_bark_basecolor.jpg"
+  },
+  {
+   "prop": "palm-tall",
+   "material": "palm_frond",
+   "alpha": "MASK",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.8999999761581421,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "palm-tall__palm_frond_basecolor.png"
+  },
+  {
    "prop": "road-barrier",
    "material": "concrete_road_barrier",
    "alpha": "OPAQUE",

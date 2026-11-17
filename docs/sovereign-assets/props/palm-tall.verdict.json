@@ -1,0 +1,18 @@
+{
+ "name": "palm-tall",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 118,
+ "tris_after": 124,
+ "maxTex": "512",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 80 open edges. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Triangles 124 triangles. No target was set.",
+  "NOTE Draw calls 2 draw calls, 2 materials.",
+  "NOTE Size 8.94 wide, 10.2 tall, 8.72 long (meters). No size was set.",
+  "NOTE File size 26 KB, was 26 KB."
+ ],
+ "found": "No broken geometry found. 88 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

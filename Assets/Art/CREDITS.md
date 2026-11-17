@@ -40,6 +40,7 @@ Every prop below was finished, exported and checked in Sovereign Asset (/asset.h
 | Models/Props/covered-car.glb | Poly Haven "Covered Car" (covered_car), CC0 1.0 (finished, not placed yet) |
 | Models/Props/stop-sign, sign-post, street-blade-0..7, traffic-signal, mailbox, newspaper-box, dumpster, utility-pole, wood-fence, bus-stop-sign, bus-shelter | Modeled for this project in Blender (own work, no third-party source). Sign faces and grime textures drawn for this project with PIL. The street names are made up for the game. |
 | Models/Props/tree-maple, tree-elm, tree-young, hedge, bush | Modeled for this project in Blender (own work), leaf and bark textures generated for this project. |
+| Models/Props/palm-tall, palm-short | Modeled for this project (own work, tools/model_palms.py) after the original web game's procedural Eastside palm: tapered trunk, nine drooping alpha frond planes. Frond and bark textures drawn for this project with PIL in the web palette. Sovereign Asset Game ready, both READY. |
 | Textures/Ground/worn_asphalt, concrete_pavement, sparse_grass, leafy_grass, park_dirt, cracked_concrete | Poly Haven textures of the same names, CC0 1.0 (1k diffuse and OpenGL normal maps). |
 
 Poly Haven assets are CC0: no attribution is required; it is given here anyway.

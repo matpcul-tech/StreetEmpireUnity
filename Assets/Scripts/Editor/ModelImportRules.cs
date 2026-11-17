@@ -55,6 +55,10 @@ namespace StreetEmpire.EditorTools
             // ground textures tile across big boxes and are seen at grazing angles
             if (assetPath.StartsWith("Assets/Art/Textures/Ground/")) { t.wrapMode = UnityEngine.TextureWrapMode.Repeat; t.anisoLevel = 8; }
             if (assetPath.StartsWith("Assets/Art/Textures/Props/") && assetPath.Contains("chainlink")) t.wrapMode = UnityEngine.TextureWrapMode.Repeat;
+            // palm fronds are alpha tested: keep their coverage in the mips so the crowns do not thin out with
+            // distance, and keep the alpha channel on WebGL (DXT5, not DXT1)
+            bool frond = assetPath.StartsWith("Assets/Art/Textures/Props/") && assetPath.Contains("palm_frond");
+            if (frond) { t.alphaIsTransparency = true; t.mipMapsPreserveCoverage = true; t.alphaTestReferenceValue = 0.5f; }
             t.textureCompression = TextureImporterCompression.Compressed;
             // M5: compressed on the GPU, not RGBA32. Android ASTC (6x6 color, 5x5 normals), WebGL DXT
             // (DXT1 color, DXT5 normals), which desktop browsers decode in hardware.
@@ -69,7 +73,7 @@ namespace StreetEmpire.EditorTools
             t.SetPlatformTextureSettings(new TextureImporterPlatformSettings
             {
                 name = "WebGL", overridden = true, maxTextureSize = max,
-                format = normal || data ? TextureImporterFormat.DXT5 : TextureImporterFormat.DXT1,
+                format = normal || data || frond ? TextureImporterFormat.DXT5 : TextureImporterFormat.DXT1,
                 compressionQuality = 50,
             });
         }
