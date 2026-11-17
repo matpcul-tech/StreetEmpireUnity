@@ -86,18 +86,20 @@ namespace StreetEmpire.Game
                 var target = loop[((i + lap * 4) % n + n) % n];
                 var outward = target - blockCenter; outward.y = 0; outward = outward.normalized;
                 // someone close ahead (another ped or the player): step aside to pass
-                bool blocked = false;
+                bool blocked = false; float closest = 99f;
                 var fwd = transform.forward;
                 foreach (var nb in FindNearby(pos))
                 {
                     var d = nb - pos; d.y = 0;
-                    if (d.magnitude < 2.2f && Vector3.Dot(d.normalized, fwd) > 0.5f) { blocked = true; break; }
+                    if (d.magnitude < 3.5f && Vector3.Dot(d.normalized, fwd) > 0.4f) { blocked = true; closest = Mathf.Min(closest, d.magnitude); }
                 }
                 // pass on the right when that is the curb side; going the other way round (right hand to the
                 // walls, a meter off) hold the line and slow down while the other one steps out
                 bool rightIsCurb = Vector3.Dot(Vector3.Cross(Vector3.up, fwd), outward) >= 0;
-                sidestep = Mathf.MoveTowards(sidestep, blocked && rightIsCurb ? 0.75f : 0f, dt * 0.8f);
-                float pace = blocked && !rightIsCurb ? 0.4f : 1f;
+                sidestep = Mathf.MoveTowards(sidestep, blocked && rightIsCurb ? 0.85f : 0f, dt * 1.2f);
+                // the one holding the line stops short instead of shouldering past (the capsules would slide it
+                // off the loop toward the walls)
+                float pace = blocked && !rightIsCurb ? (closest < 1.4f ? 0f : 0.4f) : 1f;
                 var aim = target + outward * sidestep - pos; aim.y = 0;
                 want = aim.normalized * speed * pace;
             }
