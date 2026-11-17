@@ -12,7 +12,7 @@ namespace StreetEmpire.UI
         public Text cash, objective, message, clock, weapon, sub, heatLabel, onboarding;
         public Image[] stars;
         public Image hpFill;
-        public GameObject onboardingBox;
+        public GameObject onboardingBox, messageBox;
         public MissionRunner mission;
         public MuggerOpening opening;
         public int turfOwned = 1, turfTotal = 25;
@@ -44,7 +44,8 @@ namespace StreetEmpire.UI
             if (message)
             {
                 message.text = s.Message;
-                message.color = s.Message.StartsWith("BUSTED") || s.Message.StartsWith("WASTED") ? new Color(1f, 0.3f, 0.25f) : Color.white;
+                message.color = s.Message.StartsWith("BUSTED") || s.Message.StartsWith("WASTED") ? new Color(1f, 0.3f, 0.25f) : new Color32(0xff, 0xcc, 0x66, 255);
+                if (messageBox) messageBox.SetActive(!string.IsNullOrEmpty(s.Message));
             }
         }
     }

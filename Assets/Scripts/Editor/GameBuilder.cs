@@ -313,7 +313,12 @@ namespace StreetEmpire.EditorTools
             hud.onboarding.alignment = TextAnchor.MiddleLeft; hud.onboarding.color = Color.white; hud.onboarding.raycastTarget = false;
             hud.onboardingBox = box.gameObject; box.gameObject.SetActive(false);
 
-            hud.message = T("Message", new Vector2(0.5f, 0.5f), new Vector2(0, 140), new Vector2(1400, 260), 36, TextAnchor.MiddleCenter);
+            // the message strip across the top (job briefs, the scuffle lines, BUSTED), bold #fc6 on a dark band
+            var band = PlayerBuilder.Rect("Message Band", canvas.transform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -12), new Vector2(1020, 50)); band.pivot = new Vector2(0.5f, 1);
+            var bandImg = band.gameObject.AddComponent<Image>(); bandImg.color = new Color(0, 0, 0, 0.45f); bandImg.raycastTarget = false;
+            hud.messageBox = band.gameObject;
+            hud.message = T("Message", new Vector2(0.5f, 1), new Vector2(0, -12), new Vector2(1000, 50), 27, TextAnchor.MiddleCenter);
+            hud.message.fontStyle = FontStyle.Bold;
             // the build label moves to the bottom right, out of the radar's way
             var ver = T("BuildLabel", new Vector2(1, 0), new Vector2(-24, 16), new Vector2(500, 30), 18, TextAnchor.LowerRight);
             ver.color = new Color(1, 1, 1, 0.55f); ver.text = BuildLabel.Fallback; ver.gameObject.AddComponent<BuildLabel>();
