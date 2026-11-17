@@ -111,7 +111,7 @@ namespace StreetEmpire.Game
                 if (Time.time > nextLog)
                 {
                     nextLog = Time.time + 0.5f;
-                    Debug.Log($"[ShotDirector] legs {(phase == 1 ? "idle" : phase == 2 ? "walk" : "sprint")} speed {motor.PlanarSpeed:0.0} knees {Knee(anim, true):0} {Knee(anim, false):0}");
+                    Debug.Log($"[ShotDirector] legs {(phase == 1 ? "idle" : phase == 2 ? "walk" : "sprint")} speed {motor.PlanarSpeed:0.0} knees {Knee(anim, true):0} {Knee(anim, false):0} lean {Lean(anim, motor.transform):0.0}");
                 }
                 yield return null;
             }

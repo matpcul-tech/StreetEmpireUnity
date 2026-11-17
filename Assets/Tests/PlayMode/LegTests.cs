@@ -42,7 +42,7 @@ namespace StreetEmpire.Tests
             // idle: the player (no input) and Unc
             var idlers = new List<Animator> { player }; if (unc != null) idlers.Add(unc);
             var walk = new List<float>();
-            float minIdleKnee = 180, minSole = 9, maxSole = -9, maxWidth = 0;
+            float maxPlayerLean = -90, minIdleKnee = 180, minSole = 9, maxSole = -9, maxWidth = 0;
             for (int k = 0; k < 12; k++)
             {
                 yield return new WaitForSeconds(0.25f);
@@ -60,14 +60,16 @@ namespace StreetEmpire.Tests
                         { minSole = Mathf.Min(minSole, y); maxSole = Mathf.Max(maxSole, y); }
                     }
                 }
+                maxPlayerLean = Mathf.Max(maxPlayerLean, ShotDirector.Lean(player, player.transform));
                 foreach (var a in peds) { walk.Add(Knee(a, true)); walk.Add(Knee(a, false)); }
             }
             float walkMean = walk.Average(), walkMin = walk.Min();
-            Debug.Log($"[LegTests] idle knee min {minIdleKnee:0.0} deg, idle feet apart max {maxWidth:0.00} m, idle toes {minSole:0.000} to {maxSole:0.000} m above the ground, walk knee mean {walkMean:0.0} min {walkMin:0.0} deg ({idlers.Count} idle, {peds.Length} walking)");
+            Debug.Log($"[LegTests] idle knee min {minIdleKnee:0.0} deg, idle feet apart max {maxWidth:0.00} m, idle toes {minSole:0.000} to {maxSole:0.000} m above the ground, walk knee mean {walkMean:0.0} min {walkMin:0.0} deg, player idle lean max {maxPlayerLean:0.0} deg ({idlers.Count} idle, {peds.Length} walking)");
             Assert.Greater(minIdleKnee, 165f, "legs straight at idle, not a squat");
             Assert.Less(maxWidth, 0.45f, "feet under the hips at idle, not a wide stance");
             Assert.That(minSole, Is.GreaterThan(-0.05f), "toes not sunk into the ground");
             Assert.That(maxSole, Is.LessThan(0.12f), "toes on the ground, not floating");
+            Assert.Less(maxPlayerLean, 10f, "player stands up straight at idle, no stoop");
             Assert.Greater(walkMean, 135f, "walking knees fold like a walk, not a lunge");
             Assert.Greater(walkMin, 95f, "no deep knee fold in the walk");
         }

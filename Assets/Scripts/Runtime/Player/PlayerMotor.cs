@@ -23,7 +23,14 @@ namespace StreetEmpire.Player
         float vy, animSpeed;
         static readonly int SpeedId = Animator.StringToHash("Speed"), GroundedId = Animator.StringToHash("Grounded"), JumpId = Animator.StringToHash("Jump");
 
-        void Awake() => cc = GetComponent<CharacterController>();
+        UprightBody upright;
+
+        void Awake()
+        {
+            cc = GetComponent<CharacterController>();
+            // added at load, not saved in the scene
+            if (animator != null) { upright = GetComponent<UprightBody>() ?? gameObject.AddComponent<UprightBody>(); upright.animator = animator; }
+        }
 
         void Update()
         {
@@ -57,6 +64,7 @@ namespace StreetEmpire.Player
             {
                 animSpeed = Mathf.MoveTowards(animSpeed, PlanarSpeed, 30f * Time.deltaTime);
                 animator.SetFloat(SpeedId, animSpeed);
+                if (upright) upright.speed = PlanarSpeed;
                 animator.SetBool(GroundedId, cc.isGrounded);
             }
         }
