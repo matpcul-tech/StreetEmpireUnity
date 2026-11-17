@@ -116,9 +116,9 @@ namespace StreetEmpire.EditorTools
             // the files are authored at their height; only rescale one that came out of the converter far off it
             float h = ModelHeight(model);
             if (h > 0.1f && Mathf.Abs(h - look.height) > 0.1f * look.height) model.transform.localScale *= look.height / h;
-            // soles on the root: the lowest point of the rest pose mesh at y 0
-            float sole = ModelBottom(model) - root.transform.position.y;
-            if (Mathf.Abs(sole) > 0.005f) model.transform.localPosition -= new Vector3(0, sole, 0);
+            // no shift by the bind pose mesh: Humanoid places the hips from the clip and the avatar's own leg
+            // length, so the soles meet the root as they do for the player (a shift by the old bent-leg bind
+            // pose sank the feet and bent the knees)
             if (body)
             {
                 var nb = root.AddComponent<NpcBody>(); nb.animator = anim; nb.model = model.transform;
