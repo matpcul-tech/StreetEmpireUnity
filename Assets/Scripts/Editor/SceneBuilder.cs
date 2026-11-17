@@ -32,7 +32,8 @@ namespace StreetEmpire.EditorTools
             // Eastside houses read like the web game's: stucco walls, tile roofs, bars on the windows. The clapboard
             // and brick ones (house-wood-duplex, house-shotgun, house-boarded, house-rowhouse-pair) read as the
             // Midwest and are left out; their files stay in the repo. Each house gets a stucco wash (HouseTint).
-            ["house"] = new[] { "house-01-bungalow", "house-02-two-story", "house-03-duplex", "house-01-bungalow", "house-02-two-story", "house-01-bungalow", "house-03-duplex" },
+            ["house"] = new[] { "house-01-bungalow", "house-02-two-story", "house-03-duplex", "house-01-bungalow", "house-02-two-story", "house-01-bungalow", "house-02-two-story" },
+            // (house-03-duplex once in seven: its near model is 40k triangles, the cut to 26k came back NOT READY)
             ["apt"] = new[] { "apt-01-stucco", "apt-mixed-use", "apt-02-brick", "apt-motel-style" },
         };
         static readonly Dictionary<string, int> dealt = new();

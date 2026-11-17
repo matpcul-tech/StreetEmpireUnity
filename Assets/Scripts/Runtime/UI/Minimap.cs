@@ -19,7 +19,7 @@ namespace StreetEmpire.UI
         public Vector3[] blocks; public bool[] yours; public float blockSize = 40f;
         public Transform unc; public MissionRunner job;
         [Header("Parts")]
-        public RectTransform frame, map; public RawImage mapImage; public Image arrow, frameImage; public Text north, uncLetter;
+        public RectTransform frame, map; public RawImage mapImage; public Image arrow, frameImage, rimImage; public Text north, uncLetter;
         public float rimMeters = 80f;
 
         readonly List<Image> dots = new(); readonly List<Health> people = new();
@@ -31,6 +31,7 @@ namespace StreetEmpire.UI
         void Start()
         {
             if (frameImage) frameImage.sprite = HudArt.Circle();
+            if (rimImage) rimImage.sprite = HudArt.Circle();
             if (arrow) arrow.sprite = HudArt.Arrow();
             mapImage.texture = Draw(512);
         }

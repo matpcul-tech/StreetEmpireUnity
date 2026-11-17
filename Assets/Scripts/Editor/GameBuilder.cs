@@ -135,7 +135,7 @@ namespace StreetEmpire.EditorTools
             var north = Label("North", "N", 28, Color.white);
             var letter = Label("Unc Letter", "U", 32, new Color32(0xff, 0xcc, 0x33, 255));
             var mm = rim.gameObject.AddComponent<Minimap>();
-            mm.frame = frame; mm.map = map; mm.mapImage = raw; mm.arrow = arrow; mm.frameImage = maskImg; mm.north = north; mm.uncLetter = letter;
+            mm.frame = frame; mm.map = map; mm.mapImage = raw; mm.arrow = arrow; mm.frameImage = maskImg; mm.rimImage = rimImg; mm.north = north; mm.uncLetter = letter;
             mm.unc = unc; mm.job = job;
             return mm;
         }
