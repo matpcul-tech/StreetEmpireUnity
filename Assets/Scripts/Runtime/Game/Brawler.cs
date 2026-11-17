@@ -35,7 +35,8 @@ namespace StreetEmpire.Game
                 if (downT > 6f) Destroy(gameObject); return; }
             var p = s.player.transform.position;
             var to = Flat(p - transform.position); float d = to.magnitude;
-            if (leave || s.IsDown)
+            if (s.IsDown) leave = true;   // after a WASTED or BUSTED they are gone, not waiting at the respawn
+            if (leave)
             {
                 leaveT += dt; body.Move(Flat(transform.position - p).normalized * 3.2f, dt);
                 if (leaveT > 6f || d > 45f) Destroy(gameObject);

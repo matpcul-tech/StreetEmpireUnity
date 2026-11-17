@@ -65,6 +65,7 @@ namespace StreetEmpire.Game
             if (Stage == Beat.Waiting) { if ((wait -= dt) <= 0) Begin(); return; }
             if (Stage == Beat.Done) return;
             t += dt;
+            if (s.IsDown) { Finish(s, false); return; }   // the player went down: the scuffle is over, WASTED stays on screen
             var p = s.player.transform.position;
             var mug = crew.Count > 0 ? crew[0] : null;
             bool mugUp = mug != null && !mug.GetComponent<Health>().Down;
@@ -109,12 +110,12 @@ namespace StreetEmpire.Game
             s.Say("His friends jump in. One of them has a bat.", 3f);
         }
 
-        void Finish(GameSession s)
+        void Finish(GameSession s, bool say = true)
         {
             Stage = Beat.Done;
             foreach (var b in crew) if (b != null && !b.GetComponent<Health>().Down) b.leave = true;
             if (Step == 0) Step = 1;
-            s.Say("The street goes quiet. Unc wants a word.", 4f);
+            if (say) s.Say("The street goes quiet. Unc wants a word.", 4f);
         }
 
         Brawler Spawn(Vector3 at, float hp, Brawler.Style style, bool bat)

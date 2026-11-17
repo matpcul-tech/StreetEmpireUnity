@@ -63,6 +63,7 @@ namespace StreetEmpire.Tests
             t = 0; float hp0 = s.playerHealth.max;
             while (s.playerHealth.hp >= hp0 && t < 6f) { t += Time.deltaTime; yield return null; }
             Assert.Less(s.playerHealth.hp, hp0, "the brawlers land hits");
+            s.playerHealth.Restore();   // keep the player up for the rest (going down ends the scuffle)
             var combat = s.player.GetComponent<PlayerCombat>();
             s.player.Teleport(mug.transform.position - mug.transform.forward * 1.2f, mug.transform.eulerAngles.y);
             yield return null; combat.scriptAttack = true; yield return null; yield return null;
