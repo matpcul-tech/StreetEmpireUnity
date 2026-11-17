@@ -83,16 +83,16 @@ namespace StreetEmpire.Game
             {
                 t += Time.deltaTime;
                 var tr = ped.transform;
-                cam.transform.position = tr.position + tr.right * 4.2f + Vector3.up * 1.2f;
+                // from the street side of the sidewalk (never from inside the building next to it)
+                var d = tr.position - ped.blockCenter; d.y = 0;
+                var outward = Mathf.Abs(d.x) > Mathf.Abs(d.z) ? new Vector3(Mathf.Sign(d.x), 0, 0) : new Vector3(0, 0, Mathf.Sign(d.z));
+                cam.transform.position = tr.position + outward * 3.8f + Vector3.up * 1.1f;
                 cam.transform.LookAt(tr.position + Vector3.up * 0.9f);
                 if (t > nextLog)
                 {
                     nextLog += 1;
-                    foreach (var p in peds)
-                    {
-                        var b = p.GetComponent<NpcBody>();
-                        Debug.Log($"[ShotDirector] ped {p.name} lean {b.Lean:0.0} speed {b.Speed:0.00} y {p.transform.position.y:0.00}");
-                    }
+                    var b = ped.GetComponent<NpcBody>();
+                    Debug.Log($"[ShotDirector] ped {ped.name} lean {b.Lean:0.0} speed {b.Speed:0.00} y {tr.position.y:0.00}");
                 }
                 yield return null;
             }

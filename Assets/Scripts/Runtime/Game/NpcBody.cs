@@ -79,6 +79,14 @@ namespace StreetEmpire.Game
                 avgLean = hasAvg ? Mathf.Lerp(avgLean, raw, 1f - Mathf.Exp(-Time.deltaTime / 0.5f)) : raw; hasAvg = true;
                 float turn = Mathf.Clamp(avgLean - uprightLean, -5f, 35f);
                 spine.rotation = Quaternion.AngleAxis(-turn, transform.right) * spine.rotation;
+                // the hips to spine segment does not turn with the spine, so the lean drops by less than the
+                // turn; measure how much it did drop and turn the rest of the way
+                if (Mathf.Abs(turn) > 1f)
+                {
+                    float r = (raw - ShotDirector.Lean(animator, transform)) / turn;
+                    if (r > 0.3f && r < 1f)
+                        spine.rotation = Quaternion.AngleAxis(-Mathf.Min(turn * (1f / r - 1f), 20f), transform.right) * spine.rotation;
+                }
                 corrected = spine.localRotation; hasCorrected = true;
             }
             Lean = ShotDirector.Lean(animator, transform);
