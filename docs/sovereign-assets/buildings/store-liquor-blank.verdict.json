@@ -1,0 +1,18 @@
+{
+ "name": "store-liquor-blank",
+ "banner": "READY",
+ "preset": "se-building",
+ "tris_before": 1572,
+ "tris_after": 1572,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed, with 10 edges shared by more than two faces.",
+  "NOTE Triangles 1572 triangles. No target was set.",
+  "NOTE Draw calls 16 draw calls, 5 materials.",
+  "NOTE Size 10.1 wide, 4.86 tall, 7.53 long (meters). No size was set.",
+  "NOTE File size 0.2 MB, was 0.2 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

@@ -1,0 +1,18 @@
+{
+ "name": "shop-auto-garage",
+ "banner": "READY",
+ "preset": "se-building",
+ "tris_before": 57998,
+ "tris_after": 57998,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Triangles 57998 triangles. No target was set.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.90 wide, 0.815 tall, 1.49 long (meters). No size was set.",
+  "NOTE File size 3.8 MB, was 3.8 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}
