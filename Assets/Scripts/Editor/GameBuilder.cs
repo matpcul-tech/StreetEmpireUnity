@@ -52,10 +52,12 @@ namespace StreetEmpire.EditorTools
             // a few people on the sidewalks around the start
             var (bx, bz) = WorldSpace.FromSource(cx, cz);
             float edge = w.block / 2 + 1f;
-            Ped(new Vector3(bx - edge, 0.3f, bz + 10), Vector3.forward, PedLooks[0]);
-            Ped(new Vector3(bx - edge, 0.3f, bz - 14), Vector3.forward, PedLooks[1]);
-            Ped(new Vector3(bx - 8, 0.3f, bz + edge), Vector3.right, PedLooks[2]);
-            Ped(new Vector3(bx + 6, 0.3f, bz - edge), Vector3.right, PedLooks[3]);
+            // the loop runs down the middle of the 2 m sidewalk ring (block/2 to block/2 + 2), two each way round
+            var bc = new Vector3(bx, 0, bz);
+            Ped(new Vector3(bx - edge, 0.3f, bz + 10), Vector3.forward, PedLooks[0], bc, edge, -1);
+            Ped(new Vector3(bx - edge, 0.3f, bz - 14), Vector3.forward, PedLooks[1], bc, edge, 1);
+            Ped(new Vector3(bx - 8, 0.3f, bz + edge), Vector3.right, PedLooks[2], bc, edge, 1);
+            Ped(new Vector3(bx + 6, 0.3f, bz - edge), Vector3.right, PedLooks[3], bc, edge, -1);
 
             // the officers the dispatch copies (inactive in the scene), one per cop model, taken in turn
             session.copTemplates = CopLooks.Select((look, i) =>
@@ -72,12 +74,13 @@ namespace StreetEmpire.EditorTools
             Hud(runner);
         }
 
-        static void Ped(Vector3 at, Vector3 along, Look look)
+        static void Ped(Vector3 at, Vector3 along, Look look, Vector3 blockCenter, float half, int lap)
         {
             var p = Character("Pedestrian", at, Quaternion.LookRotation(along).eulerAngles.y, look, true);
             var h = p.AddComponent<Health>(); h.max = h.hp = 30;
             p.AddComponent<HitReaction>();
             var ped = p.AddComponent<Ped>(); ped.along = along;
+            ped.blockCenter = blockCenter; ped.half = half; ped.lap = lap;
         }
 
         // M5: the finished Meshy characters already on the box, converted by tools/convert_character.sh (Mixamo
@@ -98,7 +101,9 @@ namespace StreetEmpire.EditorTools
             var root = new GameObject(name);
             root.transform.SetPositionAndRotation(at, Quaternion.Euler(0, yaw, 0));
             var cc = root.AddComponent<CharacterController>();
-            cc.height = 1.8f; cc.radius = 0.3f; cc.center = new Vector3(0, 0.92f, 0); cc.stepOffset = 0.35f;
+            // the controller rests its capsule one skin width above the ground: put the capsule bottom that far
+            // above the root so the root (and the soles, below) sit on the sidewalk, not 6 cm over it
+            cc.height = 1.8f; cc.radius = 0.3f; cc.skinWidth = 0.03f; cc.center = new Vector3(0, 0.9f + cc.skinWidth, 0); cc.stepOffset = 0.35f;
             var fbx = AssetDatabase.LoadAssetAtPath<GameObject>(look.Fbx);
             if (fbx == null) { Debug.LogError($"[GameBuilder] missing {look.Fbx}, using the player model"); fbx = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerBuilder.PlayerFbx); }
             var model = (GameObject)PrefabUtility.InstantiatePrefab(fbx);
@@ -111,8 +116,33 @@ namespace StreetEmpire.EditorTools
             // the files are authored at their height; only rescale one that came out of the converter far off it
             float h = ModelHeight(model);
             if (h > 0.1f && Mathf.Abs(h - look.height) > 0.1f * look.height) model.transform.localScale *= look.height / h;
-            if (body) { var nb = root.AddComponent<NpcBody>(); nb.animator = anim; nb.model = model.transform; }
+            // soles on the root: the lowest point of the rest pose mesh at y 0
+            float sole = ModelBottom(model) - root.transform.position.y;
+            if (Mathf.Abs(sole) > 0.005f) model.transform.localPosition -= new Vector3(0, sole, 0);
+            if (body)
+            {
+                var nb = root.AddComponent<NpcBody>(); nb.animator = anim; nb.model = model.transform;
+                nb.restLean = RestLean(anim, root.transform);
+            }
             return root;
+        }
+
+        public static float ModelBottom(GameObject model)
+        {
+            var rs = model.GetComponentsInChildren<SkinnedMeshRenderer>();
+            if (rs.Length == 0) return model.transform.position.y;
+            var b = rs[0].bounds; foreach (var r in rs.Skip(1)) b.Encapsulate(r.bounds);
+            return b.min.y;
+        }
+
+        /// <summary>Forward lean of the rest pose, hips to neck, in degrees (positive leans forward).</summary>
+        public static float RestLean(Animator anim, Transform root)
+        {
+            if (anim == null || !anim.isHuman) return 0;
+            var hips = anim.GetBoneTransform(HumanBodyBones.Hips); var neck = anim.GetBoneTransform(HumanBodyBones.Neck);
+            if (hips == null || neck == null) return 0;
+            var v = Vector3.ProjectOnPlane(neck.position - hips.position, root.right);
+            return Vector3.SignedAngle(Vector3.up, v, root.right);
         }
 
         public static float ModelHeight(GameObject model)

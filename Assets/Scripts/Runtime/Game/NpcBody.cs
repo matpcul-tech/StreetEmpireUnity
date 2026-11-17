@@ -1,5 +1,5 @@
-// Shared on-foot body for officers and pedestrians: CharacterController movement with gravity,
-// turning toward where it walks, the locomotion blend driven by speed, and the knockdown clip.
+// Shared on-foot body for officers and pedestrians: CharacterController movement with gravity, smooth
+// turning toward where it walks, the locomotion blend matched to the real speed, and the knockdown clip.
 using UnityEngine;
 
 namespace StreetEmpire.Game
@@ -9,10 +9,24 @@ namespace StreetEmpire.Game
     {
         public Animator animator;
         public Transform model;
-        CharacterController cc; float vy, animSpeed;
+        /// <summary>Ground speed of the CC0 UAL loops on a 1.75 m body (measured from the clips' foot contacts:
+        /// walk about 1.2 m/s, jog about 3.1 m/s). The blend thresholds in Player.controller are 1.8, 5 and 9.</summary>
+        public float walkClipSpeed = 1.2f, jogClipSpeed = 3.1f, sprintClipSpeed = 6f;
+        /// <summary>How far the model's rest pose leans forward (degrees, measured from hips to neck when the
+        /// scene is built). Humanoid retargeting treats the rest pose as straight, so the Meshy ped rigs (8 to
+        /// 11 degrees bent in their rest pose) walked hunched over; the spine is turned back by this much.</summary>
+        public float restLean;
+        public float turnRate = 300f;
+        CharacterController cc; float vy, animParam; Transform spine;
         static readonly int SpeedId = Animator.StringToHash("Speed"), GroundedId = Animator.StringToHash("Grounded");
         public CharacterController Controller => cc != null ? cc : cc = GetComponent<CharacterController>();
         public float Speed { get; private set; }
+        public bool IsDown { get; private set; }
+
+        void Awake()
+        {
+            if (animator != null && animator.isHuman) spine = animator.GetBoneTransform(HumanBodyBones.Spine);
+        }
 
         public void Move(Vector3 planarVelocity, float dt)
         {
@@ -21,14 +35,35 @@ namespace StreetEmpire.Game
             if (c.isGrounded && vy < 0) vy = -2f;
             vy += -20f * dt;
             if (planarVelocity.sqrMagnitude > 0.01f)
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(planarVelocity), 600f * dt);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(planarVelocity), turnRate * dt);
             c.Move((planarVelocity + Vector3.up * vy) * dt);
             var v = c.velocity; Speed = new Vector2(v.x, v.z).magnitude;
             if (animator)
             {
-                animSpeed = Mathf.MoveTowards(animSpeed, Speed, 30f * dt);
-                animator.SetFloat(SpeedId, animSpeed); animator.SetBool(GroundedId, true);
+                // a full walk cycle played slower or faster to match the feet, instead of a walk half blended
+                // with idle (feet barely moving while the body slides)
+                float target = BlendFor(Speed, out float playRate);
+                animParam = Mathf.MoveTowards(animParam, target, 12f * dt);
+                animator.SetFloat(SpeedId, animParam); animator.SetBool(GroundedId, true);
+                animator.speed = Mathf.MoveTowards(animator.speed, playRate, 3f * dt);
             }
+        }
+
+        /// <summary>Blend parameter and playback rate for a ground speed.</summary>
+        public float BlendFor(float speed, out float playRate)
+        {
+            playRate = 1f;
+            if (speed < 0.15f) return 0f;
+            if (speed <= walkClipSpeed * 1.3f) { playRate = Mathf.Clamp(speed / walkClipSpeed, 0.6f, 1.3f); return 1.8f; }
+            if (speed <= jogClipSpeed) return Mathf.Lerp(1.8f, 5f, (speed - walkClipSpeed * 1.3f) / (jogClipSpeed - walkClipSpeed * 1.3f));
+            return Mathf.Lerp(5f, 9f, Mathf.Clamp01((speed - jogClipSpeed) / (sprintClipSpeed - jogClipSpeed)));
+        }
+
+        void LateUpdate()
+        {
+            // after the Animator has posed the bones: stand the upper body up by the rest pose lean
+            if (spine != null && !IsDown && Mathf.Abs(restLean) > 0.5f)
+                spine.rotation = Quaternion.AngleAxis(-restLean, transform.right) * spine.rotation;
         }
 
         public void Face(Vector3 at)
@@ -42,9 +77,10 @@ namespace StreetEmpire.Game
         /// <summary>Knocked down: the Death01 fall clip (CharacterAnim Down), stand back up after.</summary>
         public void SetDown(bool down)
         {
+            IsDown = down;
             CharacterAnim.SetDown(animator, down);
-            if (animator) animator.SetFloat(SpeedId, 0);
-            animSpeed = 0;
+            if (animator) { animator.SetFloat(SpeedId, 0); animator.speed = 1f; }
+            animParam = 0;
         }
     }
 }

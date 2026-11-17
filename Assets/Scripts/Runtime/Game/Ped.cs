@@ -1,5 +1,7 @@
-// A pedestrian on the Eastside sidewalks (pedStep in state.js, cut down): strolls back and forth,
-// runs from the player when hit, goes down at 0 hp and gets back up with 30 hp after 5 s.
+// A pedestrian on the Eastside sidewalks (pedStep in state.js, cut down): walks laps of its block's sidewalk
+// on a rounded loop (smooth corners, a meter clear of the building walls), steps to its right to pass
+// people in its way, runs from the player when hit, goes down at 0 hp and gets back up with 30 hp after 5 s.
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace StreetEmpire.Game
@@ -7,14 +9,59 @@ namespace StreetEmpire.Game
     [RequireComponent(typeof(NpcBody), typeof(Health))]
     public class Ped : MonoBehaviour
     {
-        public float speed = 1.3f, fleeSpeed = 4.5f, strollRange = 10f;
-        public Vector3 along = Vector3.forward;   // the sidewalk direction it strolls on
-        NpcBody body; Health health; Vector3 home; float dir = 1, flee, downT; Transform from;
+        public float speed = 1.25f, fleeSpeed = 4.5f;
+        /// <summary>Center of the block whose sidewalk it walks, the loop's half size (middle of the sidewalk)
+        /// and corner radius, and which way round it goes (+1 or -1).</summary>
+        public Vector3 blockCenter; public float half = 21f, cornerRadius = 2.5f; public int lap = 1;
+        public Vector3 along = Vector3.forward;   // kept for older scenes: the first heading
+        public const float SidewalkInner = 20f, SidewalkOuter = 22f;
+
+        static readonly List<Ped> all = new();
+        NpcBody body; Health health; float flee, downT, sidestep; Transform from;
+        Vector3[] loop; Vector3 vel;
+
+        void OnEnable() => all.Add(this);
+        void OnDisable() => all.Remove(this);
 
         void Awake()
         {
-            body = GetComponent<NpcBody>(); health = GetComponent<Health>(); home = transform.position;
+            body = GetComponent<NpcBody>(); health = GetComponent<Health>();
             health.Damaged += (_, src) => { flee = 8; from = src != null ? src.transform : null; };
+            if (blockCenter == Vector3.zero) { blockCenter = transform.position; half = 0; }
+            loop = BuildLoop(blockCenter, half, cornerRadius, 0.5f);
+        }
+
+        /// <summary>Points every ~step meters round a rounded square centered on c.</summary>
+        public static Vector3[] BuildLoop(Vector3 c, float half, float r, float step)
+        {
+            var pts = new List<Vector3>();
+            if (half <= r) { pts.Add(c); return pts.ToArray(); }
+            float s = half - r;
+            // corners counter-clockwise seen from above (+x, +z), each a quarter arc, joined by straight sides
+            var corners = new[] { new Vector2(s, s), new Vector2(-s, s), new Vector2(-s, -s), new Vector2(s, -s) };
+            for (int k = 0; k < 4; k++)
+            {
+                float a0 = k * 90f * Mathf.Deg2Rad;
+                int arcN = Mathf.Max(2, Mathf.CeilToInt(r * Mathf.PI / 2 / step));
+                for (int i = 0; i < arcN; i++)
+                {
+                    float a = a0 + i / (float)arcN * Mathf.PI / 2;
+                    pts.Add(c + new Vector3(corners[k].x + Mathf.Cos(a) * r, 0, corners[k].y + Mathf.Sin(a) * r));
+                }
+                var endArc = c + new Vector3(corners[k].x + Mathf.Cos(a0 + Mathf.PI / 2) * r, 0, corners[k].y + Mathf.Sin(a0 + Mathf.PI / 2) * r);
+                var next = corners[(k + 1) % 4]; float a1 = (k + 1) * 90f * Mathf.Deg2Rad;
+                var startNext = c + new Vector3(next.x + Mathf.Cos(a1) * r, 0, next.y + Mathf.Sin(a1) * r);
+                int n = Mathf.Max(1, Mathf.CeilToInt(Vector3.Distance(endArc, startNext) / step));
+                for (int i = 0; i < n; i++) pts.Add(Vector3.Lerp(endArc, startNext, i / (float)n));
+            }
+            return pts.ToArray();
+        }
+
+        int Nearest(Vector3 p)
+        {
+            int best = 0; float bd = float.MaxValue;
+            for (int i = 0; i < loop.Length; i++) { var d = loop[i] - p; d.y = 0; float m = d.sqrMagnitude; if (m < bd) { bd = m; best = i; } }
+            return best;
         }
 
         void Update()
@@ -26,19 +73,49 @@ namespace StreetEmpire.Game
                 if (downT > 5) { downT = 0; health.Restore(30); body.SetDown(false); flee = 8; }
                 return;
             }
-            Vector3 v;
+            Vector3 want;
+            var pos = transform.position;
             if (flee > 0 && from != null)
             {
                 flee -= dt;
-                v = transform.position - from.position; v.y = 0; v = v.normalized * fleeSpeed;
+                want = pos - from.position; want.y = 0; want = want.normalized * fleeSpeed;
             }
-            else
+            else if (loop.Length > 1)
             {
-                // stroll along the sidewalk: the long axis of where it was placed
-                if (Vector3.Dot(transform.position - home, along * dir) > strollRange) dir = -dir;
-                v = along * dir * speed;
+                int i = Nearest(pos), n = loop.Length;
+                var target = loop[((i + lap * 4) % n + n) % n];
+                var outward = target - blockCenter; outward.y = 0; outward = outward.normalized;
+                // someone close ahead (another ped or the player): step aside to pass
+                bool blocked = false;
+                var fwd = transform.forward;
+                foreach (var nb in FindNearby(pos))
+                {
+                    var d = nb - pos; d.y = 0;
+                    if (d.magnitude < 2.2f && Vector3.Dot(d.normalized, fwd) > 0.5f) { blocked = true; break; }
+                }
+                // pass on the right, like people do: toward the curb or, going the other way round, toward
+                // the buildings (less far, the walls are a meter off the loop)
+                float side = Vector3.Dot(Vector3.Cross(Vector3.up, fwd), outward) >= 0 ? 0.75f : -0.55f;
+                var local = pos - blockCenter; float straight = half - cornerRadius;
+                if (Mathf.Abs(local.x) > straight && Mathf.Abs(local.z) > straight) side = 0.75f; // round a corner on the curb side only
+                sidestep = Mathf.MoveTowards(sidestep, blocked ? side : 0f, dt * 0.8f);
+                var aim = target + outward * sidestep - pos; aim.y = 0;
+                want = aim.normalized * speed;
             }
-            body.Move(v, dt);
+            else want = Vector3.zero;
+            // ease into the new direction so it walks round corners instead of snapping
+            vel = Vector3.MoveTowards(vel, want, (flee > 0 ? 12f : 3f) * dt);
+            body.Move(vel, dt);
+        }
+
+        static readonly List<Vector3> near = new();
+        List<Vector3> FindNearby(Vector3 p)
+        {
+            near.Clear();
+            foreach (var o in all) if (o != this) near.Add(o.transform.position);
+            var s = GameSession.Instance;
+            if (s != null && s.player != null) near.Add(s.player.transform.position);
+            return near;
         }
     }
 }

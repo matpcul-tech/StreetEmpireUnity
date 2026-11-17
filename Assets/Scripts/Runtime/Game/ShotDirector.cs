@@ -6,6 +6,7 @@
 //   shot=car     in the sedan
 //   shot=overview high view over the whole district
 //   shot=cruiser two stars, standing still while a cruiser drives in
+//   shot=peds    side view following a walking pedestrian (posture, feet, corners); logs each ped's lean
 using System.Collections;
 using StreetEmpire.Player;
 using StreetEmpire.Vehicles;
@@ -49,6 +50,9 @@ namespace StreetEmpire.Game
                     cam.transform.LookAt(new Vector3(cx, 0, cz - 5f));
                     cam.farClipPlane = 800f;
                     break;
+                case "peds":
+                    StartCoroutine(FollowPed());
+                    break;
                 case "car":
                     var car = FindFirstObjectByType<CarController>();
                     p.Teleport(car.transform.position - car.transform.right * 2.4f, car.transform.eulerAngles.y);
@@ -57,6 +61,41 @@ namespace StreetEmpire.Game
                     break;
             }
             Debug.Log($"[ShotDirector] {shot}");
+        }
+
+        /// <summary>Upper body lean of a character from hips to neck, degrees, positive forward.</summary>
+        public static float Lean(Animator a, Transform root)
+        {
+            if (a == null || !a.isHuman) return 0;
+            var v = Vector3.ProjectOnPlane(a.GetBoneTransform(HumanBodyBones.Neck).position - a.GetBoneTransform(HumanBodyBones.Hips).position, root.right);
+            return Vector3.SignedAngle(Vector3.up, v, root.right);
+        }
+
+        IEnumerator FollowPed()
+        {
+            var cam = Camera.main;
+            var brain = cam.GetComponent<Unity.Cinemachine.CinemachineBrain>(); if (brain) brain.enabled = false;
+            var peds = FindObjectsByType<Ped>(FindObjectsSortMode.InstanceID);
+            if (peds.Length == 0) yield break;
+            var ped = peds[0];
+            float t = 0, nextLog = 1;
+            while (t < 60f)
+            {
+                t += Time.deltaTime;
+                var tr = ped.transform;
+                cam.transform.position = tr.position + tr.right * 4.2f + Vector3.up * 1.2f;
+                cam.transform.LookAt(tr.position + Vector3.up * 0.9f);
+                if (t > nextLog)
+                {
+                    nextLog += 1;
+                    foreach (var p in peds)
+                    {
+                        var b = p.GetComponent<NpcBody>();
+                        Debug.Log($"[ShotDirector] ped {p.name} lean {Lean(b.animator, p.transform):0.0} speed {b.Speed:0.00} y {p.transform.position.y:0.00}");
+                    }
+                }
+                yield return new WaitForEndOfFrame();
+            }
         }
     }
 }
