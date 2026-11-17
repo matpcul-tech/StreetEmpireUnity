@@ -52,9 +52,9 @@ namespace StreetEmpire.EditorTools
             float district = CityLayout.LineCoord(w, 3) - CityLayout.LineCoord(w, 0) + 60;
             var asphalt = TexMat("Asphalt", "worn_asphalt", district / 4.5f, 0.12f, new Color(0.78f, 0.78f, 0.8f));
             var sidewalk = TexMat("Sidewalk", "concrete_pavement", (w.block + 4) / 2.6f, 0.08f, Color.white);
-            var yard = TexMat("Yard", "sparse_grass", (w.block - 2) / 3.5f, 0.04f, new Color(0.92f, 0.95f, 0.88f));
+            var yard = TexMat("Yard", "sparse_grass", (w.block - 2) / 3.5f, 0.04f, new Color(0.74f, 0.71f, 0.52f));   // dry olive like the web yards
             var outer = TexMat("OuterGround", "leafy_grass", 1600f / 6f, 0.03f, new Color(0.8f, 0.85f, 0.78f));
-            var line = Mat("LaneYellow", new Color32(0xd8, 0xc0, 0x4a, 255), 0.3f);
+            var line = Mat("LaneYellow", new Color32(0xb5, 0x9a, 0x3a, 255), 0.3f);   // the web center line color
             var curb = Mat("Curb", new Color32(0x6e, 0x6b, 0x66, 255), 0.1f);
 
             var root = new GameObject("Eastside");
@@ -287,23 +287,56 @@ namespace StreetEmpire.EditorTools
 
         /// <summary>A small sky and ground cube for reflections. Nothing is baked in CI, so without this the
         /// metal props (hydrants, bins, lamps) would reflect black.</summary>
-        static Cubemap Reflection()
+        /// <summary>Direction to the sun: a fixed golden hour like the start of a new web game (17:48), the sun a few
+        /// degrees up at the end of the east-west streets. The web sun direction (cos a * 0.8, sin a, 0.45) with x
+        /// mirrored into Unity space (WorldSpace.FromSource), raised to 9 degrees so the streets stay readable.</summary>
+        public static readonly Vector3 SunDir = SunAt(9f);
+        static Vector3 SunAt(float elevation)
         {
-            const string path = "Assets/Art/Materials/SkyReflection.cubemap";
+            var h = new Vector2(0.8f, 0.45f).normalized; float e = elevation * Mathf.Deg2Rad;
+            return new Vector3(h.x * Mathf.Cos(e), Mathf.Sin(e), h.y * Mathf.Cos(e));
+        }
+
+        // Golden hour palette taken from the live web game (sky, haze, fog), written as the scene values that land
+        // on those screen colors after ACES (an inverse of the ACES curve on the captured sRGB colors)
+        static readonly Color SkyZenith = new(0.49f, 0.50f, 0.47f), SkyUpper = new(0.72f, 0.68f, 0.56f),
+            SkyHorizon = new(1.05f, 0.62f, 0.47f), SkyGlow = new(2.4f, 1.15f, 0.55f), SkyBelow = new(0.40f, 0.22f, 0.18f);
+
+        static Color SkyColor(Vector3 d)
+        {
+            float e = d.y;
+            Color c = e < 0 ? Color.Lerp(SkyHorizon, SkyBelow, Mathf.SmoothStep(0, 1, -e * 6f))
+                : e < 0.25f ? Color.Lerp(SkyHorizon, SkyUpper, Mathf.SmoothStep(0, 1, e / 0.25f))
+                : Color.Lerp(SkyUpper, SkyZenith, Mathf.SmoothStep(0, 1, (e - 0.25f) / 0.65f));
+            float k = Mathf.Max(0, Vector3.Dot(d, SunDir));
+            float glow = Mathf.Pow(k, 6f) * 0.55f + Mathf.Pow(k, 48f) * 0.8f;
+            c += SkyGlow * glow * Mathf.Clamp01(1f - Mathf.Max(0, e) * 1.6f);
+            if (k > 0.9994f) c += new Color(10f, 7.5f, 5f);           // the sun disk
+            c.a = 1; return c;
+        }
+
+        /// <summary>A golden hour sky cubemap (half float so the glow round the sun stays HDR), used both as the
+        /// skybox and, smaller, as the reflection probe for the whole district.</summary>
+        static Cubemap SkyCube(string path, int n)
+        {
             var cube = AssetDatabase.LoadAssetAtPath<Cubemap>(path);
-            if (cube == null) { cube = new Cubemap(64, TextureFormat.RGBA32, true); AssetDatabase.CreateAsset(cube, path); }
-            Color sky = new(0.58f, 0.68f, 0.84f), horizon = new(0.78f, 0.8f, 0.82f), ground = new(0.24f, 0.23f, 0.22f);
-            var px = new Color[64 * 64];
+            if (cube != null && (cube.width != n || cube.format != TextureFormat.RGBAHalf)) { AssetDatabase.DeleteAsset(path); cube = null; }
+            if (cube == null) { cube = new Cubemap(n, TextureFormat.RGBAHalf, true); AssetDatabase.CreateAsset(cube, path); }
+            var px = new Color[n * n];
             foreach (CubemapFace f in new[] { CubemapFace.PositiveX, CubemapFace.NegativeX, CubemapFace.PositiveY, CubemapFace.NegativeY, CubemapFace.PositiveZ, CubemapFace.NegativeZ })
             {
-                for (int y = 0; y < 64; y++)
-                    for (int x = 0; x < 64; x++)
+                for (int y = 0; y < n; y++)
+                    for (int x = 0; x < n; x++)
                     {
-                        // face rows run top to bottom; the side faces blend sky, horizon and ground by height
-                        float v = 1f - (y + 0.5f) / 64f;
-                        Color c = f == CubemapFace.PositiveY ? sky : f == CubemapFace.NegativeY ? ground
-                            : v > 0.5f ? Color.Lerp(horizon, sky, (v - 0.5f) * 2f) : Color.Lerp(ground, horizon, Mathf.Pow(v * 2f, 3f));
-                        px[y * 64 + x] = c;
+                        // face rows run top to bottom (the usual cubemap face layout)
+                        float u = 2f * (x + 0.5f) / n - 1f, v = 2f * (y + 0.5f) / n - 1f;
+                        Vector3 d = f switch
+                        {
+                            CubemapFace.PositiveX => new Vector3(1, -v, -u), CubemapFace.NegativeX => new Vector3(-1, -v, u),
+                            CubemapFace.PositiveY => new Vector3(u, 1, v), CubemapFace.NegativeY => new Vector3(u, -1, -v),
+                            CubemapFace.PositiveZ => new Vector3(u, -v, 1), _ => new Vector3(-u, -v, -1),
+                        };
+                        px[y * n + x] = SkyColor(d.normalized);
                     }
                 cube.SetPixels(px, f);
             }
@@ -314,28 +347,31 @@ namespace StreetEmpire.EditorTools
 
         static void Lighting(Transform root)
         {
-            // one shadowed sun, trilight ambient, light fog: cheap on phones and WebGL
+            // one shadowed sun, trilight ambient, fog: cheap on phones and WebGL. Golden hour like the original web
+            // game: a low warm sun, a strong lavender sky fill that outweighs it, warm haze from 62 m to 270 m.
             var sun = new GameObject("Sun").AddComponent<Light>();
-            // brighter than before: ACES tonemapping (GraphicsSetup) pulls the midtones down
-            sun.type = LightType.Directional; sun.color = new Color(1f, 0.94f, 0.84f); sun.intensity = 1.7f;
-            sun.shadows = LightShadows.Soft; sun.shadowStrength = 0.85f;
-            sun.shadowBias = 0.05f; sun.shadowNormalBias = 0.4f;
-            sun.transform.rotation = Quaternion.Euler(48, -35, 0);
+            sun.type = LightType.Directional; sun.color = new Color(1f, 0.77f, 0.58f); sun.intensity = 1.05f;
+            sun.shadows = LightShadows.Soft; sun.shadowStrength = 0.8f;
+            sun.shadowBias = 0.08f; sun.shadowNormalBias = 0.5f;          // a grazing sun needs a little more bias
+            sun.transform.rotation = Quaternion.LookRotation(-SunDir);
             RenderSettings.sun = sun;
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.56f, 0.63f, 0.74f);
-            RenderSettings.ambientEquatorColor = new Color(0.44f, 0.43f, 0.41f);
-            RenderSettings.ambientGroundColor = new Color(0.18f, 0.17f, 0.16f);
+            RenderSettings.ambientSkyColor = new Color(0.63f, 0.61f, 0.735f);
+            RenderSettings.ambientEquatorColor = new Color(0.58f, 0.51f, 0.53f);
+            RenderSettings.ambientGroundColor = new Color(0.40f, 0.33f, 0.31f);
             RenderSettings.fog = true; RenderSettings.fogMode = FogMode.Linear;
-            RenderSettings.fogStartDistance = 140; RenderSettings.fogEndDistance = 420;
-            RenderSettings.fogColor = new Color(0.66f, 0.71f, 0.78f);
+            RenderSettings.fogStartDistance = 62; RenderSettings.fogEndDistance = 270;
+            RenderSettings.fogColor = new Color(0.66f, 0.53f, 0.50f);
             var sky = AssetDatabase.LoadAssetAtPath<Material>($"{Mats}/Sky.mat");
-            if (sky == null) { sky = new Material(Shader.Find("Skybox/Procedural")); AssetDatabase.CreateAsset(sky, $"{Mats}/Sky.mat"); }
-            sky.SetFloat("_SunSize", 0.03f); sky.SetFloat("_AtmosphereThickness", 0.9f); sky.SetFloat("_Exposure", 1.15f);
+            if (sky == null) { sky = new Material(Shader.Find("Skybox/Cubemap")); AssetDatabase.CreateAsset(sky, $"{Mats}/Sky.mat"); }
+            sky.shader = Shader.Find("Skybox/Cubemap");
+            sky.SetTexture("_Tex", SkyCube("Assets/Art/Materials/SkyGoldenHour.cubemap", 128));
+            sky.SetColor("_Tint", new Color(0.5f, 0.5f, 0.5f)); sky.SetFloat("_Exposure", 1f); sky.SetFloat("_Rotation", 0f);
+            EditorUtility.SetDirty(sky);
             RenderSettings.skybox = sky;
             RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
-            RenderSettings.customReflectionTexture = Reflection();
-            RenderSettings.reflectionIntensity = 0.8f;
+            RenderSettings.customReflectionTexture = SkyCube("Assets/Art/Materials/SkyReflection.cubemap", 64);
+            RenderSettings.reflectionIntensity = 0.35f;
         }
 
         static void OverviewCamera(WorldFile w)

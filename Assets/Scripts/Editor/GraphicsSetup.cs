@@ -151,11 +151,17 @@ namespace StreetEmpire.EditorTools
             AssetDatabase.CreateAsset(profile, VolumePath);
             T Add<T>() where T : VolumeComponent { var c = profile.Add<T>(true); c.name = typeof(T).Name; AssetDatabase.AddObjectToAsset(c, profile); return c; }
             var tone = Add<Tonemapping>(); tone.mode.Override(TonemappingMode.ACES);
-            var bloom = Add<Bloom>(); bloom.threshold.Override(1.05f); bloom.intensity.Override(0.35f); bloom.scatter.Override(0.6f);
+            // the original web game's look (src/grade.js on top of ACES): a strong S curve, a little less saturation,
+            // golden highlights, deep brown lifted shadows, a heavy vignette and a soft bloom on the lamps and sun
+            var bloom = Add<Bloom>(); bloom.threshold.Override(0.9f); bloom.intensity.Override(0.45f); bloom.scatter.Override(0.65f);
+            bloom.tint.Override(new Color(1f, 0.86f, 0.7f));
             bloom.highQualityFiltering.Override(false);
-            var grade = Add<ColorAdjustments>(); grade.postExposure.Override(0.35f); grade.contrast.Override(12f); grade.saturation.Override(8f);
-            var wb = Add<WhiteBalance>(); wb.temperature.Override(6f);
-            var vig = Add<Vignette>(); vig.intensity.Override(0.18f); vig.smoothness.Override(0.45f);
+            var grade = Add<ColorAdjustments>(); grade.postExposure.Override(0.1f); grade.contrast.Override(20f); grade.saturation.Override(-6f);
+            var wb = Add<WhiteBalance>(); wb.temperature.Override(10f); wb.tint.Override(3f);
+            var split = Add<SplitToning>(); split.highlights.Override(new Color(1f, 0.84f, 0.62f)); split.shadows.Override(new Color(0.5f, 0.38f, 0.32f));
+            split.balance.Override(-10f);
+            var lift = Add<LiftGammaGain>(); lift.lift.Override(new Vector4(1f, 0.96f, 0.92f, 0.015f)); lift.gain.Override(new Vector4(1.02f, 1f, 0.95f, 0f));
+            var vig = Add<Vignette>(); vig.intensity.Override(0.36f); vig.smoothness.Override(0.55f); vig.color.Override(new Color(0.12f, 0.06f, 0.03f));
             EditorUtility.SetDirty(profile);
             AssetDatabase.SaveAssets();
             return profile;

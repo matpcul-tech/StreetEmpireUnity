@@ -592,6 +592,12 @@ namespace StreetEmpire.EditorTools
                 m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.black);
                 m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
             }
+            else if (prop == "street-lamp-1" && glass)
+            {
+                // golden hour: the street lamps are already on, a warm glow the bloom picks up, as in the web game
+                m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", new Color(1f, 0.7f, 0.4f) * 2.4f);
+                m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            }
             else { m.DisableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.black); }
             m.enableInstancing = true;
             EditorUtility.SetDirty(m);
@@ -654,7 +660,7 @@ namespace StreetEmpire.EditorTools
                 Directory.CreateDirectory(MeshDir);
                 var look = new Dictionary<string, Material>
                 {
-                    ["White"] = Plain("Marking", new Color(0.86f, 0.86f, 0.82f), 0.25f),
+                    ["White"] = Plain("Marking", new Color(0.66f, 0.65f, 0.61f), 0.25f),   // worn grey like the web crosswalks (9a9a92)
                     ["Joint"] = Plain("SidewalkJoint", new Color(0.36f, 0.35f, 0.33f), 0.05f),
                     ["CurbEdge"] = Plain("CurbEdge", new Color(0.72f, 0.71f, 0.68f), 0.1f),
                     ["Lot"] = Textured("LotConcrete", "Assets/Art/Textures/Ground/cracked_concrete_basecolor.jpg", "Assets/Art/Textures/Ground/cracked_concrete_normal.jpg", 1f, 0.1f, Color.white),
