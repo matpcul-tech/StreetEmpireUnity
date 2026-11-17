@@ -48,7 +48,7 @@ namespace StreetEmpire.Tests
             }
             Debug.Log($"[PedTests] ring {minRing:0.00} to {maxRing:0.00}, max lean {maxLean:0.0} deg, max hover {maxHover:0.000} m, min walk blend {minParam:0.00}, walking samples {samples}");
             Assert.Greater(samples, 40, "peds keep walking");
-            Assert.Less(maxLean, 14f, "upright, not hunched forward");
+            Assert.Less(maxLean, 10f, "upright, not hunched forward");
             Assert.Less(maxHover, 0.05f, "feet on the sidewalk, not floating or sunk");
             Assert.GreaterOrEqual(minParam, 1.7f, "a full walk cycle, not walk half blended with idle");
             for (int i = 0; i < peds.Length; i++) Assert.Greater(Vector3.Distance(start[i], peds[i].transform.position), 5f, $"{peds[i].name} moved along its loop");

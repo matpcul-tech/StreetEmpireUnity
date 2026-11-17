@@ -14,7 +14,8 @@ namespace StreetEmpire.Game
         public float walkClipSpeed = 1.2f, jogClipSpeed = 3.1f, sprintClipSpeed = 6f;
         /// <summary>How far the model's rest pose leans forward (degrees, measured from hips to neck when the
         /// scene is built). Humanoid retargeting treats the rest pose as straight, so the Meshy ped rigs (8 to
-        /// 11 degrees bent in their rest pose) walked hunched over; the spine is turned back by this much.</summary>
+        /// 11 degrees bent in their rest pose) walked hunched over. Kept for reference; LateUpdate measures the
+        /// posed lean every frame instead.</summary>
         public float restLean;
         public float turnRate = 300f;
         CharacterController cc; float vy, animParam; Transform spine;
@@ -61,16 +62,23 @@ namespace StreetEmpire.Game
             return Mathf.Lerp(5f, 9f, Mathf.Clamp01((speed - jogClipSpeed) / (sprintClipSpeed - jogClipSpeed)));
         }
 
-        Quaternion corrected; bool hasCorrected;
+        /// <summary>Average forward lean the upper body is brought to (degrees). The UAL walk itself carries
+        /// about 12 degrees of torso tilt on top of the rig's rest lean; the stride's own sway is kept.</summary>
+        public float uprightLean = 3f;
+        Quaternion corrected; bool hasCorrected, hasAvg; float avgLean;
 
         void LateUpdate()
         {
-            // after the Animator has posed the bones: stand the upper body up by the rest pose lean
-            // only when the Animator wrote the spine this frame: a culled Animator (CullUpdateTransforms, off
-            // screen or no camera) leaves last frame's corrected pose, and turning it again would add up
-            if (spine != null && !IsDown && Mathf.Abs(restLean) > 0.5f && !(hasCorrected && spine.localRotation == corrected))
+            // After the Animator has posed the bones, turn the spine back so the upper body's average lean
+            // is uprightLean. Only on frames the Animator wrote the spine: a culled Animator
+            // (CullUpdateTransforms, off screen or no camera) leaves last frame's corrected pose, and turning
+            // it again would add up.
+            if (spine != null && !IsDown && !(hasCorrected && spine.localRotation == corrected))
             {
-                spine.rotation = Quaternion.AngleAxis(-restLean, transform.right) * spine.rotation;
+                float raw = ShotDirector.Lean(animator, transform);
+                avgLean = hasAvg ? Mathf.Lerp(avgLean, raw, 1f - Mathf.Exp(-Time.deltaTime / 0.5f)) : raw; hasAvg = true;
+                float turn = Mathf.Clamp(avgLean - uprightLean, -5f, 35f);
+                spine.rotation = Quaternion.AngleAxis(-turn, transform.right) * spine.rotation;
                 corrected = spine.localRotation; hasCorrected = true;
             }
             Lean = ShotDirector.Lean(animator, transform);
@@ -90,7 +98,7 @@ namespace StreetEmpire.Game
             IsDown = down;
             CharacterAnim.SetDown(animator, down);
             if (animator) { animator.SetFloat(SpeedId, 0); animator.speed = 1f; }
-            animParam = 0;
+            animParam = 0; hasAvg = false;
         }
     }
 }
