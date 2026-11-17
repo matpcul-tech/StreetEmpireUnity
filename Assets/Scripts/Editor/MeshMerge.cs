@@ -18,10 +18,21 @@ namespace StreetEmpire.EditorTools
         /// through <paramref name="map"/>; <paramref name="order"/> fixes the submesh order (pass an empty list
         /// to have it filled from this model). Materials not in a fixed order land on the first submesh.</summary>
         public static Mesh Merge(GameObject root, Func<Material, Material> map, List<Material> order, bool mirror, string assetPath)
+            => Merge(root, map, order, mirror ? new Vector3(-1, 1, 1) : Vector3.one, assetPath);
+
+        /// <summary>As above, scaled (or mirrored, with a negative scale) in the imported root's own space, the way
+        /// a scale on the root would: glTFast folds a lone root node's offset into the prefab root, so scaling after
+        /// that offset would move the model.</summary>
+        public static Mesh Merge(GameObject root, Func<Material, Material> map, List<Material> order, Vector3 rootScale, string assetPath)
         {
             // the model as it stands unparented, so the imported root's own offset, turn and scale stay in the mesh
             var toRoot = root.transform.parent ? root.transform.parent.worldToLocalMatrix : Matrix4x4.identity;
-            return Merge(root.GetComponentsInChildren<MeshRenderer>(), toRoot, map, order, mirror, assetPath);
+            if (rootScale != Vector3.one)
+            {
+                var r = toRoot * root.transform.localToWorldMatrix;
+                toRoot = r * Matrix4x4.Scale(rootScale) * r.inverse * toRoot;
+            }
+            return Merge(root.GetComponentsInChildren<MeshRenderer>(), toRoot, map, order, false, assetPath);
         }
 
         /// <summary>Any set of renderers as one mesh, in the space <paramref name="toRoot"/> maps world space to.</summary>

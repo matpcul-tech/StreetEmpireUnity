@@ -370,7 +370,7 @@ namespace StreetEmpire.EditorTools
                     Object.DestroyImmediate(far);
                 }
                 Object.DestroyImmediate(near);
-                batch = NewBatch(key, lod0, lod1, order, 25f, 150f, true);
+                batch = NewBatch(key, lod0, lod1, order, 15f, 150f, true);
             }
             var car = new GameObject(kind == "police" ? "Parked cruiser" : painted ? "Parked sedan (red)" : "Parked sedan");
             car.transform.SetParent(parent, false);
@@ -406,24 +406,26 @@ namespace StreetEmpire.EditorTools
         }
 
         /// <summary>The model merged into one mesh per material (and its LOD1, from Models/Props/LOD1), made once.</summary>
-        static PropBatch Batch(string model, bool mirrorX, string variant)
+        static PropBatch Batch(string model, bool mirrorX, string variant, Vector3 scale)
         {
-            string key = model + (mirrorX ? "@mx" : "") + (variant != null ? "#" + variant : "");
+            // a placement scale (the stretched chain link panels) is baked in the model's own space, like the mirror
+            var rootScale = new Vector3(mirrorX ? -scale.x : scale.x, scale.y, scale.z);
+            string key = model + (mirrorX ? "@mx" : "") + (scale != Vector3.one ? $"@{scale.x:0.##}x{scale.y:0.##}x{scale.z:0.##}" : "") + (variant != null ? "#" + variant : "");
             if (batches.TryGetValue(key, out var have)) return have;
             var asset = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/{model}.glb");
             if (asset == null) { Debug.LogError($"[PropBuilder] missing prop model {model}"); return null; }
             Func<Material, Material> map = m => Variant(PropMat(model, m), variant);
             var order = new List<Material>();
-            string name = key.Replace("#", "-").Replace("@", "-");
+            string name = key.Replace("#", "-").Replace("@", "-").Replace(".", "_");
             var inst = (GameObject)PrefabUtility.InstantiatePrefab(asset);
-            var lod0 = MeshMerge.Merge(inst, map, order, mirrorX, $"{MeshDir}/Props/{name}.asset");
+            var lod0 = MeshMerge.Merge(inst, map, order, rootScale, $"{MeshDir}/Props/{name}.asset");
             Object.DestroyImmediate(inst);
             Mesh lod1 = null;
             var low = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/LOD1/{model}.glb");
             if (low != null)
             {
                 inst = (GameObject)PrefabUtility.InstantiatePrefab(low);
-                lod1 = MeshMerge.Merge(inst, map, order, mirrorX, $"{MeshDir}/Props/{name}-lod1.asset");
+                lod1 = MeshMerge.Merge(inst, map, order, rootScale, $"{MeshDir}/Props/{name}-lod1.asset");
                 Object.DestroyImmediate(inst);
             }
             var (l1, cull, sh) = Rule(model);
@@ -446,13 +448,13 @@ namespace StreetEmpire.EditorTools
             Vector3? scale = null, float pole = 0.1f, Vector3? poleAt = null, bool mirrorX = false, float lift = 0f, string variant = null)
         {
             if (col != Col.None && Blocked(pos, 1.2f)) return null;
-            var batch = Batch(model, mirrorX, variant);
-            if (batch == null) return null;
             var sc = scale ?? Vector3.one;
+            var batch = Batch(model, mirrorX, variant, sc);
+            if (batch == null) return null;
             var holder = new GameObject($"{kind} ({model})");
             holder.transform.SetParent(parent, false);
             // the collider is fitted in the holder's own space before it is posed
-            var b = batch.lod0.bounds; b = new Bounds(Vector3.Scale(b.center, sc), Vector3.Scale(b.size, sc));
+            var b = batch.lod0.bounds;
             if (col == Col.Bounds) { var c = holder.AddComponent<BoxCollider>(); c.center = b.center; c.size = b.size; }
             else if (col == Col.Pole)
             {
@@ -462,7 +464,7 @@ namespace StreetEmpire.EditorTools
             }
             holder.transform.SetPositionAndRotation(pos + Vector3.up * lift, rot);
             var mk = holder.AddComponent<PropMarker>(); mk.kind = kind; mk.model = model; mk.blockId = blockId;
-            placed[batch.name].Add(holder.transform.localToWorldMatrix * Matrix4x4.Scale(sc));
+            placed[batch.name].Add(holder.transform.localToWorldMatrix);
             tris += MeshMerge.Triangles(batch.lod0);
             Count(kind);
             return holder;

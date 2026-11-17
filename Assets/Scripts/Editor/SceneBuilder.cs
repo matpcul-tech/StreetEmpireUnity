@@ -198,19 +198,24 @@ namespace StreetEmpire.EditorTools
             var far = Level(holder, "Far", name, nearBounds, near[0].sharedMaterial);
             if (far == null) return;
             var low = Level(holder, "Low", name, nearBounds, near[0].sharedMaterial);
+            // shadows come from one always-on copy of the far mesh (12.8k triangles) instead of whichever level is
+            // drawn: the near models are 26k to 49k triangles and the three Ultra cascades each draw the casters again
+            var shadow = Level(holder, "Far", name, nearBounds, near[0].sharedMaterial, "Shadow");
+            foreach (var r in shadow) r.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+            foreach (var r in near.Concat(far).Concat(low ?? new Renderer[0])) r.shadowCastingMode = ShadowCastingMode.Off;
             // the LODGroup itself is added at load time (RuntimeLod): a saved one made the phone reject the scene file.
-            // A 13 m building leaves the near model at about 55 m and the far one at about 190 m.
+            // A 13 m building leaves the near model at about 40 m and the far one at about 190 m.
             var lod = holder.AddComponent<StreetEmpire.City.RuntimeLod>();
             lod.near = near; lod.far = far; lod.low = low ?? new Renderer[0];
-            lod.nearHeight = 0.2f; lod.farHeight = low != null ? 0.06f : 0.005f; lod.lowHeight = 0.003f;
+            lod.nearHeight = 0.28f; lod.farHeight = low != null ? 0.06f : 0.005f; lod.lowHeight = 0.003f;
         }
 
-        static Renderer[] Level(GameObject holder, string level, string name, Bounds nearBounds, Material mat)
+        static Renderer[] Level(GameObject holder, string level, string name, Bounds nearBounds, Material mat, string goName = null)
         {
             var asset = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/{level}/{name}.glb");
             if (asset == null) return null;
             var go = (GameObject)PrefabUtility.InstantiatePrefab(asset);
-            go.name = level; go.transform.SetParent(holder.transform, false);
+            go.name = goName ?? level; go.transform.SetParent(holder.transform, false);
             var rs = go.GetComponentsInChildren<Renderer>();
             foreach (var r in rs) { r.sharedMaterials = Enumerable.Repeat(mat, r.sharedMaterials.Length).ToArray(); r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
             Compress(go, name, level);
