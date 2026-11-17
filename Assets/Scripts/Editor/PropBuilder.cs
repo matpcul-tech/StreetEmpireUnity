@@ -522,6 +522,18 @@ namespace StreetEmpire.EditorTools
             foreach (var e in JsonUtility.FromJson<Manifest>(File.ReadAllText(path)).materials) manifest[$"{e.prop}|{e.material}"] = e;
         }
 
+        /// <summary>One loose copy of a prop model with its URP materials (the mugger's bat), outside the merged batches.</summary>
+        public static GameObject Loose(string model)
+        {
+            if (manifest == null) LoadManifest();
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/{model}.glb");
+            if (asset == null) { Debug.LogError($"[PropBuilder] missing prop model {model}"); return null; }
+            var go = (GameObject)Object.Instantiate(asset); go.name = model;
+            foreach (var r in go.GetComponentsInChildren<Renderer>()) r.sharedMaterials = r.sharedMaterials.Select(m => PropMat(model, m)).ToArray();
+            foreach (var c in go.GetComponentsInChildren<Collider>()) Object.DestroyImmediate(c);
+            return go;
+        }
+
         static Material PropMat(string prop, Material src)
         {
             if (src == null) return null;

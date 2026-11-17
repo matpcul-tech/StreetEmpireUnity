@@ -180,7 +180,7 @@ namespace StreetEmpire.EditorTools
             var hints = Rect("KeyHints", canvasGo.transform, Vector2.zero, Vector2.zero, new Vector2(24, 20), new Vector2(900, 40));
             hints.pivot = Vector2.zero;
             var ht = hints.gameObject.AddComponent<Text>(); ht.font = font; ht.fontSize = 22; ht.color = new Color(1, 1, 1, 0.8f);
-            ht.text = "WASD move   Mouse look (click to lock, Esc to free)   Shift sprint   Space jump   E use   J hit";
+            ht.text = "WASD move   Mouse look (click to lock, Esc to free)   Shift sprint   Space jump   E use   F or click hit";
 
             hud.touchControls = touch.gameObject; hud.keyHints = hints.gameObject;
         }

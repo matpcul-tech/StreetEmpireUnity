@@ -71,7 +71,73 @@ namespace StreetEmpire.EditorTools
             }).ToArray();
             session.cruiserTemplate = VehicleBuilder.BuildPoliceTemplate(data).gameObject;
 
-            Hud(runner);
+            // the opening scuffle (state.js openingScuffle): two plain mugger bodies and one with a bat, inactive
+            var opening = go.AddComponent<MuggerOpening>(); opening.job = runner;
+            opening.templates = new[] { PedLooks[2], PedLooks[0], PedLooks[0] }.Select((look, i) =>
+            {
+                var m = Character($"Mugger Template {i + 1}", new Vector3(i * 3, -60, 0), 0, look, true);
+                var h = m.AddComponent<Health>(); h.max = h.hp = 50;
+                m.AddComponent<HitReaction>();
+                m.AddComponent<Brawler>();
+                if (i == 2) HoldBat(m);
+                m.SetActive(false);
+                return m;
+            }).ToArray();
+
+            var hud = Hud(runner, opening);
+            var radar = Radar(hud.transform, unc.transform, runner);
+            float lo = Mathf.Min(WorldSpace.FromSource(min, 0).x, WorldSpace.FromSource(max, 0).x) - 120f, size = max - min + 240f;
+            radar.worldMin = new Vector2(lo, min - 120f); radar.worldSize = new Vector2(size, size);
+            radar.streetX = session.streetX; radar.streetZ = session.streetZ; radar.spanX = session.spanX; radar.spanZ = session.spanZ;
+            radar.blockSize = w.block;
+            radar.blocks = s.blocks.Select(b => { var (bx2, bz2) = Simulation.BlockCenter(w, b); var (ux2, uz2) = WorldSpace.FromSource(bx2, bz2); return new Vector3(ux2, 0, uz2); }).ToArray();
+            radar.yours = s.blocks.Select(b => b.owner == "player").ToArray();
+            hud.turfOwned = s.blocks.Count(b => b.owner == "player"); hud.turfTotal = s.blocks.Count;
+        }
+
+        /// <summary>The bat (Models/Props/bat.glb, through Sovereign Asset) in the right fist, barrel forward in the bind pose.</summary>
+        static void HoldBat(GameObject who)
+        {
+            var anim = who.GetComponentInChildren<Animator>();
+            var hand = anim != null && anim.isHuman ? anim.GetBoneTransform(HumanBodyBones.RightHand) : null;
+            var bat = PropBuilder.Loose("bat"); if (bat == null) return;
+            bat.name = "Bat";
+            if (hand == null) { bat.transform.SetParent(who.transform, false); bat.transform.localPosition = new Vector3(0.3f, 1f, 0.2f); return; }
+            // the knob sits just under the fist, the barrel points ahead and a little up
+            var dir = (who.transform.forward + who.transform.up * 0.25f).normalized;
+            bat.transform.SetPositionAndRotation(hand.position + who.transform.up * -0.02f - dir * 0.10f + who.transform.forward * 0.04f,
+                Quaternion.FromToRotation(Vector3.up, dir));
+            bat.transform.SetParent(hand, true);
+            foreach (var r in bat.GetComponentsInChildren<Renderer>()) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        }
+
+        static Minimap Radar(Transform canvas, Transform unc, MissionRunner job)
+        {
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            // a rim behind the round mask, then the turning map inside it
+            var rim = PlayerBuilder.Rect("Radar", canvas, new Vector2(0, 1), new Vector2(0, 1), new Vector2(24, -24), new Vector2(300, 300)); rim.pivot = new Vector2(0, 1);
+            var rimImg = rim.gameObject.AddComponent<Image>(); rimImg.color = new Color(0, 0, 0, 0.55f); rimImg.raycastTarget = false;
+            var frame = PlayerBuilder.Rect("Radar Mask", rim, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(288, 288));
+            var maskImg = frame.gameObject.AddComponent<Image>(); maskImg.raycastTarget = false;
+            frame.gameObject.AddComponent<Mask>().showMaskGraphic = false;
+            var map = PlayerBuilder.Rect("Map", frame, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(288, 288));
+            var raw = map.gameObject.AddComponent<RawImage>(); raw.raycastTarget = false;
+            var arrow = PlayerBuilder.Rect("Player Arrow", frame, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(26, 30)).gameObject.AddComponent<Image>();
+            arrow.raycastTarget = false; arrow.gameObject.AddComponent<Outline>().effectColor = Color.black;
+            Text Label(string name, string text, int fs, Color c)
+            {
+                var r = PlayerBuilder.Rect(name, frame, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(40, 40));
+                var t = r.gameObject.AddComponent<Text>(); t.font = font; t.fontSize = fs; t.fontStyle = FontStyle.Bold; t.alignment = TextAnchor.MiddleCenter;
+                t.color = c; t.text = text; t.raycastTarget = false;
+                var o = t.gameObject.AddComponent<Outline>(); o.effectColor = Color.black; o.effectDistance = new Vector2(2, -2);
+                return t;
+            }
+            var north = Label("North", "N", 28, Color.white);
+            var letter = Label("Unc Letter", "U", 32, new Color32(0xff, 0xcc, 0x33, 255));
+            var mm = rim.gameObject.AddComponent<Minimap>();
+            mm.frame = frame; mm.map = map; mm.mapImage = raw; mm.arrow = arrow; mm.frameImage = maskImg; mm.north = north; mm.uncLetter = letter;
+            mm.unc = unc; mm.job = job;
+            return mm;
         }
 
         static void Ped(Vector3 at, Vector3 along, Look look, Vector3 blockCenter, float half, int lap)
@@ -201,36 +267,57 @@ namespace StreetEmpire.EditorTools
             return b.transform;
         }
 
-        static void Hud(MissionRunner runner)
+        static GameHud Hud(MissionRunner runner, MuggerOpening opening)
         {
             var canvas = GameObject.Find("HUD");
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            var knob = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
-            var hud = canvas.AddComponent<GameHud>(); hud.mission = runner;
+            var hud = canvas.AddComponent<GameHud>(); hud.mission = runner; hud.opening = opening;
 
             Text T(string name, Vector2 anchor, Vector2 pos, Vector2 size, int fs, TextAnchor align)
             {
                 var r = PlayerBuilder.Rect(name, canvas.transform, anchor, anchor, pos, size); r.pivot = anchor;
                 var t = r.gameObject.AddComponent<Text>(); t.font = font; t.fontSize = fs; t.alignment = align; t.color = Color.white; t.raycastTarget = false;
-                var o = r.gameObject.AddComponent<Outline>(); o.effectColor = new Color(0, 0, 0, 0.8f); o.effectDistance = new Vector2(2, -2);
+                var o = t.gameObject.AddComponent<Outline>(); o.effectColor = new Color(0, 0, 0, 0.85f); o.effectDistance = new Vector2(2, -2);
                 return t;
             }
-            hud.cash = T("Cash", new Vector2(0, 1), new Vector2(30, -24), new Vector2(400, 60), 44, TextAnchor.UpperLeft);
-            hud.cash.color = new Color(0.55f, 0.95f, 0.55f);
-            var ver = T("BuildLabel", new Vector2(0, 1), new Vector2(32, -76), new Vector2(400, 30), 20, TextAnchor.UpperLeft);
-            ver.color = new Color(1, 1, 1, 0.7f); ver.text = BuildLabel.Fallback; ver.gameObject.AddComponent<BuildLabel>();
-            hud.objective = T("Objective", new Vector2(0.5f, 1), new Vector2(0, -24), new Vector2(1100, 60), 34, TextAnchor.UpperCenter);
-            hud.message = T("Message", new Vector2(0.5f, 0.5f), new Vector2(0, 140), new Vector2(1400, 260), 36, TextAnchor.MiddleCenter);
-
-            // five wanted stars, top right (diamonds: the built-in font has no star glyph)
+            // the web #hud column, top right, at 1.5x its 1280 px sizes (the canvas is 1920 wide)
+            var right = Vector2.one;
+            hud.clock = T("Clock", right, new Vector2(-30, -14), new Vector2(300, 40), 33, TextAnchor.UpperRight); hud.clock.color = new Color32(0xee, 0xee, 0xee, 255);
+            hud.weapon = T("Weapon", right, new Vector2(-30, -52), new Vector2(300, 30), 22, TextAnchor.UpperRight); hud.weapon.color = new Color32(0xdd, 0xdd, 0xdd, 255);
+            hud.cash = T("Cash", right, new Vector2(-30, -78), new Vector2(400, 52), 45, TextAnchor.UpperRight); hud.cash.color = new Color32(0xf4, 0xe6, 0xc4, 255);
+            hud.heatLabel = T("Heat", right, new Vector2(-30 - 5 * 24 - 8, -136), new Vector2(120, 28), 20, TextAnchor.UpperRight);
+            hud.heatLabel.text = "HEAT";
             hud.stars = new Image[5];
             for (int i = 0; i < 5; i++)
             {
-                var r = PlayerBuilder.Rect($"Star {i + 1}", canvas.transform, Vector2.one, Vector2.one, new Vector2(-40 - (4 - i) * 52, -44), new Vector2(34, 34));
-                r.localRotation = Quaternion.Euler(0, 0, 45);
-                var img = r.gameObject.AddComponent<Image>(); img.raycastTarget = false;
+                var r = PlayerBuilder.Rect($"Heat Bar {i + 1}", canvas.transform, right, right, new Vector2(-30 - (4 - i) * 24, -132), new Vector2(28, 30));
+                r.pivot = right;
+                var img = r.gameObject.AddComponent<Image>(); img.raycastTarget = false; img.sprite = HudArt.Bar(false);
                 hud.stars[i] = img;
             }
+            var hp = PlayerBuilder.Rect("Health", canvas.transform, right, right, new Vector2(-30, -172), new Vector2(225, 15)); hp.pivot = right;
+            var hpBack = hp.gameObject.AddComponent<Image>(); hpBack.color = new Color32(0x33, 0, 0, 255); hpBack.raycastTarget = false;
+            hp.gameObject.AddComponent<Outline>().effectColor = Color.black;
+            var fill = PlayerBuilder.Rect("Fill", hp, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero); fill.pivot = Vector2.zero;
+            hud.hpFill = fill.gameObject.AddComponent<Image>(); hud.hpFill.color = new Color32(0xee, 0x33, 0x33, 255); hud.hpFill.raycastTarget = false;
+            hud.sub = T("Rep and Turf", right, new Vector2(-30, -194), new Vector2(400, 30), 21, TextAnchor.UpperRight); hud.sub.color = new Color32(0xcc, 0xcc, 0xcc, 255);
+
+            // under the radar: the job objective and the onboarding box (rgba(10,8,6,.62), 3 px #ffcc33 left edge)
+            hud.objective = T("Objective", new Vector2(0, 1), new Vector2(26, -336), new Vector2(760, 44), 27, TextAnchor.UpperLeft);
+            var box = PlayerBuilder.Rect("Onboarding", canvas.transform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(24, -384), new Vector2(560, 50)); box.pivot = new Vector2(0, 1);
+            var bg = box.gameObject.AddComponent<Image>(); bg.color = new Color(10 / 255f, 8 / 255f, 6 / 255f, 0.62f); bg.raycastTarget = false;
+            var edge = PlayerBuilder.Rect("Edge", box, Vector2.zero, new Vector2(0, 1), Vector2.zero, new Vector2(5, 0)); edge.pivot = Vector2.zero;
+            var ei = edge.gameObject.AddComponent<Image>(); ei.color = new Color32(0xff, 0xcc, 0x33, 255); ei.raycastTarget = false;
+            var tr = PlayerBuilder.Rect("Text", box, Vector2.zero, Vector2.one, new Vector2(10, 0), new Vector2(-24, 0));
+            hud.onboarding = tr.gameObject.AddComponent<Text>(); hud.onboarding.font = font; hud.onboarding.fontSize = 23; hud.onboarding.supportRichText = true;
+            hud.onboarding.alignment = TextAnchor.MiddleLeft; hud.onboarding.color = Color.white; hud.onboarding.raycastTarget = false;
+            hud.onboardingBox = box.gameObject; box.gameObject.SetActive(false);
+
+            hud.message = T("Message", new Vector2(0.5f, 0.5f), new Vector2(0, 140), new Vector2(1400, 260), 36, TextAnchor.MiddleCenter);
+            // the build label moves to the bottom right, out of the radar's way
+            var ver = T("BuildLabel", new Vector2(1, 0), new Vector2(-24, 16), new Vector2(500, 30), 18, TextAnchor.LowerRight);
+            ver.color = new Color(1, 1, 1, 0.55f); ver.text = BuildLabel.Fallback; ver.gameObject.AddComponent<BuildLabel>();
+            return hud;
         }
     }
 }

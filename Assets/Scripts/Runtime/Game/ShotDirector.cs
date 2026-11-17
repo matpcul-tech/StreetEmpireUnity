@@ -10,6 +10,8 @@
 //   shot=legs    side view of the player: idle, then keys 2 walk, 3 sprint, 1 stand; logs the knee angles
 //   shot=tour    fixed street views of the Eastside build-out, keys 1 to 8 pick the view (view=N in the URL
 //                starts on one); logs the frame's draw call, batch and triangle counters where the player has them
+//   shot=mugger  the opening scuffle as a new game plays it (every other shot skips it)
+//   gfx=high     (with any shot) start on the High graphics tier instead of Ultra
 using System.Collections;
 using StreetEmpire.Player;
 using StreetEmpire.Vehicles;
@@ -25,6 +27,13 @@ namespace StreetEmpire.Game
             int i = url.IndexOf("shot=");
             if (i < 0) yield break;
             string shot = url.Substring(i + 5).Split('&')[0];
+            var opening = FindFirstObjectByType<MuggerOpening>();
+            if (opening != null && shot != "mugger") opening.Skip();
+            if (url.Contains("gfx=high"))
+            {
+                var gq = FindFirstObjectByType<StreetEmpire.UI.GraphicsQuality>();
+                if (gq != null && StreetEmpire.UI.GraphicsQuality.Tier == StreetEmpire.UI.GraphicsQuality.Ultra) gq.Toggle();
+            }
             yield return null;
             var s = GameSession.Instance; var job = FindFirstObjectByType<MissionRunner>();
             if (s == null) yield break;

@@ -1,4 +1,4 @@
-// Fists, from weapons.json: 2.7 m reach, 18 damage, 0.34 s between punches. Hits the nearest body in
+// F, a click while the mouse is locked, J or the HIT button. Fists, from weapons.json: 2.7 m reach, 18 damage, 0.34 s between punches. Hits the nearest body in
 // front of the player. Hitting people raises heat the way damage() does in state.js.
 using StreetEmpire.Game;
 using UnityEngine;
@@ -11,14 +11,17 @@ namespace StreetEmpire.Player
         public float range = 2.7f, damage = 18f, cooldown = 0.34f;
         public bool scriptAttack;
         public int Punches { get; private set; }
-        float cd; VehicleUser user; PlayerMotor motor;
+        float cd; VehicleUser user; PlayerMotor motor; bool wasLocked;
 
         void Awake() { user = GetComponent<VehicleUser>(); motor = GetComponent<PlayerMotor>(); }
 
         void Update()
         {
             cd -= Time.deltaTime;
-            bool attack = scriptAttack || PlayerControls.Instance.AttackPressed; scriptAttack = false;
+            // as on the web, a click hits only while the mouse is locked (the click that locks it does not)
+            var pc = PlayerControls.Instance;
+            bool attack = scriptAttack || pc.AttackPressed || (pc.ClickPressed && wasLocked); scriptAttack = false;
+            wasLocked = Cursor.lockState == CursorLockMode.Locked;
             var s = GameSession.Instance;
             if (!attack || cd > 0 || (user != null && user.Car != null) || (s != null && s.IsDown)) return;
             cd = cooldown; Punches++;

@@ -18,7 +18,7 @@ namespace StreetEmpire.Tests
         IEnumerator Load()
         {
             Time.timeScale = 1f;
-            SceneManager.LoadScene("Eastside");
+            StreetEmpire.Game.MuggerOpening.AutoStart = false; SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
             s = GameSession.Instance; player = Object.FindFirstObjectByType<PlayerMotor>(); job = Object.FindFirstObjectByType<MissionRunner>();
             Assert.IsNotNull(s, "session"); Assert.IsNotNull(player, "player"); Assert.IsNotNull(job, "Bag Back runner");

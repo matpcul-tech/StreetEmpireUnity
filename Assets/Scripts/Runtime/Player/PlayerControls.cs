@@ -10,7 +10,7 @@ namespace StreetEmpire.Player
         static PlayerControls instance;
         public static PlayerControls Instance => instance ??= new PlayerControls();
 
-        public readonly InputAction move, look, jump, sprint, use, attack;
+        public readonly InputAction move, look, jump, sprint, use, attack, click;
 
         PlayerControls()
         {
@@ -22,9 +22,11 @@ namespace StreetEmpire.Player
             look = new InputAction("Look", InputActionType.Value, "<Gamepad>/rightStick", expectedControlType: "Vector2");
             jump = new InputAction("Jump", InputActionType.Button, "<Keyboard>/space"); jump.AddBinding("<Gamepad>/buttonSouth");
             sprint = new InputAction("Sprint", InputActionType.Button, "<Keyboard>/leftShift"); sprint.AddBinding("<Gamepad>/leftShoulder"); sprint.AddBinding("<Gamepad>/leftStickPress");
-            use = new InputAction("Use", InputActionType.Button, "<Keyboard>/e"); use.AddBinding("<Keyboard>/f"); use.AddBinding("<Gamepad>/buttonNorth");
-            attack = new InputAction("Attack", InputActionType.Button, "<Gamepad>/buttonWest"); attack.AddBinding("<Keyboard>/j");
-            foreach (var a in new[] { move, look, jump, sprint, use, attack }) a.Enable();
+                        // the web keys: F (or a click while the mouse is locked) hits, E or Enter uses; J stays as a spare hit key
+            use = new InputAction("Use", InputActionType.Button, "<Keyboard>/e"); use.AddBinding("<Keyboard>/enter"); use.AddBinding("<Gamepad>/buttonNorth");
+            attack = new InputAction("Attack", InputActionType.Button, "<Gamepad>/buttonWest"); attack.AddBinding("<Keyboard>/f"); attack.AddBinding("<Keyboard>/j");
+            click = new InputAction("Click", InputActionType.Button, "<Mouse>/leftButton");
+            foreach (var a in new[] { move, look, jump, sprint, use, attack, click }) a.Enable();
         }
 
         public Vector2 Move => Vector2.ClampMagnitude(move.ReadValue<Vector2>(), 1f);
@@ -33,5 +35,6 @@ namespace StreetEmpire.Player
         public bool JumpPressed => jump.WasPressedThisFrame();
         public bool UsePressed => use.WasPressedThisFrame();
         public bool AttackPressed => attack.WasPressedThisFrame();
+        public bool ClickPressed => click.WasPressedThisFrame();
     }
 }

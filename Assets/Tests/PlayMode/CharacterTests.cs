@@ -30,7 +30,7 @@ namespace StreetEmpire.Tests
         [UnityTest]
         public IEnumerator FinishedModelsAndFightClips()
         {
-            SceneManager.LoadScene("Eastside");
+            StreetEmpire.Game.MuggerOpening.AutoStart = false; SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
             var s = GameSession.Instance; Assert.IsNotNull(s);
             var player = Object.FindFirstObjectByType<PlayerMotor>().gameObject;
@@ -78,7 +78,7 @@ namespace StreetEmpire.Tests
         [UnityTest]
         public IEnumerator CenterLinesStopAtCrossingsAndSedanIsPainted()
         {
-            SceneManager.LoadScene("Eastside");
+            StreetEmpire.Game.MuggerOpening.AutoStart = false; SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
             var s = GameSession.Instance;
             // the center lines are part of the combined street mesh: no triangle of the line submesh reaches a crossing

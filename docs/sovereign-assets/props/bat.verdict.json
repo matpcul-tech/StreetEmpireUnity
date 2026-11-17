@@ -1,0 +1,18 @@
+{
+ "name": "bat",
+ "banner": "READY",
+ "preset": "game",
+ "tris_before": 160,
+ "tris_after": 160,
+ "maxTex": "512",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Triangles 160 triangles. No target was set.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 0.066 wide, 0.840 tall, 0.063 long (meters). No size was set.",
+  "NOTE File size 8 KB, was 8 KB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

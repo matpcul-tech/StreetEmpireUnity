@@ -15,7 +15,7 @@ namespace StreetEmpire.Tests
         [UnityTest]
         public IEnumerator PedsWalkUprightOnTheSidewalk()
         {
-            SceneManager.LoadScene("Eastside");
+            StreetEmpire.Game.MuggerOpening.AutoStart = false; SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
             var peds = Object.FindObjectsByType<Ped>(FindObjectsSortMode.None);
             Assert.AreEqual(4, peds.Length);

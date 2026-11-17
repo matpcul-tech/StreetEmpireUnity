@@ -15,7 +15,7 @@ namespace StreetEmpire.Tests
         [UnityTest]
         public IEnumerator EnterDriveSteerAndExitSedan()
         {
-            SceneManager.LoadScene("Eastside");
+            StreetEmpire.Game.MuggerOpening.AutoStart = false; SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
             var car = Object.FindFirstObjectByType<CarController>();
             var player = Object.FindFirstObjectByType<PlayerMotor>();

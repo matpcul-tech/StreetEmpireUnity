@@ -29,7 +29,7 @@ namespace StreetEmpire.Tests
         [UnityTest]
         public IEnumerator EveryoneStandsStraightAndWalksLikeAWalk()
         {
-            SceneManager.LoadScene("Eastside");
+            StreetEmpire.Game.MuggerOpening.AutoStart = false; SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
             var anims = Object.FindObjectsByType<Animator>(FindObjectsSortMode.None).Where(a => a.isHuman && a.isActiveAndEnabled).ToArray();
             foreach (var a in anims) a.cullingMode = AnimatorCullingMode.AlwaysAnimate;   // no camera draws in batch mode

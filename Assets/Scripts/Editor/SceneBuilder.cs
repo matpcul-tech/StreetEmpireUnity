@@ -292,7 +292,7 @@ namespace StreetEmpire.EditorTools
             gq.ultra = GraphicsSetup.Ultra; gq.high = GraphicsSetup.High;
             var canvas = GameObject.Find("HUD");
             if (canvas == null) return;
-            var r = PlayerBuilder.Rect("Graphics Button", canvas.transform, Vector2.one, Vector2.one, new Vector2(-30, -92), new Vector2(190, 52));
+            var r = PlayerBuilder.Rect("Graphics Button", canvas.transform, Vector2.one, Vector2.one, new Vector2(-30, -236), new Vector2(190, 52));
             r.pivot = Vector2.one;
             var img = r.gameObject.AddComponent<UnityEngine.UI.Image>(); img.color = new Color(0, 0, 0, 0.45f);
             var btn = r.gameObject.AddComponent<UnityEngine.UI.Button>(); btn.targetGraphic = img;

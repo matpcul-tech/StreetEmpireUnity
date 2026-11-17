@@ -64,6 +64,25 @@
    "metalsmooth": "barrel__barrel_03_metalsmooth.png"
   },
   {
+   "prop": "bat",
+   "material": "bat_wood",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.550000011920929,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "bat__bat_wood_basecolor.jpg"
+  },
+  {
    "prop": "bench",
    "material": "painted_wooden_bench",
    "alpha": "OPAQUE",

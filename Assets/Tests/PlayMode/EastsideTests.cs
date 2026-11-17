@@ -15,7 +15,7 @@ namespace StreetEmpire.Tests
         [UnityTest]
         public IEnumerator EastsideLoadsWithKitBuildings()
         {
-            SceneManager.LoadScene("Eastside");
+            StreetEmpire.Game.MuggerOpening.AutoStart = false; SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
 
             var blocks = Object.FindObjectsByType<BlockMarker>(FindObjectsSortMode.None);
