@@ -172,7 +172,8 @@ namespace StreetEmpire.EditorTools
             }
         }
 
-        /// <summary>LOD1: the Blender decimated far version (about 5.8k triangles, tools/decimate_far.py) with the
+        /// <summary>LOD1: the Blender decimated far version (22%, about 12.8k triangles, tools/decimate_far.py; 10% tore holes in
+        /// the Meshy walls) from about 120 m, with the
         /// near model's material, fitted to the near bounds. Phones draw the 58k triangle model only up close.</summary>
         static void AddFar(GameObject holder, GameObject inst, string name, Bounds nearBounds, Renderer[] near)
         {
@@ -188,7 +189,7 @@ namespace StreetEmpire.EditorTools
             b = WorldBounds(far);
             far.transform.localPosition += new Vector3(nearBounds.center.x - b.center.x, nearBounds.min.y - b.min.y, nearBounds.center.z - b.center.z);
             var lod = holder.AddComponent<LODGroup>();
-            lod.SetLODs(new[] { new LOD(0.2f, near), new LOD(0.01f, farRs) });
+            lod.SetLODs(new[] { new LOD(0.1f, near), new LOD(0.005f, farRs) });
             lod.RecalculateBounds();
         }
 
