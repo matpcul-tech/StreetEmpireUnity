@@ -16,7 +16,7 @@ namespace StreetEmpire.EditorTools
         const string RendererPath = "Assets/Settings/URP-Default-Renderer.asset";
         const string DatabasePath = "Assets/Data/GameDatabase.asset";
 
-        public static string[] BuildScenes => new[] { SceneBuilder.EastsideScene };
+        public static string[] BuildScenes => new[] { BootSceneBuilder.BootScene, SceneBuilder.EastsideScene };
 
         static ProjectBootstrap() => EditorApplication.delayCall += () => { if (!Application.isBatchMode && !File.Exists(SceneBuilder.EastsideScene)) Ensure(); };
 
@@ -28,7 +28,8 @@ namespace StreetEmpire.EditorTools
             EnsureDatabase();
             AssetDatabase.SaveAssets();
             SceneBuilder.BuildEastside();
-            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(SceneBuilder.EastsideScene, true) };
+            BootSceneBuilder.Build();
+            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(BootSceneBuilder.BootScene, true), new EditorBuildSettingsScene(SceneBuilder.EastsideScene, true) };
             AssetDatabase.SaveAssets();
         }
 

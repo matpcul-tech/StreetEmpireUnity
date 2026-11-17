@@ -23,12 +23,22 @@ namespace StreetEmpire.EditorTools
             };
             if (target == BuildTarget.Android) EditorUserBuildSettings.buildAppBundle = false; // APK for now, AAB with signing later
             if (target == BuildTarget.Android) AndroidSigning();
-            // 47c3075 also set medium managed stripping and stripped unused mesh channels, and that APK crashed on
-            // launch on a Samsung phone. Both are back to what the M2 to M4 APKs (which ran) used: minimal
-            // stripping, all mesh channels. LZ4HC only changes how the data is packed.
+            // 47c3075 changed three things and its APK crashed at launch on a Samsung: medium managed stripping,
+            // mesh channel stripping and LZ4HC. d1b55f0 reverted the first two and still crashed, so LZ4HC (which
+            // packs all player data into one data.unity3d archive instead of the split files the M5 APK had)
+            // is off too. Every packaging setting now matches the M5 APK that ran; only the release key differs.
             PlayerSettings.stripUnusedMeshComponents = false;
             PlayerSettings.SetManagedStrippingLevel(UnityEditor.Build.NamedBuildTarget.Android, ManagedStrippingLevel.Minimal);
-            if (target == BuildTarget.Android) options.options |= BuildOptions.CompressWithLz4HC;
+            // bisect variants (workflow_dispatch input "variant", passed as -seVariant)
+            var variant = Arg("-seVariant") ?? "";
+            if (target == BuildTarget.Android && variant.Contains("gles3"))
+            {
+                PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android, false);
+                PlayerSettings.SetGraphicsAPIs(BuildTarget.Android, new[] { UnityEngine.Rendering.GraphicsDeviceType.OpenGLES3 });
+            }
+            if (target == BuildTarget.Android && variant.Contains("lz4hc")) options.options |= BuildOptions.CompressWithLz4HC;
+            if (target == BuildTarget.Android)
+                Debug.Log($"[CIBuild] Android variant '{variant}', graphics {string.Join(",", PlayerSettings.GetGraphicsAPIs(BuildTarget.Android))}, options {options.options}, stripping {PlayerSettings.GetManagedStrippingLevel(UnityEditor.Build.NamedBuildTarget.Android)}");
             var report = BuildPipeline.BuildPlayer(options);
             var r = report.summary;
             Debug.Log($"[CIBuild] {target} {r.result} size {r.totalSize} errors {r.totalErrors} at {path}");

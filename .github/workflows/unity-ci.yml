@@ -10,13 +10,18 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      variant:
+        description: "Android bisect variant (gles3, lz4hc, or both); empty for a normal build"
+        required: false
+        default: ""
 
 permissions:
   contents: read
   checks: write # unity-test-runner posts the EditMode results as a check run
 
 concurrency:
-  group: unity-ci-${{ github.ref }}
+  group: unity-ci-${{ github.ref }}-${{ inputs.variant || 'main' }}
   cancel-in-progress: true
 
 env:
@@ -66,7 +71,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        targetPlatform: [Android, WebGL]
+        targetPlatform: ${{ fromJSON(inputs.variant && '["Android"]' || '["Android", "WebGL"]') }}
     steps:
       - name: Free disk space (Android image is large)
         if: matrix.targetPlatform == 'Android'
@@ -99,6 +104,7 @@ jobs:
           # pinned: resolving "latest" calls the GitHub API unauthenticated and can hit a 403 rate limit
           cliVersion: v0.1.76
           buildName: StreetEmpire
+          customParameters: -seVariant ${{ inputs.variant || 'none' }}
           versioning: Semantic
           # one persistent release key (kept off the repo), so each APK installs over the last; the version
           # code is the workflow run number, which only goes up
@@ -110,6 +116,6 @@ jobs:
           androidKeyaliasPass: ${{ secrets.ANDROID_KEYALIAS_PASS }}
       - uses: actions/upload-artifact@v4
         with:
-          name: StreetEmpire-${{ matrix.targetPlatform }}
+          name: StreetEmpire-${{ matrix.targetPlatform }}${{ inputs.variant && format('-{0}', inputs.variant) || '' }}
           path: build/${{ matrix.targetPlatform }}
           retention-days: 14
