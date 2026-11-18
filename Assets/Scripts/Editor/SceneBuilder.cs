@@ -407,8 +407,46 @@ namespace StreetEmpire.EditorTools
                 }
                 else dark.InsertRange(0, m2.GetTriangles(di));
                 m2.SetTriangles(lit, li); m2.SetTriangles(dark, di);
+                // v75f (Matthew: the white house and pawn shop panes were flat near white squares): their lit panes
+                // get pane local UVs into one of four warm rooms (blinds, curtains, a corner lamp, a half drawn
+                // blind; tools/make_window_warm.py) and a material that glows through that map
+                if (name == "house-01-bungalow" || name == "store-pawn")
+                {
+                    var uv = m2.uv; if (uv == null || uv.Length != v.Length) uv = new Vector2[v.Length];
+                    var groups = new Dictionary<int, List<int>>();
+                    for (int t = 0; t < tri.Length; t++) { int g = Find(corner[t]); if (cache.TryGetValue(g, out bool pd) && pd) continue; if (!groups.TryGetValue(g, out var gl)) groups[g] = gl = new List<int>(); gl.Add(tri[t]); }
+                    foreach (var kv in groups)
+                    {
+                        var pa = lo[kv.Key]; var pb = hi[kv.Key]; var sz = pb - pa;
+                        bool alongX = sz.x >= sz.z;   // the pane faces z if it is wider in x
+                        var pc = (pa + pb) / 2; int variant = Mathf.Abs(Mathf.FloorToInt(pc.x * 3.7f) * 7 + Mathf.FloorToInt(pc.z * 2.9f) * 3 + Mathf.FloorToInt(pc.y * 1.3f)) % 4;
+                        var off = new Vector2((variant % 2) * 0.5f, (variant / 2) * 0.5f);
+                        foreach (int vi in kv.Value)
+                        {
+                            var pw = r.transform.TransformPoint(v[vi]);
+                            float pu = alongX ? Mathf.InverseLerp(pa.x, pb.x, pw.x) : Mathf.InverseLerp(pa.z, pb.z, pw.z);
+                            float pv = Mathf.InverseLerp(pa.y, pb.y, pw.y);
+                            uv[vi] = off + new Vector2(0.01f + pu * 0.48f, 0.01f + pv * 0.48f);
+                        }
+                    }
+                    m2.uv = uv;
+                    if (li < mats.Count) mats[li] = WarmGlass(mats[li]);
+                }
                 mf.sharedMesh = m2; r.sharedMaterials = mats.ToArray();
             }
+        }
+
+        static Material WarmGlass(Material src)
+        {
+            if (src == null || src.name.EndsWith("_warm")) return src;
+            string p = $"{Mats}/{src.name.Replace(" ", "_")}_warm.mat";
+            var m = AssetDatabase.LoadAssetAtPath<Material>(p);
+            if (m == null) { m = new Material(src); AssetDatabase.CreateAsset(m, p); } else m.CopyPropertiesFromMaterial(src);
+            m.name = System.IO.Path.GetFileNameWithoutExtension(p);
+            m.SetTexture("_BaseMap", null); m.SetColor("_BaseColor", new Color(0.12f, 0.09f, 0.07f)); m.SetFloat("_Smoothness", 0.65f);
+            m.SetTexture("_EmissionMap", AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/window-warm_emission.png"));
+            m.EnableKeyword("_EMISSION"); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            EditorUtility.SetDirty(m); return m;
         }
 
         static Material DarkGlass()
