@@ -66,7 +66,7 @@ namespace StreetEmpire.EditorTools
             }
             else if (src.IsKeywordEnabled("_ALPHATEST_ON") || src.renderQueue == 2450)
             {
-                m.SetFloat("_AlphaClip", 1); m.SetFloat("_Cutoff", F("alphaCutoff", 0.5f)); m.EnableKeyword("_ALPHATEST_ON");
+                m.SetFloat("_AlphaClip", 1); m.SetFloat("_Cutoff", F("alphaCutoff", 0.5f)); m.EnableKeyword("_ALPHATEST_ON"); m.SetFloat("_AlphaToMask", 1f);   // alpha to coverage under MSAA: soft cut edges
                 m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
             }
             // glTF doubleSided: glTFast keeps it as cull mode Off (and double sided GI). Without this the

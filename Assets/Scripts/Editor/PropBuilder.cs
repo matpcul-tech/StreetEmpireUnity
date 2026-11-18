@@ -576,7 +576,7 @@ namespace StreetEmpire.EditorTools
             if (glass)
             {
                 if (ms == null && Tx(e.basecolor) == null) col = new Color(0.62f, 0.72f, 0.78f, 0.28f); else col.a = Mathf.Min(col.a, 0.45f);
-                m.SetFloat("_Surface", 1); m.SetFloat("_Blend", 0); m.SetFloat("_AlphaClip", 0); m.DisableKeyword("_ALPHATEST_ON");
+                m.SetFloat("_Surface", 1); m.SetFloat("_Blend", 0); m.SetFloat("_AlphaClip", 0); m.DisableKeyword("_ALPHATEST_ON"); m.SetFloat("_AlphaToMask", 0f);
                 m.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha); m.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha); m.SetFloat("_ZWrite", 0);
                 m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT"); m.SetOverrideTag("RenderType", "Transparent");
                 m.renderQueue = (int)RenderQueue.Transparent; m.SetFloat("_Cull", 0f);
@@ -587,12 +587,12 @@ namespace StreetEmpire.EditorTools
                 m.SetFloat("_SrcBlend", (float)BlendMode.One); m.SetFloat("_DstBlend", (float)BlendMode.Zero);
                 if (cutout)
                 {
-                    m.SetFloat("_AlphaClip", 1); m.SetFloat("_Cutoff", e.alpha == "MASK" ? e.cutoff : 0.5f); m.EnableKeyword("_ALPHATEST_ON");
+                    m.SetFloat("_AlphaClip", 1); m.SetFloat("_Cutoff", e.alpha == "MASK" ? e.cutoff : 0.5f); m.EnableKeyword("_ALPHATEST_ON"); m.SetFloat("_AlphaToMask", 1f);   // alpha to coverage under MSAA: soft cut edges
                     m.SetOverrideTag("RenderType", "TransparentCutout"); m.renderQueue = (int)RenderQueue.AlphaTest;
                 }
                 else
                 {
-                    m.SetFloat("_AlphaClip", 0); m.DisableKeyword("_ALPHATEST_ON");
+                    m.SetFloat("_AlphaClip", 0); m.DisableKeyword("_ALPHATEST_ON"); m.SetFloat("_AlphaToMask", 0f);
                     m.SetOverrideTag("RenderType", "Opaque"); m.renderQueue = -1;
                 }
                 // Poly Haven scans can be open shells (inside of a bin, a lamp cage), so they stay two sided;
@@ -722,7 +722,7 @@ namespace StreetEmpire.EditorTools
             if (m == null) { Directory.CreateDirectory(MatDir); m = new Material(lit); AssetDatabase.CreateAsset(m, path); } else m.shader = lit;
             m.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>($"{Tex}/decal-set__decals_basecolor.png"));
             m.SetColor("_BaseColor", Color.white); m.SetFloat("_Smoothness", 0.1f); m.SetFloat("_Metallic", 0f);
-            m.SetFloat("_Surface", 1); m.SetFloat("_Blend", 0); m.SetFloat("_AlphaClip", 0); m.DisableKeyword("_ALPHATEST_ON");
+            m.SetFloat("_Surface", 1); m.SetFloat("_Blend", 0); m.SetFloat("_AlphaClip", 0); m.DisableKeyword("_ALPHATEST_ON"); m.SetFloat("_AlphaToMask", 0f);
             m.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha); m.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha); m.SetFloat("_ZWrite", 0);
             m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT"); m.SetOverrideTag("RenderType", "Transparent");
             m.renderQueue = (int)RenderQueue.Transparent - 100; m.SetFloat("_Cull", 2f);

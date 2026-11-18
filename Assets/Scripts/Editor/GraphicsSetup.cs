@@ -72,6 +72,7 @@ namespace StreetEmpire.EditorTools
             Set(so, "m_ShadowNormalBias", 0.6f);
             Set(so, "m_ColorGradingMode", 1);            // HDR grading
             Set(so, "m_UseSRPBatcher", true);
+            Set(so, "m_EnableLODCrossFade", false);       // no dithered LOD cross fade (it read as stripes on the palms)
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(p);
         }
