@@ -67,13 +67,15 @@ namespace StreetEmpire.EditorTools
             if (assetPath.EndsWith("yard_variation.png")) t.sRGBTexture = false;   // URP detail albedo: linear, 0.5 is neutral
             if (assetPath.StartsWith("Assets/Art/Textures/Props/") && assetPath.Contains("chainlink")) t.wrapMode = UnityEngine.TextureWrapMode.Repeat;
             // building walls are seen at grazing angles down the street: 8x anisotropic so the mips do not shimmer
+            // v75 far towers: their window grid and lit window map tile and read in the fog
+            if (assetPath.Contains("Props/edge-")) { t.wrapMode = UnityEngine.TextureWrapMode.Repeat; t.anisoLevel = 4; }
             if (building) { t.anisoLevel = 8; t.filterMode = UnityEngine.FilterMode.Trilinear; }   // spec E.2: mipmaps on, 8x anisotropic
             // palm fronds are alpha tested: keep their coverage in the mips so the crowns do not thin out with
             // distance, and keep the alpha channel on WebGL (DXT5, not DXT1)
             // every alpha tested map (palm fronds, dry plants, the chain link wire, decals): keep the coverage in the
             // mips so they do not thin or stripe with distance, trilinear with 4x anisotropic, and the alpha kept on
             // WebGL (DXT5, not DXT1) and on Android in 4x4 ASTC blocks (8x8 blocks smear the cut edge into stripes)
-            bool frond = assetPath.StartsWith("Assets/Art/Textures/Props/") && !normal && !data && (assetPath.Contains("palm_frond") || assetPath.Contains("dry_blades") || assetPath.Contains("decal-set") || assetPath.Contains("fence_wire"));
+            bool frond = assetPath.StartsWith("Assets/Art/Textures/Props/") && !normal && !data && (assetPath.Contains("palm_frond") || assetPath.Contains("dry_blades") || assetPath.Contains("decal-set") || assetPath.Contains("fence_wire") || assetPath.Contains("fx_dust"));
             if (frond) { t.alphaIsTransparency = true; t.mipMapsPreserveCoverage = true; t.alphaTestReferenceValue = 0.5f; t.filterMode = UnityEngine.FilterMode.Trilinear; t.anisoLevel = 4; }
             t.textureCompression = TextureImporterCompression.Compressed;
             // M5: compressed on the GPU, not RGBA32. Android ASTC (6x6 color, 5x5 normals), WebGL DXT
@@ -98,7 +100,7 @@ namespace StreetEmpire.EditorTools
         static readonly string[] SmallProps = { "tyre", "trashbag", "cardboard-box", "crate", "barrel", "manhole", "security-light",
             "newspaper-box", "mailbox", "utility-box-1", "utility-box-2", "aircon", "bus-stop-sign", "sign-post" };
 
-        static bool Crisp(string path) => path.Contains("chainlink-panel__modular_chainlink_fence_wire") || path.Contains("decal-set") || path.Contains("street-blade") || path.Contains("stop-sign__stop");
+        static bool Crisp(string path) => path.Contains("chainlink-panel__modular_chainlink_fence_wire") || path.Contains("decal-set") || path.Contains("street-blade") || path.Contains("stop-sign__stop") || path.Contains("pawn-sign");
 
         /// <summary>Prop texture sizes: hero color 2048 with 1024 normals, glass 256, metal and smoothness 512,
         /// small clutter 512, the rest 1024 color and 512 normals.</summary>

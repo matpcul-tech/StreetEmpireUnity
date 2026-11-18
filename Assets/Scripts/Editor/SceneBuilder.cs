@@ -32,9 +32,9 @@ namespace StreetEmpire.EditorTools
             // Eastside houses read like the web game's: stucco walls, tile roofs, bars on the windows. The clapboard
             // and brick ones (house-wood-duplex, house-shotgun, house-boarded, house-rowhouse-pair) read as the
             // Midwest and are left out; their files stay in the repo. Each house gets a stucco wash (HouseTint).
-            // v74: house-01-bungalow (the white house with the red roof) is not shipped: still torn after Flatten walls
-            // Strong and NOT READY, listed for a Meshy regeneration. Its files are removed.
-            ["house"] = new[] { "house-02-two-story", "house-03-duplex", "house-02-two-story", "house-03-duplex", "house-02-two-story", "house-03-duplex", "house-02-two-story" },
+            // v75: house-01-bungalow is back: only its roof is kept from the old file, the walls, porch, posts,
+            // windows and door are rebuilt as clean geometry (tools/rebuild_house01.py), READY in Sovereign Asset.
+            ["house"] = new[] { "house-02-two-story", "house-01-bungalow", "house-03-duplex", "house-02-two-story", "house-01-bungalow", "house-03-duplex", "house-02-two-story" },
             ["apt"] = new[] { "apt-01-stucco", "apt-mixed-use", "apt-02-brick", "apt-motel-style" },
         };
         static readonly Dictionary<string, int> dealt = new();
@@ -43,8 +43,43 @@ namespace StreetEmpire.EditorTools
         /// cream, peach, pale pink and sand, as along the web game's Eastside streets.</summary>
         static readonly Color[] HouseTint =
         {
-            Color.white, new(1f, 0.95f, 0.86f), new(1f, 0.88f, 0.78f), new(1f, 0.9f, 0.88f), new(0.96f, 0.9f, 0.78f),
+            Color.white, new(1f, 0.95f, 0.86f), new(0.92f, 0.95f, 0.9f), new(1f, 0.9f, 0.88f), new(0.96f, 0.9f, 0.78f), new(0.9f, 0.93f, 0.96f), new(1f, 0.97f, 0.9f),
         };
+
+        /// <summary>v75 wall colors (Matthew: too much of one salmon stucco box; apt-01's clean, light, warm gray stucco
+        /// is the bar). The house walls are painted in turn (sRGB): cream, pale sage, blue gray, sand, off white,
+        /// soft pink, pale yellow, by multiplying the wall texture by target over its own mean color.</summary>
+        static readonly Color32[] HouseWall =
+        {
+            new(214, 204, 180, 255), new(180, 188, 160, 255), new(176, 186, 194, 255), new(206, 186, 150, 255),
+            new(224, 220, 208, 255), new(214, 188, 178, 255), new(222, 208, 162, 255),
+        };
+
+        /// <summary>The mean color of each model's extracted wall texture (sRGB, measured from the jpgs) and, for the
+        /// stores and apartments, the wall color it is painted toward. The dark Meshy brick and block walls
+        /// (about 40 to 65 of 255) came up as black boxes at a distance; they move toward apt-01's lightness with
+        /// their own hue (brick stays brick).</summary>
+        static readonly Dictionary<string, (Color32 mean, Color32 target)> WallPaint = new()
+        {
+            ["apt-01-stucco"] = (new(129, 118, 107, 255), new(129, 118, 107, 255)),
+            ["apt-mixed-use"] = (new(53, 41, 36, 255), new(132, 98, 80, 255)),
+            ["apt-02-brick"] = (new(62, 46, 38, 255), new(128, 86, 66, 255)),
+            ["apt-motel-style"] = (new(99, 89, 78, 255), new(178, 172, 154, 255)),
+            ["civic-church"] = (new(53, 41, 37, 255), new(168, 152, 130, 255)),
+            ["shop-gas-station"] = (new(36, 27, 24, 255), new(176, 172, 162, 255)),
+            ["store-bodega"] = (new(66, 48, 44, 255), new(104, 128, 116, 255)),
+            ["store-laundromat"] = (new(90, 81, 69, 255), new(152, 162, 168, 255)),
+            ["store-takeout"] = (new(134, 111, 109, 255), new(188, 166, 122, 255)),
+            ["store-pawn"] = (new(65, 63, 60, 255), new(104, 84, 72, 255)),
+            ["house-02-two-story"] = (new(150, 104, 84, 255), new(150, 104, 84, 255)),
+            ["house-01-bungalow"] = (new(221, 214, 198, 255), new(221, 214, 198, 255)),
+        };
+
+        static Color Paint(Color32 mean, Color32 target)
+        {
+            float R(byte t, byte m) => Mathf.Clamp(t / Mathf.Max(1f, m), 0.5f, 2.6f);
+            return new Color(R(target.r, mean.r), R(target.g, mean.g), R(target.b, mean.b), 1f);
+        }
 
         public static readonly int[] EastsideBlocks = { 0, 1, 2, 9, 10, 11, 18, 19, 20 };
 
@@ -130,6 +165,7 @@ namespace StreetEmpire.EditorTools
             var cycle = new GameObject("Day Cycle").AddComponent<StreetEmpire.City.DayCycle>();
             cycle.transform.SetParent(root.transform, false);
             cycle.sun = sunLight; cycle.sky = RenderSettings.skybox; cycle.duskFog = RenderSettings.fogColor;
+            cycle.dayFog = DayFog; cycle.nightFog = NightFog;
             var fillT = root.transform.Find("Character Fill"); if (fillT) cycle.fill = fillT.GetComponent<Light>();
             var moonT = root.transform.Find("Moon"); if (moonT) cycle.moon = moonT.GetComponent<Light>();
             // v74: only the Sovereign Asset windows_lit materials glow (a flat color, no emission map); walls never do
@@ -143,6 +179,10 @@ namespace StreetEmpire.EditorTools
             var xs = Enumerable.Range(0, 4).Select(i => WorldSpace.FromSource(CityLayout.LineCoord(w, i), 0).x).ToArray();
             var zs = Enumerable.Range(0, 4).Select(i => WorldSpace.FromSource(0, CityLayout.LineCoord(w, i)).z).ToArray();
             PropBuilder.Build(blockInfo, xs, zs, root.transform);
+            cycle.skylineMaterials = PropBuilder.EmissiveMaterials.ToArray();
+            cycle.signMaterials = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None)
+                .SelectMany(b => b.GetComponentsInChildren<Renderer>(true)).SelectMany(r => r.sharedMaterials)
+                .Where(m => m != null && Part(m) == "Sign_Blank_CoreEmission").Distinct().ToArray();
             LampLightsBuild(root.transform, cycle);
             PostAndQuality(root.transform);
 
@@ -192,7 +232,9 @@ namespace StreetEmpire.EditorTools
             bounds = WorldBounds(inst);
             var col = holder.AddComponent<BoxCollider>(); col.center = bounds.center; col.size = bounds.size;
             BindTextures(inst, name);
-            if (spot.kind == "house") { marker.wash = n % HouseTint.Length; Wash(inst, name, HouseTint[marker.wash]); }
+            SplitWindows(inst, name, bounds.size);
+            if (spot.kind == "house") { marker.wash = n % HouseTint.Length; Wash(inst, name, HouseTint[marker.wash], HouseWall[marker.wash % HouseWall.Length]); }
+            if (name == "store-pawn") PawnSign(inst, holder);
             var near = inst.GetComponentsInChildren<Renderer>();
             foreach (var r in near) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
             Compress(inst, name, "Near");
@@ -244,7 +286,7 @@ namespace StreetEmpire.EditorTools
                     if (part == "windows_lit")
                     {
                         m.SetColor("_BaseColor", new Color(0.16f, 0.12f, 0.09f)); m.SetFloat("_Smoothness", 0.6f);
-                        m.EnableKeyword("_EMISSION");   // DayCycle sets (1.0, 0.74, 0.45) at HDR intensity 2 by the clock
+                        m.EnableKeyword("_EMISSION");   // DayCycle sets a warm (1.0, 0.58, 0.28) x 1.6 by the clock
                     }
                     else { m.SetColor("_BaseColor", new Color(0.06f, 0.07f, 0.08f)); m.SetFloat("_Smoothness", 0.75f); }
                     EditorUtility.SetDirty(m); continue;
@@ -259,25 +301,123 @@ namespace StreetEmpire.EditorTools
                 // roughness from Sovereign Asset's surface maps, as URP smoothness in the alpha
                 if (ms != null) { m.SetTexture("_MetallicGlossMap", ms); m.EnableKeyword("_METALLICSPECGLOSSMAP"); m.SetFloat("_Smoothness", 1f); m.SetFloat("_SmoothnessTextureChannel", 0f); }
                 else m.SetFloat("_Smoothness", 0.12f);
+                // v75 wall paint for the stores and apartments (the houses are painted per placement in Wash)
+                if (part == "walls" && WallPaint.TryGetValue(name, out var wp) && !name.StartsWith("house")) m.SetColor("_BaseColor", Paint(wp.mean, wp.target));
+                // v75: the liquor store sign glows again, the sign face only, its own print as the emission map
+                // (DayCycle.signMaterials: low by day, full at night)
+                if (part == "Sign_Blank_CoreEmission" && bc != null)
+                {
+                    m.SetTexture("_EmissionMap", bc); m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.white * 0.6f);
+                    m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                }
                 EditorUtility.SetDirty(m);
             }
         }
 
-        /// <summary>A tinted copy of the house material (one asset per model and wash, so placements share it).</summary>
-        static void Wash(GameObject inst, string name, Color tint)
+        /// <summary>v75 windows (Matthew: pure white cards, all lit). Each model's lit glass is split pane by pane
+        /// (connected pieces of the windows_lit part): about a third, picked by a hash of where the pane sits on the
+        /// model (1 m cells over the near model's size, so the far levels pick about the same panes), move to the dark
+        /// glass; on the stores, the narrow low panes (door glass, the pawn shop's blank white rectangle) are always
+        /// dark. Only glass ever glows.</summary>
+        static void SplitWindows(GameObject go, string name, Vector3 refSize)
         {
-            if (tint == Color.white) return;
+            var wb = WorldBounds(go);
+            int seed = name.GetHashCode();
+            bool store = name.StartsWith("store-") || name.StartsWith("shop-");
+            foreach (var r in go.GetComponentsInChildren<MeshRenderer>())
+            {
+                var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
+                var mats = r.sharedMaterials.ToList(); var mesh = mf.sharedMesh;
+                int li = mats.FindIndex(m => m != null && Part(m) == "windows_lit");
+                if (li < 0 || li >= mesh.subMeshCount) continue;
+                int di = mats.FindIndex(m => m != null && Part(m) == "windows_dark");
+                var m2 = Object.Instantiate(mesh); m2.name = mesh.name;
+                var v = m2.vertices; var tri = m2.GetTriangles(li);
+                // union the triangles of a pane by shared corner positions
+                var key = new Dictionary<Vector3Int, int>(); var parent = new List<int>();
+                int Find(int a) { while (parent[a] != a) { parent[a] = parent[parent[a]]; a = parent[a]; } return a; }
+                int Id(Vector3 p) { var k = Vector3Int.RoundToInt(p * 1000f); if (!key.TryGetValue(k, out int id)) { id = parent.Count; key[k] = id; parent.Add(id); } return id; }
+                var corner = new int[tri.Length];
+                for (int t = 0; t < tri.Length; t++) corner[t] = Id(v[tri[t]]);
+                for (int t = 0; t < tri.Length; t += 3) { int a = Find(corner[t]), b = Find(corner[t + 1]), c = Find(corner[t + 2]); parent[b] = a; parent[Find(c)] = a; }
+                var lo = new Dictionary<int, Vector3>(); var hi = new Dictionary<int, Vector3>();
+                for (int t = 0; t < tri.Length; t++)
+                {
+                    int g = Find(corner[t]); var w = r.transform.TransformPoint(v[tri[t]]);
+                    lo[g] = lo.TryGetValue(g, out var l) ? Vector3.Min(l, w) : w; hi[g] = hi.TryGetValue(g, out var h) ? Vector3.Max(h, w) : w;
+                }
+                bool Dark(int g)
+                {
+                    var a = lo[g]; var b = hi[g]; var size = wb.size;
+                    Vector3 N(Vector3 p) => new((p.x - wb.min.x) / Mathf.Max(size.x, 1e-3f) * refSize.x, (p.y - wb.min.y) / Mathf.Max(size.y, 1e-3f) * refSize.y, (p.z - wb.min.z) / Mathf.Max(size.z, 1e-3f) * refSize.z);
+                    var na = N(a); var nb = N(b); var c = (na + nb) / 2;
+                    if (store && na.y < 1.3f && Mathf.Max(nb.x - na.x, nb.z - na.z) < 1.1f) return true;   // door glass
+                    uint q = unchecked((uint)Mathf.FloorToInt(c.x) * 73856093u ^ (uint)Mathf.FloorToInt(c.y) * 19349663u ^ (uint)Mathf.FloorToInt(c.z) * 83492791u ^ (uint)seed);
+                    q ^= q >> 13; q *= 1274126177u; q ^= q >> 16;
+                    return q % 3 == 0;
+                }
+                var lit = new List<int>(); var dark = new List<int>();
+                var cache = new Dictionary<int, bool>();
+                for (int t = 0; t < tri.Length; t += 3)
+                {
+                    int g = Find(corner[t]); if (!cache.TryGetValue(g, out bool d)) cache[g] = d = Dark(g);
+                    (d ? dark : lit).AddRange(new[] { tri[t], tri[t + 1], tri[t + 2] });
+                }
+                if (di < 0 || di >= m2.subMeshCount)
+                {
+                    di = m2.subMeshCount; m2.subMeshCount = di + 1;
+                    while (mats.Count < di) mats.Add(mats[li]);
+                    if (mats.Count == di) mats.Add(DarkGlass()); else mats[di] = DarkGlass();
+                }
+                else dark.InsertRange(0, m2.GetTriangles(di));
+                m2.SetTriangles(lit, li); m2.SetTriangles(dark, di);
+                mf.sharedMesh = m2; r.sharedMaterials = mats.ToArray();
+            }
+        }
+
+        static Material DarkGlass()
+        {
+            var m = Mat("glass_windows_dark", new Color(0.06f, 0.07f, 0.08f), 0.75f);
+            return m;
+        }
+
+        /// <summary>v75: the pawn shop's blank sign band gets its board (pawn-sign: PAWN, LOANS, GOLD, through
+        /// Sovereign Asset), on the band of the front (model +Z) at y 1.08 to 1.22 of the 1.5 model units, 3 cm proud.</summary>
+        static void PawnSign(GameObject inst, GameObject holder)
+        {
+            var sign = PropBuilder.Loose("pawn-sign");
+            if (sign == null) return;
+            sign.name = "Pawn Sign"; sign.transform.SetParent(holder.transform, false);
+            var p = inst.transform.TransformPoint(new Vector3(0f, 1.15f, 0.754f));
+            float k = inst.transform.lossyScale.y;
+            sign.transform.position = p + holder.transform.forward * 0.03f;
+            sign.transform.rotation = holder.transform.rotation;
+            var b = WorldBounds(sign); float w = 1.48f * k;   // the band is 1.48 model units wide
+            if (b.size.x > 1e-3f) sign.transform.localScale *= Mathf.Min(1.1f, w / b.size.x);
+            foreach (var r in sign.GetComponentsInChildren<Renderer>()) { r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = true; }
+        }
+
+        /// <summary>A tinted copy of the house material (one asset per model and wash, so placements share it).</summary>
+        static void Wash(GameObject inst, string name, Color tint, Color32 wall)
+        {
+            bool painted = WallPaint.TryGetValue(name, out var wp);
             foreach (var r in inst.GetComponentsInChildren<Renderer>())
             {
                 var mats = r.sharedMaterials;
                 for (int i = 0; i < mats.Length; i++)
                 {
                     if (mats[i] == null || Part(mats[i]).StartsWith("windows")) continue;   // glass keeps its own color
-                    string path = $"{Mats}/Wash/{name}__{mats[i].name.Replace(" ", "_")}__{ColorUtility.ToHtmlStringRGB(tint)}.mat";
+                    // v75: a model with its own walls material gets the wall paint there and keeps its roof and trim;
+                    // one atlas model (house-03-duplex) gets the old light wash over everything
+                    bool wallPart = Part(mats[i]) == "walls";
+                    if (painted && !wallPart) continue;
+                    var mul = painted ? Paint(wp.mean, wall) : tint;
+                    if (mul == Color.white) continue;
+                    string path = $"{Mats}/Wash/{name}__{mats[i].name.Replace(" ", "_")}__{ColorUtility.ToHtmlStringRGB(mul * 0.5f)}.mat";
                     var m = AssetDatabase.LoadAssetAtPath<Material>(path);
                     if (m == null) { System.IO.Directory.CreateDirectory($"{Mats}/Wash"); m = new Material(mats[i]); AssetDatabase.CreateAsset(m, path); }
                     else m.CopyPropertiesFromMaterial(mats[i]);
-                    m.SetColor("_BaseColor", mats[i].GetColor("_BaseColor") * tint);
+                    m.SetColor("_BaseColor", painted ? mul : mats[i].GetColor("_BaseColor") * tint);
                     EditorUtility.SetDirty(m); mats[i] = m;
                 }
                 r.sharedMaterials = mats;
@@ -317,6 +457,7 @@ namespace StreetEmpire.EditorTools
             go.name = goName ?? level; go.transform.SetParent(holder.transform, false);
             var rs = go.GetComponentsInChildren<Renderer>();
             foreach (var r in rs) { r.sharedMaterials = r.sharedMaterials.Select(For).ToArray(); r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
+            SplitWindows(go, name, nearBounds.size);
             Compress(go, name, level);
             var b = WorldBounds(go);
             go.transform.localScale *= Mathf.Max(nearBounds.size.x, nearBounds.size.z) / Mathf.Max(b.size.x, b.size.z, 1e-4f);
@@ -413,51 +554,60 @@ namespace StreetEmpire.EditorTools
         static readonly Color SkyZenith = new(0.49f, 0.50f, 0.47f), SkyUpper = new(0.72f, 0.68f, 0.56f),
             SkyHorizon = new(1.05f, 0.62f, 0.47f), SkyGlow = new(2.4f, 1.15f, 0.55f);
 
-        // the fog color (RenderSettings.fogColor below) in linear: the sky at and under the horizon is exactly the
-        // fully fogged ground, so the far edge of the world melts into the haze with no line
+        // the fog color of each sky in linear (DayCycle.dayFog, duskFog, nightFog): the sky at and under the horizon is
+        // exactly the fully fogged ground, so the far edge of the world melts into the haze with no line
         static readonly Color FogLinear = new Color(0.68f, 0.61f, 0.54f).linear;
+        public static readonly Color DayFog = new(0.70f, 0.76f, 0.84f), NightFog = new(0.08f, 0.10f, 0.16f);
 
-        /// <summary>A far city skyline on the horizon all the way round (towers, roofs, a few lit windows), painted in the
-        /// sky so the district does not just dissolve into haze; DayCycle tints it with the fog, dark at night.</summary>
-        static float SkylineTop(float az, out int cell)
+        /// <summary>v75 skies: 0 day (a blue sky, the sun high at 14:00), 1 the built golden hour, 2 night (near black
+        /// blue overhead, the sodium glow of the city along the horizon, a few stars). The painted skyline strip of v74
+        /// is gone: the far skyline is real towers now (BuildEdge).</summary>
+        static Color SkyColor(Vector3 d, int mode)
         {
-            // buildings of uneven width round the horizon; elevation of each roof line (sine of the angle)
-            float a = (az / (2f * Mathf.PI) + 1f) % 1f * 220f; cell = Mathf.FloorToInt(a);
-            float h(int c) { uint x = unchecked((uint)c * 2654435761u) ^ 0x5bd1e995u; x ^= x >> 15; x *= 2246822519u; x ^= x >> 13; return (x & 0xffff) / 65535f; }
-            float r = h(cell), tall = h(cell + 911) > 0.86f ? 1f : 0f;
-            return 0.012f + 0.03f * r * r + tall * (0.025f + 0.03f * h(cell + 37));
-        }
-
-        static Color SkyColor(Vector3 d, bool skyline = false)
-        {
-            float e = d.y;
-            if (skyline && e >= 0 && e < 0.12f)
+            float e = d.y; Color c;
+            if (mode == 0)
             {
-                float az = Mathf.Atan2(d.z, d.x); float top = SkylineTop(az, out int cell);
-                if (e < top)
+                var fog = DayFog.linear;
+                Color zen = new(0.16f, 0.32f, 0.70f), up = new(0.38f, 0.55f, 0.88f), hor = new(0.62f, 0.70f, 0.82f);
+                c = e < 0 ? fog : e < 0.06f ? Color.Lerp(fog, hor, Mathf.SmoothStep(0, 1, e / 0.06f))
+                    : e < 0.35f ? Color.Lerp(hor, up, Mathf.SmoothStep(0, 1, (e - 0.06f) / 0.29f))
+                    : Color.Lerp(up, zen, Mathf.SmoothStep(0, 1, (e - 0.35f) / 0.6f));
+                float k = Mathf.Max(0, Vector3.Dot(d, SunAt(54f)));
+                c += new Color(1f, 0.95f, 0.85f) * (Mathf.Pow(k, 24f) * 0.35f + Mathf.Pow(k, 300f) * 0.8f);
+                if (k > 0.9996f) c += new Color(14f, 13f, 11f);
+            }
+            else if (mode == 2)
+            {
+                var fog = NightFog.linear;
+                Color zen = new(0.004f, 0.006f, 0.016f), up = new(0.010f, 0.015f, 0.035f), glow = new(0.11f, 0.065f, 0.04f);
+                c = e < 0 ? fog : e < 0.035f ? Color.Lerp(fog, glow, Mathf.SmoothStep(0, 1, e / 0.035f))
+                    : e < 0.25f ? Color.Lerp(glow, up, Mathf.SmoothStep(0, 1, (e - 0.035f) / 0.215f))
+                    : Color.Lerp(up, zen, Mathf.SmoothStep(0, 1, (e - 0.25f) / 0.6f));
+                if (e > 0.18f)
                 {
-                    // a silhouette a little darker and cooler than the haze, so it reads but stays far away
-                    var sil = new Color(FogLinear.r * 0.62f, FogLinear.g * 0.58f, FogLinear.b * 0.66f);
-                    float wx = (az / (2f * Mathf.PI) + 1f) % 1f * 220f * 9f, wy = e * 900f;
-                    uint q = unchecked((uint)Mathf.FloorToInt(wx) * 73856093u ^ (uint)Mathf.FloorToInt(wy) * 19349663u); q ^= q >> 13; q *= 1274126177u;
-                    if ((q & 0xff) < 14 && (wx % 1f) > 0.3f && (wy % 1f) > 0.35f) sil += new Color(0.55f, 0.32f, 0.12f);   // a lit window
-                    sil.a = 1; return sil;
+                    // sparse stars: one in a few hundred texels, dimmer near the glow
+                    var q3 = d * 220f; uint q = unchecked((uint)Mathf.FloorToInt(q3.x) * 73856093u ^ (uint)Mathf.FloorToInt(q3.y) * 19349663u ^ (uint)Mathf.FloorToInt(q3.z) * 83492791u);
+                    q ^= q >> 13; q *= 1274126177u; q ^= q >> 16;
+                    if ((q & 0x3ff) < 3) c += new Color(0.5f, 0.52f, 0.6f) * (0.4f + ((q >> 10) & 0xff) / 255f) * Mathf.Clamp01((e - 0.18f) * 4f);
                 }
             }
-            Color c = e < 0 ? FogLinear
-                : e < 0.08f ? Color.Lerp(FogLinear, SkyHorizon, Mathf.SmoothStep(0, 1, e / 0.08f))
-                : e < 0.3f ? Color.Lerp(SkyHorizon, SkyUpper, Mathf.SmoothStep(0, 1, (e - 0.08f) / 0.22f))
-                : Color.Lerp(SkyUpper, SkyZenith, Mathf.SmoothStep(0, 1, (e - 0.3f) / 0.6f));
-            float k = Mathf.Max(0, Vector3.Dot(d, SunDir));
-            float glow = Mathf.Pow(k, 6f) * 0.55f + Mathf.Pow(k, 48f) * 0.8f;
-            c += SkyGlow * glow * Mathf.SmoothStep(0, 1, (e + 0.01f) / 0.06f) * Mathf.Clamp01(1f - Mathf.Max(0, e) * 1.6f);
-            if (k > 0.9994f) c += new Color(10f, 7.5f, 5f);           // the sun disk
+            else
+            {
+                c = e < 0 ? FogLinear
+                    : e < 0.08f ? Color.Lerp(FogLinear, SkyHorizon, Mathf.SmoothStep(0, 1, e / 0.08f))
+                    : e < 0.3f ? Color.Lerp(SkyHorizon, SkyUpper, Mathf.SmoothStep(0, 1, (e - 0.08f) / 0.22f))
+                    : Color.Lerp(SkyUpper, SkyZenith, Mathf.SmoothStep(0, 1, (e - 0.3f) / 0.6f));
+                float k = Mathf.Max(0, Vector3.Dot(d, SunDir));
+                float glow = Mathf.Pow(k, 6f) * 0.55f + Mathf.Pow(k, 48f) * 0.8f;
+                c += SkyGlow * glow * Mathf.SmoothStep(0, 1, (e + 0.01f) / 0.06f) * Mathf.Clamp01(1f - Mathf.Max(0, e) * 1.6f);
+                if (k > 0.9994f) c += new Color(10f, 7.5f, 5f);           // the sun disk
+            }
             c.a = 1; return c;
         }
 
-        /// <summary>A golden hour sky cubemap (half float so the glow round the sun stays HDR), used both as the
-        /// skybox and, smaller, as the reflection probe for the whole district.</summary>
-        static Cubemap SkyCube(string path, int n, bool skyline)
+        /// <summary>A sky cubemap (half float so the glow round the sun stays HDR), used both as the skybox and,
+        /// smaller, as the reflection probe for the whole district.</summary>
+        static Cubemap SkyCube(string path, int n, int mode)
         {
             var cube = AssetDatabase.LoadAssetAtPath<Cubemap>(path);
             if (cube != null && (cube.width != n || cube.format != TextureFormat.RGBAHalf)) { AssetDatabase.DeleteAsset(path); cube = null; }
@@ -476,7 +626,7 @@ namespace StreetEmpire.EditorTools
                             CubemapFace.PositiveY => new Vector3(u, 1, v), CubemapFace.NegativeY => new Vector3(u, -1, -v),
                             CubemapFace.PositiveZ => new Vector3(u, -v, 1), _ => new Vector3(-u, -v, -1),
                         };
-                        px[y * n + x] = SkyColor(d.normalized, skyline);
+                        px[y * n + x] = SkyColor(d.normalized, mode);
                     }
                 cube.SetPixels(px, f);
             }
@@ -485,10 +635,11 @@ namespace StreetEmpire.EditorTools
             return cube;
         }
 
-        /// <summary>v74 night light: one warm point light per street lamp at its head (spec C.1: about 3000 K, range
-        /// about 9 m, soft falloff, no shadows), switched on with the night by LampLights. No ground decals.</summary>
+        /// <summary>v75 night light: one warm spot light per street lamp at its head, straight down (a 120 degree cone with
+        /// a soft 60 degree inner core, range 13 m, about 3000 K, no shadows), so each lamp throws a real pool on the
+        /// ground; switched on by LampLights. No ground decals.</summary>
         public static readonly Color Lamp3000K = new(1f, 0.706f, 0.42f);
-        const float LampRange = 9.5f;
+        const float LampRange = 13f;
         static void LampLightsBuild(Transform root, StreetEmpire.City.DayCycle cycle)
         {
             var spots = PropBuilder.LampSpots;
@@ -500,7 +651,9 @@ namespace StreetEmpire.EditorTools
             {
                 var l = new GameObject($"Lamp Light {i + 1}").AddComponent<Light>(); l.transform.SetParent(go.transform, false);
                 l.transform.position = spots[i];   // PropBuilder records the point under each lamp head
-                l.type = LightType.Point; l.range = LampRange; l.color = Lamp3000K; l.shadows = LightShadows.None;
+                l.type = LightType.Spot; l.range = LampRange; l.spotAngle = 120f; l.innerSpotAngle = 60f;
+                l.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);
+                l.color = Lamp3000K; l.shadows = LightShadows.None;
                 l.intensity = 0f; l.renderingLayerMask = -1; l.renderMode = LightRenderMode.ForcePixel; l.enabled = false;
                 ll.lights[i] = l;
             }
@@ -526,14 +679,18 @@ namespace StreetEmpire.EditorTools
             RenderSettings.fogStartDistance = 120; RenderSettings.fogEndDistance = 460;
             RenderSettings.fogColor = new Color(0.68f, 0.61f, 0.54f);
             var sky = AssetDatabase.LoadAssetAtPath<Material>($"{Mats}/Sky.mat");
-            if (sky == null) { sky = new Material(Shader.Find("Skybox/Cubemap")); AssetDatabase.CreateAsset(sky, $"{Mats}/Sky.mat"); }
-            sky.shader = Shader.Find("Skybox/Cubemap");
-            sky.SetTexture("_Tex", SkyCube("Assets/Art/Materials/SkyGoldenHour.cubemap", 256, true));   // with the far skyline
-            sky.SetColor("_Tint", new Color(0.5f, 0.5f, 0.5f)); sky.SetFloat("_Exposure", 1f); sky.SetFloat("_Rotation", 0f);
+            var skyShader = Shader.Find("StreetEmpire/SkyBlend");
+            if (sky == null) { sky = new Material(skyShader); AssetDatabase.CreateAsset(sky, $"{Mats}/Sky.mat"); }
+            sky.shader = skyShader;
+            // v75: three skies blended by the clock (DayCycle): day, the built golden hour, night with the city glow
+            sky.SetTexture("_DayTex", SkyCube("Assets/Art/Materials/SkyDay.cubemap", 256, 0));
+            sky.SetTexture("_DuskTex", SkyCube("Assets/Art/Materials/SkyGoldenHour.cubemap", 256, 1));
+            sky.SetTexture("_NightTex", SkyCube("Assets/Art/Materials/SkyNight.cubemap", 256, 2));
+            sky.SetVector("_Weights", new Vector4(0, 1, 0, 0)); sky.SetFloat("_Exposure", 1f);
             EditorUtility.SetDirty(sky);
             RenderSettings.skybox = sky;
             RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
-            RenderSettings.customReflectionTexture = SkyCube("Assets/Art/Materials/SkyReflection.cubemap", 64, false);
+            RenderSettings.customReflectionTexture = SkyCube("Assets/Art/Materials/SkyReflection.cubemap", 64, 1);
             RenderSettings.reflectionIntensity = 0.35f;
             // a soft fill for people only (rendering layer 2, set on every character): from the side away from the sun,
             // no shadows, so the player and the people on the street stand out from the road
@@ -546,7 +703,7 @@ namespace StreetEmpire.EditorTools
             // puts it high in another quarter of the sky). When the sun is switched off it is the main light and casts the shadows.
             var moon = new GameObject("Moon").AddComponent<Light>();
             moon.type = LightType.Directional; moon.color = new Color(0.62f, 0.68f, 0.80f); moon.intensity = 0f;
-            moon.shadows = LightShadows.Soft; moon.shadowStrength = 0.6f; moon.shadowBias = 0.08f; moon.shadowNormalBias = 0.5f;
+            moon.shadows = LightShadows.Soft; moon.shadowStrength = 0.35f; moon.shadowBias = 0.08f; moon.shadowNormalBias = 0.5f;
             moon.enabled = false; moon.transform.SetParent(root, false);
             return sun;
         }

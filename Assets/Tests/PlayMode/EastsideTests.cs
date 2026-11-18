@@ -71,7 +71,13 @@ namespace StreetEmpire.Tests
             var lamps = Object.FindFirstObjectByType<LampLights>();
             Assert.IsNotNull(lamps, "lamp lights");
             Assert.Greater(lamps.lights.Length, 8, "a light per street lamp");
-            Assert.IsTrue(lamps.lights.All(l => l.type == LightType.Point && l.range >= 8f && l.range <= 11f), "lamp lights about 9 m");
+            Assert.IsTrue(lamps.lights.All(l => l.type == LightType.Spot && l.range >= 11f && l.range <= 15f && l.spotAngle >= 100f
+                && Vector3.Dot(l.transform.forward, Vector3.down) > 0.99f), "v75: a downward spot light about 13 m under each lamp head");
+            Assert.Greater(StreetEmpire.City.DayCycle.SunElevation(14f), 45f, "v75: a high sun at 14:00");
+            Assert.That(StreetEmpire.City.DayCycle.SunElevation(18.13f), Is.InRange(4f, 12f), "v75: the built golden hour sun at about 18:08");
+            Assert.Less(StreetEmpire.City.DayCycle.SunElevation(19f), 0f, "v75: the sun is down by 19:00");
+            Assert.IsTrue(StreetEmpire.City.DayCycle.WindowLight.r > StreetEmpire.City.DayCycle.WindowLight.g && StreetEmpire.City.DayCycle.WindowLight.g > StreetEmpire.City.DayCycle.WindowLight.b
+                && StreetEmpire.City.DayCycle.WindowIntensity <= 2f, "v75: warm, dim window light");
             Assert.IsNull(GameObject.Find("Lamp Pools"), "no lamp pool decals");
             var moon = Object.FindObjectsByType<Light>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault(l => l.name == "Moon");
             Assert.IsNotNull(moon, "moon light");
@@ -85,10 +91,22 @@ namespace StreetEmpire.Tests
             for (int i = 0; i < 5; i++) yield return null;
             Assert.IsTrue(lamps.lights.Any(l => l != null && l.enabled), "lamp lights on at night");
             Assert.IsTrue(moon.enabled, "moon on at night");
+            Assert.Less(moon.intensity, 0.2f, "v75: a dim moon");
+            var sunL = Object.FindObjectsByType<Light>(FindObjectsInactive.Include, FindObjectsSortMode.None).First(l => l.name == "Sun");
+            Assert.IsFalse(sunL.enabled, "v75: no sunlight at 22:00");
+            StreetEmpire.Game.GameClock.FrozenHour = 19f;
+            for (int i = 0; i < 5; i++) yield return null;
+            Assert.IsFalse(sunL.enabled, "v75: no sunlight at 19:00 (the blue hour)");
+            Assert.AreNotEqual(RenderSettings.fogColor, Color.clear);
+            var fog19 = RenderSettings.fogColor;
+            StreetEmpire.Game.GameClock.FrozenHour = 22f;
+            for (int i = 0; i < 5; i++) yield return null;
+            Assert.Greater(fog19.b - RenderSettings.fogColor.b, 0.05f, "v75: 19:00 and 22:00 differ (the blue hour is lighter)");
             StreetEmpire.Game.GameClock.FrozenHour = 12f;
             for (int i = 0; i < 5; i++) yield return null;
             Assert.IsFalse(lamps.lights.Any(l => l != null && l.enabled), "lamp lights off by day");
             Assert.IsFalse(moon.enabled, "moon off by day");
+            Assert.IsTrue(sunL.enabled && sunL.intensity > 1.2f, "v75: full sun at midday");
             StreetEmpire.Game.GameClock.Frozen = false; StreetEmpire.Game.GameClock.FrozenHour = StreetEmpire.Game.GameClock.StartHour;
         }
     }

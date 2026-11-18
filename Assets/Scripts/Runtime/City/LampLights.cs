@@ -1,7 +1,8 @@
-// v74 night: one real warm light under every street lamp (spec C.1), about 3000 K, range about 9 m, the URP smooth
-// falloff (no hard edge), no shadows. They come on with the night and reach the wall beside the lamp and anyone
-// standing under it. The ground decal pools of v73 are gone. URP shades each object with its nearest few: 4 on
-// Ultra, 2 on High (GraphicsSetup).
+// v75 night: a real warm spot light under every street lamp head, pointing straight down (about a 120 degree cone,
+// range about 13 m, about 3000 K, no shadows), so each lamp throws a pool on the road and sidewalk with a soft edge
+// and still reaches the wall beside it and anyone standing under it. They follow DayCycle.Lamps (a little at the
+// golden hour, full from the blue hour on). URP shades each object with its nearest few lights: 6 on Ultra,
+// 3 on High (GraphicsSetup).
 using UnityEngine;
 
 namespace StreetEmpire.City
@@ -10,16 +11,16 @@ namespace StreetEmpire.City
     {
         public Light[] lights = new Light[0];
         public DayCycle cycle;
-        public float intensity = 18f;   // v74: 4 barely showed (about 0.2 on the ground under a 4.3 m head)
+        public float intensity = 34f;
         float last = -1f;
 
         void LateUpdate()
         {
-            float night = cycle ? cycle.Night : 0f;
-            if (Mathf.Abs(night - last) < 0.005f) return;
-            last = night;
-            bool on = night > 0.02f;
-            foreach (var l in lights) if (l) { l.enabled = on; l.intensity = intensity * night; }
+            float lamps = cycle ? cycle.Lamps : 0f;
+            if (Mathf.Abs(lamps - last) < 0.005f) return;
+            last = lamps;
+            bool on = lamps > 0.02f;
+            foreach (var l in lights) if (l) { l.enabled = on; l.intensity = intensity * lamps; }
         }
     }
 }
