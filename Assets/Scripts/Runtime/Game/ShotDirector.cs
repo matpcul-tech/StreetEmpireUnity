@@ -355,7 +355,7 @@ namespace StreetEmpire.Game
             // graffiti house, 21 a parked sedan close up. v75d (Matthew's v2 files): 22 the pawn shop by day, 23 the
             // apartment by day, 24 the white house at 22:00 (Numpad9, Numpad0, NumpadPeriod). v75e: 25 the white
             // house and its sedan at 19:24 (Matthew's phone dusk), 26 a pedestrian close up (NumpadMultiply, NumpadPlus)
-            float[] hours = { 14f, 19f, 22f, 22f, 22f, 14f, 14f, 14f, 14f, 14f, 22f, 14f, 22f, 7.333f, 9.6f, 8.383f, 2.133f, 5.917f, 5.917f, 14f, 14f, 14f, 14f, 22f, 19.4f, 14f };
+            float[] hours = { 14f, 19f, 22f, 22f, 22f, 14f, 14f, 14f, 14f, 14f, 22f, 14f, 22f, 7.333f, 9.6f, 8.383f, 2.133f, 5.917f, 5.917f, 14f, 14f, 14f, 14f, 22f, 19.4f, 14f, 14f };
             int view = 0; int shown = -1;
             // v75c: draw calls per view, a second and a half after each switch
             var draws = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "Draw Calls Count");
@@ -369,6 +369,21 @@ namespace StreetEmpire.Game
                 if (brain) brain.enabled = true;
                 if (rig) { rig.radius = radius; rig.orbit.Radius = radius; rig.orbit.HorizontalAxis.Value = Mathf.DeltaAngle(0f, yaw); rig.orbit.VerticalAxis.Value = pitch; }
             }
+            StreetEmpire.Game.Ped hoodie = null;
+            StreetEmpire.Game.Ped HoodiePed()
+            {
+                if (hoodie != null) return hoodie;
+                float bd = float.MaxValue; StreetEmpire.Game.Ped any = null; float ad = float.MaxValue;
+                foreach (var q in FindObjectsByType<StreetEmpire.Game.Ped>(FindObjectsSortMode.None))
+                {
+                    float d = (q.transform.position - b10).sqrMagnitude;
+                    bool gray = false; foreach (var r in q.GetComponentsInChildren<SkinnedMeshRenderer>()) if (r.sharedMaterial && r.sharedMaterial.name.Contains("ped-m-1")) gray = true;
+                    if (gray && d < bd) { bd = d; hoodie = q; }
+                    if (d < ad) { ad = d; any = q; }
+                }
+                if (hoodie == null) { Debug.Log("[ShotDirector] no ped-m-1 found, the nearest pedestrian instead"); hoodie = any; }
+                return hoodie;
+            }
             Vector3 PoleOf(Transform signal) { var c = signal.Find("Pole collider"); return c ? c.position : signal.position; }
             while (true)
             {
@@ -376,10 +391,10 @@ namespace StreetEmpire.Game
                 if (kb != null)
                 {
                     var keys = new[] { kb.digit1Key, kb.digit2Key, kb.digit3Key, kb.digit4Key, kb.digit5Key, kb.digit6Key, kb.digit7Key, kb.digit8Key, kb.digit9Key, kb.digit0Key, kb.minusKey, kb.equalsKey, kb.backspaceKey,
-                        kb.numpad1Key, kb.numpad2Key, kb.numpad3Key, kb.numpad4Key, kb.numpad5Key, kb.numpad6Key, kb.numpad7Key, kb.numpad8Key, kb.numpad9Key, kb.numpad0Key, kb.numpadPeriodKey, kb.numpadMultiplyKey, kb.numpadPlusKey };
+                        kb.numpad1Key, kb.numpad2Key, kb.numpad3Key, kb.numpad4Key, kb.numpad5Key, kb.numpad6Key, kb.numpad7Key, kb.numpad8Key, kb.numpad9Key, kb.numpad0Key, kb.numpadPeriodKey, kb.numpadMultiplyKey, kb.numpadPlusKey, kb.numpadMinusKey };
                     for (int i = 0; i < keys.Length; i++) if (keys[i].isPressed) view = i;
                 }
-                bool free = view == 6 || view == 7 || view == 25;   // v75e: 26, the pedestrian close up, is a free camera that follows them
+                bool free = view == 6 || view == 7 || view == 25 || view == 26;   // v75e: 26, the pedestrian close up, is a free camera that follows them
                 if (view != shown)
                 {
                     shown = view; GameClock.FrozenHour = hours[view]; drawLog = Time.time + 1.5f;
@@ -402,12 +417,13 @@ namespace StreetEmpire.Game
                             else Debug.Log("[ShotDirector] v75 view 20: no graffiti placed");
                             break;
                         }
-                        case 25:
+                        case 25: case 26:
                         {
-                            // v75e: the nearest pedestrian, the camera low and close in front of them, 4 m out
-                            StreetEmpire.Game.Ped pd = null; float pdd = float.MaxValue;
-                            foreach (var q in FindObjectsByType<StreetEmpire.Game.Ped>(FindObjectsSortMode.None)) { float d = (q.transform.position - b10).sqrMagnitude; if (d < pdd) { pdd = d; pd = q; } }
-                            if (pd != null) { var fw = pd.transform.forward; fw.y = 0; fw.Normalize(); Game(pd.transform.position + fw * 3.2f + Vector3.Cross(Vector3.up, fw) * 0.6f, -fw, 4f, 2.4f); if (brain) brain.enabled = false;   // v75e: Game() turns the follow camera back on; 26 is a free camera Debug.Log($"[ShotDirector] v75 view 26 pedestrian {pd.name} at {pd.transform.position}"); }
+                            // v75f: the gray hoodie pedestrian (ped-m-1), front (26) and side (27); the player is
+                            // put 6 m ahead and to the side, out of frame, and the free camera follows them
+                            var pd = HoodiePed(); 
+                            if (pd != null) { var fw = pd.transform.forward; fw.y = 0; fw.Normalize(); Game(pd.transform.position + fw * 6f + Vector3.Cross(Vector3.up, fw) * 3f, -fw, 4f, 2.4f); Debug.Log($"[ShotDirector] v75 view {view + 1} pedestrian {pd.name} at {pd.transform.position}"); }
+                            if (brain) brain.enabled = false;   // Game() switches the follow camera back on
                             break;
                         }
                         case 20:
@@ -460,7 +476,30 @@ namespace StreetEmpire.Game
                             Game(f.face + f.n * 4.2f + f.t * bestS, -f.n, 6f, 5f); break;
                         }
                         // v75e: the whole apartment with its roof: from farther out, a lower and longer camera
-                        case 4: case 22: { var f = Face("apt-01", 16f); Game(f.face + f.n * 10.5f + f.t * 1.5f, -f.n, 5f, 8.5f); break; }
+                        case 4: case 22:
+                        {
+                            // v75f: slid along the front like the pawn view, so no pole fills the edge: the camera
+                            // (about 19 m out) and both front corners must be clear of poles, lamps, palms and signals
+                            var f = Face("apt-01", 16f); float bestS = 1.5f, bestClear = -1f; float half = 5.5f;
+                            for (float sl = -5f; sl <= 5.01f; sl += 0.5f)
+                            {
+                                var camAt = f.face + f.n * 19f + f.t * sl; camAt.y = 0; float clear = 99f;
+                                foreach (var corner in new[] { f.face + f.t * half, f.face - f.t * half, f.face })
+                                {
+                                    var b = corner; b.y = 0; var seg = b - camAt;
+                                    foreach (var q in blockers)
+                                    {
+                                        var qq = q; qq.y = 0; float u = Mathf.Clamp01(Vector3.Dot(qq - camAt, seg) / seg.sqrMagnitude);
+                                        if (u < 0.08f) continue;   // right at the camera it is behind the lens
+                                        clear = Mathf.Min(clear, (camAt + seg * u - qq).magnitude);
+                                    }
+                                }
+                                clear -= Mathf.Abs(sl) * 0.05f;
+                                if (clear > bestClear) { bestClear = clear; bestS = sl; }
+                            }
+                            Debug.Log($"[ShotDirector] v75 apartment view slide {bestS:0.0} m, clear {bestClear:0.0} m");
+                            Game(f.face + f.n * 10.5f + f.t * bestS, -f.n, 5f, 8.5f); break;
+                        }
                         case 5: case 23: case 24: { var f = Face("house-01", 9f); Game(f.face + f.n * 4.5f + f.t * 1.2f, -f.n, 8f, 5f); break; }
                         // v75b: the liquor store sign at 22:00, and the mixed use block (the v74 black tower) by day
                         case 10: { var f = Face("store-liquor", 8f); Game(f.face + f.n * 6f - f.t * 2.5f, -f.n + f.t * 0.25f, 10f, 5.5f); break; }   // v75c: off the utility pole
@@ -487,12 +526,13 @@ namespace StreetEmpire.Game
                 if (free)
                 {
                     (Vector3 pos, Vector3 at) v;
-                    if (view == 25)
+                    if (view == 25 || view == 26)
                     {
-                        StreetEmpire.Game.Ped pd = null; float pdd = float.MaxValue;
-                        foreach (var q in FindObjectsByType<StreetEmpire.Game.Ped>(FindObjectsSortMode.None)) { float d = (q.transform.position - b10).sqrMagnitude; if (d < pdd) { pdd = d; pd = q; } }
+                        var pd = HoodiePed();
                         var a = pd ? pd.transform.position : b10; var fw = pd ? pd.transform.forward : Vector3.forward; fw.y = 0; fw.Normalize();
-                        v = (a + fw * 2.4f + Vector3.Cross(Vector3.up, fw) * 0.5f + Vector3.up * 1.35f, a + Vector3.up * 1.05f);
+                        var side = Vector3.Cross(Vector3.up, fw);
+                        var off = view == 25 ? fw * 2.3f + side * 0.3f : side * 2.3f + fw * 0.2f;
+                        v = (a + off + Vector3.up * 1.3f, a + Vector3.up * 1.05f);
                     }
                     else if (view == 6) { var palm = Prop("palm-short", b10 + new Vector3(0, 0, -27f)); var a = palm ? palm.position : b10; v = (a + new Vector3(3.5f, 4.6f, -3.5f), a + new Vector3(0, 7.2f, 0)); }
                     else { var c = (b0 + b20) / 2; v = (c + new Vector3(60f, 38f, -110f), c + new Vector3(-40f, 0f, 120f)); cam.farClipPlane = 800f; }
