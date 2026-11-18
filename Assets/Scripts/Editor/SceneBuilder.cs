@@ -32,8 +32,9 @@ namespace StreetEmpire.EditorTools
             // Eastside houses read like the web game's: stucco walls, tile roofs, bars on the windows. The clapboard
             // and brick ones (house-wood-duplex, house-shotgun, house-boarded, house-rowhouse-pair) read as the
             // Midwest and are left out; their files stay in the repo. Each house gets a stucco wash (HouseTint).
-            ["house"] = new[] { "house-01-bungalow", "house-02-two-story", "house-03-duplex", "house-01-bungalow", "house-02-two-story", "house-01-bungalow", "house-02-two-story" },
-            // (house-03-duplex once in seven: its near model is 40k triangles, the cut to 26k came back NOT READY)
+            // v74: house-01-bungalow (the white house with the red roof) is not shipped: still torn after Flatten walls
+            // Strong and NOT READY, listed for a Meshy regeneration. Its files are removed.
+            ["house"] = new[] { "house-02-two-story", "house-03-duplex", "house-02-two-story", "house-03-duplex", "house-02-two-story", "house-03-duplex", "house-02-two-story" },
             ["apt"] = new[] { "apt-01-stucco", "apt-mixed-use", "apt-02-brick", "apt-motel-style" },
         };
         static readonly Dictionary<string, int> dealt = new();
@@ -130,9 +131,11 @@ namespace StreetEmpire.EditorTools
             cycle.transform.SetParent(root.transform, false);
             cycle.sun = sunLight; cycle.sky = RenderSettings.skybox; cycle.duskFog = RenderSettings.fogColor;
             var fillT = root.transform.Find("Character Fill"); if (fillT) cycle.fill = fillT.GetComponent<Light>();
+            var moonT = root.transform.Find("Moon"); if (moonT) cycle.moon = moonT.GetComponent<Light>();
+            // v74: only the Sovereign Asset windows_lit materials glow (a flat color, no emission map); walls never do
             cycle.windowMaterials = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None)
                 .SelectMany(b => b.GetComponentsInChildren<Renderer>(true)).SelectMany(r => r.sharedMaterials)
-                .Where(m => m != null && m.IsKeywordEnabled("_EMISSION")).Distinct().ToArray();
+                .Where(m => m != null && Part(m) == "windows_lit").Distinct().ToArray();
             var player = PlayerBuilder.Build(w, s.blocks[0]);
             VehicleBuilder.BuildSedan(data, s.blocks[0]);
             GameBuilder.Build(data, s, player);
@@ -140,7 +143,7 @@ namespace StreetEmpire.EditorTools
             var xs = Enumerable.Range(0, 4).Select(i => WorldSpace.FromSource(CityLayout.LineCoord(w, i), 0).x).ToArray();
             var zs = Enumerable.Range(0, 4).Select(i => WorldSpace.FromSource(0, CityLayout.LineCoord(w, i)).z).ToArray();
             PropBuilder.Build(blockInfo, xs, zs, root.transform);
-            LampPools(root.transform, cycle, blockInfo.Select(bi => bi.center).ToArray(), w.block);
+            LampLightsBuild(root.transform, cycle);
             PostAndQuality(root.transform);
 
             Directory.CreateDirectory("Assets/Scenes");
@@ -149,28 +152,41 @@ namespace StreetEmpire.EditorTools
             Debug.Log($"[SceneBuilder] Eastside: {EastsideBlocks.Length} blocks, {placed} kit buildings");
         }
 
+        /// <summary>Real heights in meters (v74 spec A.1: apartments 10, pawn shop 4.5, single story houses about 4,
+        /// barbershop about 4.5; the rest read from each model's storeys). Sovereign Asset Size: Height used the same.</summary>
+        public static readonly Dictionary<string, float> RealHeight = new()
+        {
+            ["apt-01-stucco"] = 10f, ["apt-02-brick"] = 10f, ["apt-mixed-use"] = 10f, ["apt-motel-style"] = 7f, ["civic-church"] = 10f,
+            ["house-01-bungalow"] = 4f, ["house-02-two-story"] = 7f, ["house-03-duplex"] = 4f, ["house-boarded"] = 7f,
+            ["house-rowhouse-pair"] = 9f, ["house-shotgun"] = 4.5f, ["house-wood-duplex"] = 7.5f, ["shop-auto-garage"] = 5f,
+            ["shop-gas-station"] = 5f, ["store-barber"] = 4.5f, ["store-bodega"] = 7f, ["store-laundromat"] = 6f,
+            ["store-pawn"] = 4.5f, ["store-takeout"] = 7.5f, ["store-liquor-blank"] = 4.9f,
+        };
+
         static bool PlaceBuilding(BuildingSpot spot, Transform parent)
         {
             var variants = Kit[spot.kind];
             dealt.TryGetValue(spot.kind, out int n); dealt[spot.kind] = n + 1;
             string name = variants[n % variants.Length];
-            // the near model is the Sovereign Asset se-building cut of the READY source (about 26k triangles,
-            // docs/sovereign-assets/buildings-lods): the 58k triangle sources were most of the APK and the phone's mesh memory
-            var model = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/Near/{name}.glb") ?? AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/{name}.glb");
+            // v74: the near model is the Sovereign Asset "Unity building" finish of the source at its real height in
+            // meters (docs/sovereign-assets/u74), cut to the lowest triangle target the app accepts; four materials
+            // (Material_0, walls, windows_lit, windows_dark) kept apart
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/{name}.glb");
             var holder = new GameObject($"{spot.kind} {spot.index} ({name})");
             var marker = holder.AddComponent<BuildingMarker>();
             marker.blockId = spot.blockId; marker.index = spot.index; marker.kind = spot.kind; marker.model = name;
             if (model == null) { Debug.LogError($"[SceneBuilder] missing kit model {name}"); Object.DestroyImmediate(holder); return false; }
 
-            // kit.js prepBuilding(): fit the widest side to the 13 m lot, feet on the ground, centered
+            // v74: the files are in real meters now (Sovereign Asset Size: Height), so no fit to the 13 m lot; feet
+            // on the ground, centered on the lot, same position and turn as before
             var inst = (GameObject)PrefabUtility.InstantiatePrefab(model);
             inst.transform.SetParent(holder.transform, false);
             UrpMaterials.Apply(inst, name);
             var bounds = WorldBounds(inst);
-            float k = spot.w / Mathf.Max(bounds.size.x, bounds.size.z, 1e-4f);
-            // multiply, not set: glTFast folds a lone root node (and its scale) into the prefab root
-            inst.transform.localScale *= k;
-            bounds = WorldBounds(inst);
+            // Matthew's two finished files (apt-01-stucco, store-pawn) are still 1.9 m wide; every file is scaled
+            // to its real height here (a no-op for the ones Sovereign Asset already sized). Multiply, not set:
+            // glTFast folds a lone root node (and its scale) into the prefab root.
+            if (RealHeight.TryGetValue(name, out float hReal) && bounds.size.y > 1e-4f) { inst.transform.localScale *= hReal / bounds.size.y; bounds = WorldBounds(inst); }
             // shift, not set: the imported root may already carry an offset of its own
             inst.transform.localPosition += new Vector3(-bounds.center.x, -bounds.min.y, -bounds.center.z);
             bounds = WorldBounds(inst);
@@ -191,34 +207,54 @@ namespace StreetEmpire.EditorTools
             return true;
         }
 
-        /// <summary>Point the building's URP material at the extracted, GPU compressed textures
-        /// (tools/extract_building_textures.mjs) instead of glTFast's uncompressed ones.</summary>
+        /// <summary>Which of the four Sovereign Asset building materials this is: Material_0 (trim, roof, frames,
+        /// doors), walls (the clean wall texture), windows_lit or windows_dark. UrpMaterials names the copies
+        /// model_material, and wash copies model__material__tint.</summary>
+        public static string Part(Material m)
+        {
+            string n = m.name;
+            if (n.Contains("windows_lit")) return "windows_lit";
+            if (n.Contains("windows_dark")) return "windows_dark";
+            if (n.Contains("_walls") || n.EndsWith("walls")) return "walls";
+            return "Material_0";
+        }
+
+        /// <summary>v74: each building material gets its own extracted, GPU compressed textures
+        /// (tools/extract_building_textures.mjs: name__part_basecolor, _normal, _metalsmooth). The old emission
+        /// mask system is gone: no building has an emission map. windows_lit glows with a flat color only
+        /// (DayCycle drives it from the clock), windows_dark is smooth dark glass, walls never emit.</summary>
         static void BindTextures(GameObject inst, string name)
         {
-            var bc = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}_basecolor.jpg");
-            var nm = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}_normal.jpg");
             var mats = inst.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials).Where(m => m != null).Distinct().ToArray();
-            // buildings are never metal. UrpMaterials takes glTF metallicFactor alone, but some kit files say 1 and
-            // leave the real (low) value to a metallic-roughness texture URP Lit does not read, which made them
-            // render as shiny metal (the original house-01 did).
-            foreach (var m in mats) { m.SetFloat("_Metallic", 0f); m.SetFloat("_Smoothness", 0.12f); m.SetTexture("_MetallicGlossMap", null); m.DisableKeyword("_METALLICSPECGLOSSMAP"); EditorUtility.SetDirty(m); }
-            if (bc == null) { Debug.LogWarning($"[SceneBuilder] no extracted texture for {name}"); return; }
-            var em = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}_emission.jpg");
-            var ms = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}_metalsmooth.png");
             foreach (var m in mats)
             {
-                m.SetTexture("_BaseMap", bc);
-                // the walls are pressed flat now (Sovereign Asset Flatten walls): a softer normal map keeps the
-                // Meshy crumple baked into it from reading as dents again
-                m.SetTexture("_BumpMap", nm); m.SetFloat("_BumpScale", 0.55f); if (nm != null) m.EnableKeyword("_NORMALMAP"); else m.DisableKeyword("_NORMALMAP");
-                // window glass (smooth, so it picks up the sunset sky) and dim warm lit rooms (tools/window_maps.mjs)
-                if (ms != null) { m.SetTexture("_MetallicGlossMap", ms); m.EnableKeyword("_METALLICSPECGLOSSMAP"); m.SetFloat("_Smoothness", 1f); m.SetFloat("_SmoothnessTextureChannel", 0f); }
-                if (em != null)
+                string part = Part(m);
+                // buildings are never metal
+                m.SetFloat("_Metallic", 0f); m.SetTexture("_MetallicGlossMap", null); m.DisableKeyword("_METALLICSPECGLOSSMAP");
+                m.SetTexture("_EmissionMap", null); m.SetColor("_EmissionColor", Color.black); m.DisableKeyword("_EMISSION");
+                m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                if (part == "windows_lit" || part == "windows_dark")
                 {
-                    m.SetTexture("_EmissionMap", em); m.SetColor("_EmissionColor", new Color(0.7f, 0.7f, 0.7f)); m.EnableKeyword("_EMISSION");   // v73: dimmer, the walls stay dark
-                    m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                    // flat glass: no base texture, so no triangle lines show in a pane
+                    m.SetTexture("_BaseMap", null); m.SetTexture("_BumpMap", null); m.DisableKeyword("_NORMALMAP");
+                    if (part == "windows_lit")
+                    {
+                        m.SetColor("_BaseColor", new Color(0.16f, 0.12f, 0.09f)); m.SetFloat("_Smoothness", 0.6f);
+                        m.EnableKeyword("_EMISSION");   // DayCycle sets (1.0, 0.74, 0.45) at HDR intensity 2 by the clock
+                    }
+                    else { m.SetColor("_BaseColor", new Color(0.06f, 0.07f, 0.08f)); m.SetFloat("_Smoothness", 0.75f); }
+                    EditorUtility.SetDirty(m); continue;
                 }
-                else { m.SetTexture("_EmissionMap", null); m.SetColor("_EmissionColor", Color.black); m.DisableKeyword("_EMISSION"); }
+                var bc = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{part}_basecolor.jpg");
+                var nm = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{part}_normal.jpg");
+                var ms = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{part}_metalsmooth.png");
+                if (bc == null) Debug.LogWarning($"[SceneBuilder] no extracted {part} texture for {name}");
+                else m.SetTexture("_BaseMap", bc);
+                m.SetTexture("_BumpMap", nm); m.SetFloat("_BumpScale", part == "walls" ? 1f : 0.55f);
+                if (nm != null) m.EnableKeyword("_NORMALMAP"); else m.DisableKeyword("_NORMALMAP");
+                // roughness from Sovereign Asset's surface maps, as URP smoothness in the alpha
+                if (ms != null) { m.SetTexture("_MetallicGlossMap", ms); m.EnableKeyword("_METALLICSPECGLOSSMAP"); m.SetFloat("_Smoothness", 1f); m.SetFloat("_SmoothnessTextureChannel", 0f); }
+                else m.SetFloat("_Smoothness", 0.12f);
                 EditorUtility.SetDirty(m);
             }
         }
@@ -232,7 +268,7 @@ namespace StreetEmpire.EditorTools
                 var mats = r.sharedMaterials;
                 for (int i = 0; i < mats.Length; i++)
                 {
-                    if (mats[i] == null) continue;
+                    if (mats[i] == null || Part(mats[i]).StartsWith("windows")) continue;   // glass keeps its own color
                     string path = $"{Mats}/Wash/{name}__{mats[i].name.Replace(" ", "_")}__{ColorUtility.ToHtmlStringRGB(tint)}.mat";
                     var m = AssetDatabase.LoadAssetAtPath<Material>(path);
                     if (m == null) { System.IO.Directory.CreateDirectory($"{Mats}/Wash"); m = new Material(mats[i]); AssetDatabase.CreateAsset(m, path); }
@@ -250,12 +286,12 @@ namespace StreetEmpire.EditorTools
         /// would visibly change the shape"), so the near model is its 26k cut and the two far levels are Blender's.</summary>
         static void AddFar(GameObject holder, GameObject inst, string name, Bounds nearBounds, Renderer[] near)
         {
-            var far = Level(holder, "Far", name, nearBounds, near[0].sharedMaterial);
+            var far = Level(holder, "Far", name, nearBounds, near);
             if (far == null) return;
-            var low = Level(holder, "Low", name, nearBounds, near[0].sharedMaterial);
+            var low = Level(holder, "Low", name, nearBounds, near);
             // shadows come from one always-on copy of the low mesh (about 3.5k triangles) instead of whichever level
             // is drawn: the near models are about 26k and the three Ultra cascades each draw the casters again
-            var shadow = Level(holder, low != null ? "Low" : "Far", name, nearBounds, near[0].sharedMaterial, "Shadow");
+            var shadow = Level(holder, low != null ? "Low" : "Far", name, nearBounds, near, "Shadow");
             foreach (var r in shadow) r.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
             foreach (var r in near.Concat(far).Concat(low ?? new Renderer[0])) r.shadowCastingMode = ShadowCastingMode.Off;
             // the LODGroup itself is added at load time (RuntimeLod): a saved one made the phone reject the scene file.
@@ -265,14 +301,18 @@ namespace StreetEmpire.EditorTools
             lod.nearHeight = 0.28f; lod.farHeight = low != null ? 0.06f : 0.005f; lod.lowHeight = 0.003f;
         }
 
-        static Renderer[] Level(GameObject holder, string level, string name, Bounds nearBounds, Material mat, string goName = null)
+        static Renderer[] Level(GameObject holder, string level, string name, Bounds nearBounds, Renderer[] near, string goName = null)
         {
+            // the far levels keep the near model's four materials, slot by slot, matched by part name
+            var byPart = new Dictionary<string, Material>();
+            foreach (var m in near.SelectMany(r => r.sharedMaterials)) if (m != null && !byPart.ContainsKey(Part(m))) byPart[Part(m)] = m;
+            Material For(Material src) => src != null && byPart.TryGetValue(Part(src), out var m) ? m : byPart.Values.FirstOrDefault();
             var asset = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/{level}/{name}.glb");
             if (asset == null) return null;
             var go = (GameObject)PrefabUtility.InstantiatePrefab(asset);
             go.name = goName ?? level; go.transform.SetParent(holder.transform, false);
             var rs = go.GetComponentsInChildren<Renderer>();
-            foreach (var r in rs) { r.sharedMaterials = Enumerable.Repeat(mat, r.sharedMaterials.Length).ToArray(); r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
+            foreach (var r in rs) { r.sharedMaterials = r.sharedMaterials.Select(For).ToArray(); r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
             Compress(go, name, level);
             var b = WorldBounds(go);
             go.transform.localScale *= Mathf.Max(nearBounds.size.x, nearBounds.size.z) / Mathf.Max(b.size.x, b.size.z, 1e-4f);
@@ -371,7 +411,7 @@ namespace StreetEmpire.EditorTools
 
         // the fog color (RenderSettings.fogColor below) in linear: the sky at and under the horizon is exactly the
         // fully fogged ground, so the far edge of the world melts into the haze with no line
-        static readonly Color FogLinear = new Color(0.66f, 0.53f, 0.50f).linear;
+        static readonly Color FogLinear = new Color(0.68f, 0.61f, 0.54f).linear;
 
         /// <summary>A far city skyline on the horizon all the way round (towers, roofs, a few lit windows), painted in the
         /// sky so the district does not just dissolve into haze; DayCycle tints it with the fog, dark at night.</summary>
@@ -441,65 +481,24 @@ namespace StreetEmpire.EditorTools
             return cube;
         }
 
-        /// <summary>Night light under every street lamp: one mesh of soft warm discs (vertex colors, additive, no
-        /// texture, one draw call) lying on the sidewalk and spilling onto the road, faded in by DayCycle; plus
-        /// LampLights, a few real point lights that follow the lamps nearest the camera.</summary>
-        static void LampPools(Transform root, StreetEmpire.City.DayCycle cycle, Vector3[] blockCenters, float block)
+        /// <summary>v74 night light: one warm point light per street lamp at its head (spec C.1: about 3000 K, range
+        /// about 9 m, soft falloff, no shadows), switched on with the night by LampLights. No ground decals.</summary>
+        public static readonly Color Lamp3000K = new(1f, 0.706f, 0.42f);
+        const float LampHead = 4.3f, LampRange = 9.5f;
+        static void LampLightsBuild(Transform root, StreetEmpire.City.DayCycle cycle)
         {
             var spots = PropBuilder.LampSpots;
             if (spots.Count == 0) return;
-            float Ground(Vector3 p)
-            {
-                foreach (var c in blockCenters) if (Mathf.Abs(p.x - c.x) <= block / 2 + 2f && Mathf.Abs(p.z - c.z) <= block / 2 + 2f) return PropBuilder.SidewalkTop + 0.015f;
-                return 0.02f;
-            }
-            const int seg = 20; float[] radii = { 0f, 2.2f, 4.4f, 6.6f }; float[] glow = { 1f, 0.62f, 0.22f, 0f };
-            var verts = new List<Vector3>(); var cols = new List<Color>(); var tris = new List<int>();
-            foreach (var s in spots)
-            {
-                int b0 = verts.Count;
-                verts.Add(new Vector3(s.x, Ground(s), s.z)); cols.Add(new Color(1f, 0.66f, 0.36f, glow[0]));
-                for (int r = 1; r < radii.Length; r++)
-                    for (int i = 0; i < seg; i++)
-                    {
-                        float a = i * Mathf.PI * 2f / seg; var p = new Vector3(s.x + Mathf.Cos(a) * radii[r], 0, s.z + Mathf.Sin(a) * radii[r]); p.y = Ground(p);
-                        verts.Add(p); cols.Add(new Color(1f, 0.66f, 0.36f, glow[r]));
-                    }
-                for (int i = 0; i < seg; i++) { tris.Add(b0); tris.Add(b0 + 1 + (i + 1) % seg); tris.Add(b0 + 1 + i); }
-                for (int r = 1; r < radii.Length - 1; r++)
-                    for (int i = 0; i < seg; i++)
-                    {
-                        int a0 = b0 + 1 + (r - 1) * seg + i, a1 = b0 + 1 + (r - 1) * seg + (i + 1) % seg, c0 = a0 + seg, c1 = a1 + seg;
-                        tris.Add(a0); tris.Add(a1); tris.Add(c1); tris.Add(a0); tris.Add(c1); tris.Add(c0);
-                    }
-            }
-            var mesh = new Mesh { name = "Lamp Pools", indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
-            mesh.SetVertices(verts); mesh.SetColors(cols); mesh.SetTriangles(tris, 0); mesh.RecalculateBounds();
-            var up = Enumerable.Repeat(Vector3.up, verts.Count).ToList(); mesh.SetNormals(up);
-            Directory.CreateDirectory("Assets/Art/Meshes");
-            AssetDatabase.DeleteAsset("Assets/Art/Meshes/Lamp-Pools.asset"); AssetDatabase.CreateAsset(mesh, "Assets/Art/Meshes/Lamp-Pools.asset");
-            var mat = AssetDatabase.LoadAssetAtPath<Material>($"{Mats}/LampPool.mat");
-            if (mat == null) { mat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit")); AssetDatabase.CreateAsset(mat, $"{Mats}/LampPool.mat"); }
-            mat.shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-            mat.SetFloat("_Surface", 1f); mat.SetFloat("_Blend", 2f);   // transparent, additive
-            mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha); mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
-            mat.SetFloat("_ZWrite", 0f); mat.SetFloat("_Cull", 0f);
-            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT"); mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent - 10;
-            mat.SetColor("_BaseColor", new Color(1f, 1f, 1f, 0.03f));
-            EditorUtility.SetDirty(mat);
-            var go = new GameObject("Lamp Pools"); go.transform.SetParent(root, false);
-            go.AddComponent<MeshFilter>().sharedMesh = mesh;
-            var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterial = mat;
-            mr.shadowCastingMode = ShadowCastingMode.Off; mr.receiveShadows = false;
-            cycle.lampPools = mat;
+            var go = new GameObject("Lamp Lights"); go.transform.SetParent(root, false);
             var ll = go.AddComponent<StreetEmpire.City.LampLights>(); ll.cycle = cycle;
-            ll.lamps = spots.Select(p => p + Vector3.up * 3.6f).ToArray();
-            ll.lights = new Light[4];
-            for (int i = 0; i < 4; i++)
+            ll.lights = new Light[spots.Count];
+            for (int i = 0; i < spots.Count; i++)
             {
                 var l = new GameObject($"Lamp Light {i + 1}").AddComponent<Light>(); l.transform.SetParent(go.transform, false);
-                l.type = LightType.Point; l.range = 11f; l.color = new Color(1f, 0.72f, 0.45f); l.shadows = LightShadows.None; l.intensity = 0f; l.renderingLayerMask = -1;
-                l.enabled = false; ll.lights[i] = l;
+                l.transform.position = spots[i] + Vector3.up * LampHead;
+                l.type = LightType.Point; l.range = LampRange; l.color = Lamp3000K; l.shadows = LightShadows.None;
+                l.intensity = 0f; l.renderingLayerMask = -1; l.renderMode = LightRenderMode.ForcePixel; l.enabled = false;
+                ll.lights[i] = l;
             }
         }
 
@@ -516,11 +515,12 @@ namespace StreetEmpire.EditorTools
             RenderSettings.sun = sun;
             RenderSettings.ambientMode = AmbientMode.Trilight;
             RenderSettings.ambientSkyColor = new Color(0.63f, 0.61f, 0.735f);
-            RenderSettings.ambientEquatorColor = new Color(0.58f, 0.51f, 0.53f);
+            RenderSettings.ambientEquatorColor = new Color(0.57f, 0.53f, 0.50f);
             RenderSettings.ambientGroundColor = new Color(0.40f, 0.33f, 0.31f);
             RenderSettings.fog = true; RenderSettings.fogMode = FogMode.Linear;
-            RenderSettings.fogStartDistance = 90; RenderSettings.fogEndDistance = 340;
-            RenderSettings.fogColor = new Color(0.66f, 0.53f, 0.50f);
+            // v74: haze pushed out to 120 m to 460 m and no longer pink (it washed the street shots)
+            RenderSettings.fogStartDistance = 120; RenderSettings.fogEndDistance = 460;
+            RenderSettings.fogColor = new Color(0.68f, 0.61f, 0.54f);
             var sky = AssetDatabase.LoadAssetAtPath<Material>($"{Mats}/Sky.mat");
             if (sky == null) { sky = new Material(Shader.Find("Skybox/Cubemap")); AssetDatabase.CreateAsset(sky, $"{Mats}/Sky.mat"); }
             sky.shader = Shader.Find("Skybox/Cubemap");
@@ -538,6 +538,12 @@ namespace StreetEmpire.EditorTools
             fill.renderingLayerMask = 2;
             fill.transform.rotation = Quaternion.LookRotation(-new Vector3(-SunDir.x, 0.55f, -SunDir.z).normalized);
             fill.transform.SetParent(root, false);
+            // v74: moonlight, a blue gray directional of its own, off by day (DayCycle turns it on with the night and
+            // puts it high in another quarter of the sky). When the sun is switched off it is the main light and casts the shadows.
+            var moon = new GameObject("Moon").AddComponent<Light>();
+            moon.type = LightType.Directional; moon.color = new Color(0.62f, 0.68f, 0.80f); moon.intensity = 0f;
+            moon.shadows = LightShadows.Soft; moon.shadowStrength = 0.6f; moon.shadowBias = 0.08f; moon.shadowNormalBias = 0.5f;
+            moon.enabled = false; moon.transform.SetParent(root, false);
             return sun;
         }
 

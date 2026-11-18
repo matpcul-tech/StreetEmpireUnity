@@ -16,6 +16,9 @@ namespace StreetEmpire.Game
         public bool Showing { get; private set; }
         public int Armed { get { int n = 0; if (armed != null) foreach (var a in armed) if (a) n++; return n; } }
 
+        /// <summary>Touch builds name the USE button, not the E key (spec F.2).</summary>
+        public static bool Touch => Application.isMobilePlatform || UnityEngine.InputSystem.Touchscreen.current != null;
+
         void Start() { armed = new bool[ownedBlocks.Length]; if (prompt) prompt.gameObject.SetActive(false); }
 
         int Here(Vector3 p)
@@ -38,7 +41,7 @@ namespace StreetEmpire.Game
                 if (!inCar && !nearUnc && !nearCar) i = Here(p);
             }
             Showing = i >= 0;
-            if (prompt) { prompt.gameObject.SetActive(Showing); if (Showing) prompt.text = $"E  Arm guards (${cost})"; }
+            if (prompt) { prompt.gameObject.SetActive(Showing); if (Showing) prompt.text = $"{(Touch ? "USE" : "E")}  Arm guards (${cost})"; }
             if (!Showing || PlayerControls.Instance == null || !PlayerControls.Instance.UsePressed) return;
             if (s.cash < cost) { s.Say($"Need ${cost} to arm the guards.", 2.5f); return; }
             s.cash -= cost; armed[i] = true;

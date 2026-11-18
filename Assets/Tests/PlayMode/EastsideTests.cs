@@ -41,7 +41,8 @@ namespace StreetEmpire.Tests
                 Assert.IsNotNull(col, $"{b.name} has a collider");
                 var bounds = col.bounds;
                 Assert.That(bounds.size.y, Is.InRange(2f, 40f), $"{b.name} height");
-                Assert.That(Mathf.Max(bounds.size.x, bounds.size.z), Is.InRange(8f, 15f), $"{b.name} fits its 13 m lot");
+                // v74: scaled to real heights, so footprints run from about 5 m (pawn shop) to 14 m (the motel)
+                Assert.That(Mathf.Max(bounds.size.x, bounds.size.z), Is.InRange(4.5f, 15f), $"{b.name} footprint about its 13 m lot");
                 var block = blocks.First(k => k.blockId == b.blockId).transform.position;
                 Assert.Less(Mathf.Abs(bounds.center.x - block.x), 20.5f, $"{b.name} inside its block (x)");
                 Assert.Less(Mathf.Abs(bounds.center.z - block.z), 20.5f, $"{b.name} inside its block (z)");
@@ -57,8 +58,8 @@ namespace StreetEmpire.Tests
             for (int i = 0; i < 30; i++) yield return null; // run a few frames; any error log fails the test
         }
 
-        /// <summary>v73: the character fill light, the lamp pools and their lights, fight feedback and the Arm
-        /// guards prompt are all built into the scene, and the night turns the lamp lights on.</summary>
+        /// <summary>v73/v74: the character fill light, a real light per street lamp, the moon, fight feedback and the
+        /// Arm guards prompt are built into the scene; the night turns the lamps and the moon on and the windows up.</summary>
         [UnityTest]
         public IEnumerator V73LightingNightAndFightPiecesAreBuilt()
         {
@@ -69,15 +70,25 @@ namespace StreetEmpire.Tests
             Assert.AreEqual(LightShadows.None, fill.shadows);
             var lamps = Object.FindFirstObjectByType<LampLights>();
             Assert.IsNotNull(lamps, "lamp lights");
-            Assert.Greater(lamps.lamps.Length, 8, "a lamp head per street lamp");
+            Assert.Greater(lamps.lights.Length, 8, "a light per street lamp");
+            Assert.IsTrue(lamps.lights.All(l => l.type == LightType.Point && l.range >= 8f && l.range <= 11f), "lamp lights about 9 m");
+            Assert.IsNull(GameObject.Find("Lamp Pools"), "no lamp pool decals");
+            var moon = Object.FindObjectsByType<Light>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault(l => l.name == "Moon");
+            Assert.IsNotNull(moon, "moon light");
+            Assert.AreEqual(0f, StreetEmpire.City.DayCycle.WindowRamp(12f), "windows off at noon");
+            Assert.AreEqual(1f, StreetEmpire.City.DayCycle.WindowRamp(22f), "windows full at 22:00");
+            Assert.AreEqual(0.5f, StreetEmpire.City.DayCycle.WindowRamp(18.75f), 1e-4f, "windows half way up at 18:45");
+            Assert.AreEqual(0.5f, StreetEmpire.City.DayCycle.WindowRamp(6.25f), 1e-4f, "windows half way down at 06:15");
             Assert.IsNotNull(Object.FindFirstObjectByType<StreetEmpire.Game.CombatFx>(), "fight feedback");
             Assert.IsNotNull(Object.FindFirstObjectByType<StreetEmpire.Game.ArmGuards>(), "Arm guards prompt");
             StreetEmpire.Game.GameClock.Frozen = true; StreetEmpire.Game.GameClock.FrozenHour = 22f;
             for (int i = 0; i < 5; i++) yield return null;
             Assert.IsTrue(lamps.lights.Any(l => l != null && l.enabled), "lamp lights on at night");
+            Assert.IsTrue(moon.enabled, "moon on at night");
             StreetEmpire.Game.GameClock.FrozenHour = 12f;
             for (int i = 0; i < 5; i++) yield return null;
             Assert.IsFalse(lamps.lights.Any(l => l != null && l.enabled), "lamp lights off by day");
+            Assert.IsFalse(moon.enabled, "moon off by day");
             StreetEmpire.Game.GameClock.Frozen = false; StreetEmpire.Game.GameClock.FrozenHour = StreetEmpire.Game.GameClock.StartHour;
         }
     }

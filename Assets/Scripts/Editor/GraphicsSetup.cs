@@ -1,7 +1,8 @@
 // Two URP quality tiers for the Eastside, both made from code like the rest of the project:
-//   Ultra (default): HDR, 4x MSAA, soft shadows over 100 m in 3 cascades on a 4096 map, SSAO.
-//   High: HDR, 2x MSAA, 70% render scale, low soft shadows over 40 m in 2 cascades on a 2048 map, no SSAO,
-//   two street lamp lights at night instead of four.
+//   Ultra (default): HDR, 4x MSAA, full render scale, high soft shadows over 100 m in 3 cascades on a 4096 map,
+//   SSAO, up to 6 lamp lights per object at night.
+//   High: HDR, 4x MSAA (v74: same as Ultra, the palm fronds need it), 70% render scale, low soft shadows over 40 m in
+//   2 cascades on a 2048 map, no SSAO, up to 2 lamp lights per object at night.
 // Both feed the same global post volume (ACES tonemapping, a little bloom, color grading, vignette).
 // The player switches tiers at run time with the HUD button (GraphicsQuality); nothing here runs in the player.
 using System;
@@ -27,10 +28,10 @@ namespace StreetEmpire.EditorTools
         public static UniversalRenderPipelineAsset Ensure()
         {
             var ultra = Pipeline(UltraPath, UltraRendererPath, out var ultraRenderer);
-            Tier(ultra, msaa: 4, distance: 100f, cascades: 3, map: 4096, softQuality: 3, scale: 1f);
+            Tier(ultra, msaa: 4, distance: 100f, cascades: 3, map: 4096, softQuality: 3, scale: 1f, lights: 6);
             Ssao(ultraRenderer, true);
             var high = Pipeline(HighPath, HighRendererPath, out var highRenderer);
-            Tier(high, msaa: 2, distance: 40f, cascades: 2, map: 2048, softQuality: 1, scale: 0.7f);   // High draws at 70% with low soft shadows over 40 m (visibly softer, cheaper)
+            Tier(high, msaa: 4, distance: 40f, cascades: 2, map: 2048, softQuality: 1, scale: 0.7f, lights: 2);   // High draws at 70% with low soft shadows over 40 m (visibly softer, cheaper)
             Ssao(highRenderer, false);
             AssetDatabase.SaveAssets();
             return ultra;
@@ -53,7 +54,7 @@ namespace StreetEmpire.EditorTools
             return p;
         }
 
-        static void Tier(UniversalRenderPipelineAsset p, int msaa, float distance, int cascades, int map, int softQuality, float scale)
+        static void Tier(UniversalRenderPipelineAsset p, int msaa, float distance, int cascades, int map, int softQuality, float scale, int lights)
         {
             p.supportsHDR = true;               // tonemapping and bloom need HDR
             p.msaaSampleCount = msaa;
@@ -76,7 +77,7 @@ namespace StreetEmpire.EditorTools
             Set(so, "m_EnableLODCrossFade", false);       // no dithered LOD cross fade (it read as stripes on the palms)
             Set(so, "m_SupportsLightLayers", true);         // rendering layers: the character fill light lights people only
             Set(so, "m_AdditionalLightsRenderingMode", 2);  // per pixel (the street lamp lights near the camera at night)
-            Set(so, "m_AdditionalLightsPerObjectLimit", 4);
+            Set(so, "m_AdditionalLightsPerObjectLimit", lights);
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(p);
         }
