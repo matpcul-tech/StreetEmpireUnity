@@ -216,7 +216,11 @@ namespace StreetEmpire.EditorTools
             if (n.Contains("windows_lit")) return "windows_lit";
             if (n.Contains("windows_dark")) return "windows_dark";
             if (n.Contains("_walls") || n.EndsWith("walls")) return "walls";
-            return "Material_0";
+            if (n.Contains("Material_0")) return "Material_0";
+            // other glTF materials (store-liquor-blank's kitbash atlas parts) keep their own name: the material copies
+            // are named {model}_{glTF name} and model names have no underscores
+            int u = n.IndexOf('_');
+            return u >= 0 && u < n.Length - 1 ? n.Substring(u + 1) : "Material_0";
         }
 
         /// <summary>v74: each building material gets its own extracted, GPU compressed textures
@@ -484,7 +488,7 @@ namespace StreetEmpire.EditorTools
         /// <summary>v74 night light: one warm point light per street lamp at its head (spec C.1: about 3000 K, range
         /// about 9 m, soft falloff, no shadows), switched on with the night by LampLights. No ground decals.</summary>
         public static readonly Color Lamp3000K = new(1f, 0.706f, 0.42f);
-        const float LampHead = 4.3f, LampRange = 9.5f;
+        const float LampRange = 9.5f;
         static void LampLightsBuild(Transform root, StreetEmpire.City.DayCycle cycle)
         {
             var spots = PropBuilder.LampSpots;
@@ -495,7 +499,7 @@ namespace StreetEmpire.EditorTools
             for (int i = 0; i < spots.Count; i++)
             {
                 var l = new GameObject($"Lamp Light {i + 1}").AddComponent<Light>(); l.transform.SetParent(go.transform, false);
-                l.transform.position = spots[i] + Vector3.up * LampHead;
+                l.transform.position = spots[i];   // PropBuilder records the point under each lamp head
                 l.type = LightType.Point; l.range = LampRange; l.color = Lamp3000K; l.shadows = LightShadows.None;
                 l.intensity = 0f; l.renderingLayerMask = -1; l.renderMode = LightRenderMode.ForcePixel; l.enabled = false;
                 ll.lights[i] = l;

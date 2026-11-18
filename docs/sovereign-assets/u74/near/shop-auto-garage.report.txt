@@ -1,0 +1,39 @@
+Sovereign Asset report
+Source: shop-auto-garage
+Finish: Unity building
+Output: shop-auto-garage-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (2 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 4843 open edges and 1 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.
+PASS  Triangle target: 38242 triangles. Target 38000.
+NOTE  Draw calls: 4 draw calls, 4 materials.
+PASS  Texture size: All 6 readable textures are 2048 px or under.
+PASS  Walls: 4 walls on a stucco texture of their own: 3546 triangles at 112 texture pixels per meter, evenly (0 percent stretched).
+PASS  Windows: 9 windows: 7 lit (716 triangles, material windows_lit) and 2 dark (101 triangles, material windows_dark).
+PASS  Color standard: Brightness runs from 2 to 62 percent, middle 30. Peak vividness 22. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 25 texture pixels per meter across most of the surface. 33 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.
+PASS  Size: The height is 5.00 m. Target 5.00 m.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 4 materials, 6 textures.
+NOTE  File size: 4.7 MB, was 3.8 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- No holes were found.
+- Flat areas: 6 walls and other flat areas (4781 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.36 percent of the part's size.
+- Walls: 4 walls moved to a 2048 px texture of their own, one rectangle each at one even scale. The old paint was smoothed to its colors (stains, bands and corners stay, thin lines and creases go) and a new stucco surface was laid over it. Material walls. Nothing was moved.
+- Color standard: 1 color texture brought inside the shared range. Brightness ran from 1 to 50 percent and peak vividness was 21. Now 2 to 50 and 21. The middle of the range and every hue are untouched.
+- Surface maps: every material already has its own.
+- Windows: found 9 windows by shape (flat, upright, set back inside a frame, glass colored). 7 have a light on (material windows_lit) and 2 are dark (material windows_dark). The walls are untouched and nothing was moved.
+- Reduced 57998 triangles to 38242. The surface moved by at most 0.3 percent of the model size. Edges between parts were held in place.
+- The model was scaled by 6.1383, set on the ground, centered.

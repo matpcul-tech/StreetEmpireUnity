@@ -16,6 +16,9 @@
 //   shot=close2  v73 views, keys 1 to 6: 1 the HUD and the Unc prompt next to Unc (game camera), 2 the player on
 //                the avenue (character fill against the road, game camera), 3 the Arm guards prompt on a held block,
 //                4 street lamp pools from above at 21:00, 5 the avenue at eye height at 21:00, 6 the skyline edge
+//   shot=v74     v74 report views, keys 1 to 9: 1 the avenue at 14:00, 2 the same at 19:00, 3 a street lamp and the
+//                stucco apartment at 22:00, 4 the pawn shop front at 22:00, 5 the apartment close at 22:00, 6 a house
+//                close by day, 7 palm fronds close by day, 8 the district edge, 9 a wood fence close by day
 //   shot=fight   the opening scuffle with a hit landed on a mugger every 0.8 s, so the target ring, warning rings,
 //                hit numbers, sparks, dust and shockwaves show on cue (game camera)
 //   shot=mugger  the opening scuffle as a new game plays it (every other shot skips it)
@@ -90,6 +93,9 @@ namespace StreetEmpire.Game
                     break;
                 case "close2":
                     StartCoroutine(Close2(p, job));
+                    break;
+                case "v74":
+                    StartCoroutine(V74(p));
                     break;
                 case "fight":
                     StartCoroutine(Fight(p));
@@ -206,7 +212,7 @@ namespace StreetEmpire.Game
                 {
                     case 0: { var palm = Prop("palm-short", b10 + new Vector3(0, 0, -27f)); var a = palm ? palm.position : b10; v = (a + new Vector3(3.5f, 4.6f, -3.5f), a + new Vector3(0, 7.2f, 0)); break; }
                     case 1: v = Facade("store-barber", 6.5f, 1.5f, 2.6f); break;
-                    case 2: v = Facade("house-01", 8f, 2f, 2.4f); break;
+                    case 2: v = Facade("house-02", 8f, 2f, 2.4f); break;   // v74: house-01 is not shipped
                     case 3: v = Facade("apt-02", 9f, 2.5f, 5f); break;
                     case 4: { var t = p.transform; v = (t.position + t.forward * 1.7f + t.right * 0.4f + Vector3.up * 1.35f, t.position + Vector3.up * 1.15f); break; }
                     case 5: { var g = job.giver; v = (g.position + g.forward * 0.6f + g.right * 3.2f + Vector3.up * 1.5f, g.position + g.forward * 0.6f + Vector3.up * 1.1f); break; }
@@ -287,6 +293,66 @@ namespace StreetEmpire.Game
                     else { var c = (b0 + b20) / 2; v = (c + new Vector3(60f, 38f, -110f), c + new Vector3(-40f, 0f, 120f)); cam.farClipPlane = 800f; }
                     cam.transform.position = v.pos; cam.transform.LookAt(v.at);
                 }
+                yield return null;
+            }
+        }
+
+        IEnumerator V74(PlayerMotor p)
+        {
+            var cam = Camera.main;
+            var brain = cam.GetComponent<Unity.Cinemachine.CinemachineBrain>(); if (brain) brain.enabled = false;
+            Vector3 Block(int id) { foreach (var m in FindObjectsByType<StreetEmpire.City.BlockMarker>(FindObjectsSortMode.None)) if (m.blockId == id) return m.transform.position; return Vector3.zero; }
+            var b10 = Block(10); var b0 = Block(0); var b20 = Block(20);
+            Transform Prop(string model, Vector3 near)
+            {
+                Transform best = null; float bd = float.MaxValue;
+                foreach (var m in FindObjectsByType<StreetEmpire.City.PropMarker>(FindObjectsSortMode.None))
+                    if (m.model == model) { float d = (m.transform.position - near).sqrMagnitude; if (d < bd) { bd = d; best = m.transform; } }
+                return best;
+            }
+            // the street face of the model's building nearest block 10: its foot, outward normal and tangent
+            (Vector3 face, Vector3 n, Vector3 t, float h) Face(string model)
+            {
+                StreetEmpire.City.BuildingMarker best = null; float bd = float.MaxValue;
+                foreach (var m in FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None))
+                    if (m.model != null && m.model.StartsWith(model)) { float d = (m.transform.position - b10).sqrMagnitude; if (d < bd) { bd = d; best = m; } }
+                if (best == null) return (b10, Vector3.back, Vector3.right, 8f);
+                var c = best.GetComponent<BoxCollider>(); var bb = c ? c.bounds : new Bounds(best.transform.position, Vector3.one * 10);
+                var o = bb.center - Block(best.blockId); o.y = 0;
+                var n = Mathf.Abs(o.x) > Mathf.Abs(o.z) ? new Vector3(Mathf.Sign(o.x), 0, 0) : new Vector3(0, 0, Mathf.Sign(o.z));
+                var face = bb.center + n * Mathf.Abs(Vector3.Dot(bb.extents, n)); face.y = bb.min.y;
+                return (face, n, Vector3.Cross(Vector3.up, n), bb.size.y);
+            }
+            float[] hours = { 14f, 19f, 22f, 22f, 22f, 14f, 14f, 14f, 14f };
+            int view = 0; int shown = -1;
+            p.Teleport(b10 + new Vector3(28f, 0.4f, -20f), 0f);
+            while (true)
+            {
+                var kb = UnityEngine.InputSystem.Keyboard.current;
+                if (kb != null)
+                {
+                    var keys = new[] { kb.digit1Key, kb.digit2Key, kb.digit3Key, kb.digit4Key, kb.digit5Key, kb.digit6Key, kb.digit7Key, kb.digit8Key, kb.digit9Key };
+                    for (int i = 0; i < keys.Length; i++) if (keys[i].isPressed) view = i;
+                }
+                if (view != shown) { shown = view; GameClock.FrozenHour = hours[view]; Debug.Log($"[ShotDirector] v74 view {view + 1} at {hours[view]}"); }
+                (Vector3 pos, Vector3 at) v;
+                switch (view)
+                {
+                    case 0: case 1: v = (b10 + new Vector3(28f, 1.7f, -24f), b10 + new Vector3(27f, 1.5f, 30f)); break;
+                    case 2:
+                    {
+                        var f = Face("apt-01"); var lamp = Prop("street-lamp-1", f.face + f.n * 6f); var lp = lamp ? lamp.position : f.face + f.n * 6f;
+                        var cpos = lp + f.n * 7f + f.t * 5f; cpos.y = 1.8f;
+                        v = (cpos, Vector3.Lerp(lp, f.face, 0.5f) + Vector3.up * 3.2f); break;
+                    }
+                    case 3: { var f = Face("store-pawn"); v = (f.face + f.n * 7f + f.t * 1.2f + Vector3.up * 1.7f, f.face + Vector3.up * 2.2f); break; }
+                    case 4: { var f = Face("apt-01"); v = (f.face + f.n * 12f + f.t * 2.5f + Vector3.up * 1.7f, f.face + Vector3.up * 4.5f); break; }
+                    case 5: { var f = Face("house-02"); v = (f.face + f.n * 9f + f.t * 2f + Vector3.up * 1.7f, f.face + Vector3.up * 2.8f); break; }
+                    case 6: { var palm = Prop("palm-short", b10 + new Vector3(0, 0, -27f)); var a = palm ? palm.position : b10; v = (a + new Vector3(3.5f, 4.6f, -3.5f), a + new Vector3(0, 7.2f, 0)); break; }
+                    case 7: { var c = (b0 + b20) / 2; v = (c + new Vector3(60f, 38f, -110f), c + new Vector3(-40f, 0f, 120f)); cam.farClipPlane = 800f; break; }
+                    default: { var f = Prop("wood-fence", b10 + new Vector3(0, 0, -27f)); var a = f ? f.position : b10; var fw = f ? f.forward : Vector3.forward; v = (a + fw * 2.6f + (f ? f.right : Vector3.right) * 0.8f + Vector3.up * 1.4f, a + Vector3.up * 0.9f); break; }
+                }
+                cam.transform.position = v.pos; cam.transform.LookAt(v.at);
                 yield return null;
             }
         }

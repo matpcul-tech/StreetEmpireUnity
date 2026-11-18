@@ -1,0 +1,39 @@
+Sovereign Asset report
+Source: house-wood-duplex
+Finish: Unity building
+Output: house-wood-duplex-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (1 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 1520 open edges and 5 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.
+PASS  Triangle target: 26010 triangles. Target 26000.
+NOTE  Draw calls: 3 draw calls, 3 materials.
+PASS  Texture size: All 3 readable textures are 2048 px or under.
+NOTE  Walls: No large flat upright wall was found.
+PASS  Windows: 17 windows: 8 lit (645 triangles, material windows_lit) and 9 dark (193 triangles, material windows_dark).
+PASS  Color standard: Brightness runs from 2 to 33 percent, middle 14. Peak vividness 25. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 33 texture pixels per meter across most of the surface. 14 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.
+PASS  Size: The height is 7.50 m. Target 7.50 m.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 3 materials, 3 textures.
+NOTE  File size: 2.0 MB, was 3.2 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- No holes were found.
+- Flat areas: 7 walls and other flat areas (13309 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.33 percent of the part's size.
+- Walls: no large flat upright wall was found, so nothing was changed. Turn on Flatten walls first if the walls are crumpled.
+- Color standard: 1 color texture brought inside the shared range. Brightness ran from 1 to 33 percent and peak vividness was 25. Now 2 to 33 and 25. The middle of the range and every hue are untouched.
+- Surface maps: every material already has its own.
+- Windows: found 17 windows by shape (flat, upright, set back inside a frame, glass colored). 8 have a light on (material windows_lit) and 9 are dark (material windows_dark). The walls are untouched and nothing was moved.
+- Reduced 58000 triangles to 26010. The surface moved by at most 1.0 percent of the model size. Edges between parts were held in place.
+- The model was scaled by 4.1425, set on the ground, centered.

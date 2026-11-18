@@ -1,0 +1,39 @@
+Sovereign Asset report
+Source: store-liquor-blank
+Finish: Unity building
+Output: store-liquor-blank-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (18 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 96 open edges and 10 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.
+PASS  Triangle target: 1572 triangles. Target 26000.
+NOTE  Draw calls: 19 draw calls, 8 materials.
+PASS  Texture size: All 11 readable textures are 2048 px or under.
+PASS  Walls: 12 walls on a stucco texture of their own: 24 triangles at 105 texture pixels per meter, evenly (0 percent stretched).
+NOTE  Windows: None found. Only glass that is set back from its frame in the mesh can be found.
+PASS  Color standard: Brightness runs from 2 to 60 percent, middle 24. Peak vividness 92. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 105 texture pixels per meter across most of the surface. 36 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.
+PASS  Size: The height is 4.90 m. Target 4.90 m.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 8 materials, 11 textures.
+NOTE  File size: 2.3 MB, was 0.2 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- No holes were found.
+- Flat areas: 104 walls and other flat areas (208 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.00 percent of the part's size. Tangents on those parts were dropped (the renderer rebuilds them).
+- Walls: 12 walls moved to a 2048 px texture of their own, one rectangle each at one even scale. The old paint was smoothed to its colors (stains, bands and corners stay, thin lines and creases go) and a new stucco surface was laid over it. Material walls. Nothing was moved.
+- Color standard: 1 color texture brought inside the shared range. Brightness ran from 1 to 60 percent and peak vividness was 76. Now 3 to 60 and 76. The middle of the range and every hue are untouched.
+- Surface maps: made 3 normal map links and 5 roughness map links from the color texture, for materials that had none. 4 materials kept the normal map it came with.
+- 1 color texture is too even to read any relief from. No normal map was made for it.
+- Windows: none found. A window has to be set back from its frame in the mesh. Glass that is only painted on a flat wall cannot be told from the wall.
+- The model was scaled by 1.0092, set on the ground, centered. The change sits on one top node, so parts, bones and animation are untouched.

@@ -1,0 +1,39 @@
+Sovereign Asset report
+Source: civic-church
+Finish: Unity building
+Output: civic-church-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (2 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 1184 open edges and 1 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.
+PASS  Triangle target: 26116 triangles. Target 26000.
+NOTE  Draw calls: 2 draw calls, 2 materials.
+PASS  Texture size: All 6 readable textures are 2048 px or under.
+PASS  Walls: 3 walls on a stucco texture of their own: 798 triangles at 167 texture pixels per meter, evenly (0 percent stretched).
+NOTE  Windows: None found. Only glass that is set back from its frame in the mesh can be found.
+PASS  Color standard: Brightness runs from 2 to 15 percent, middle 5. Peak vividness 88. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 50 texture pixels per meter across most of the surface. 26 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.
+PASS  Size: The height is 10.0 m. Target 10.0 m.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 2 materials, 6 textures.
+NOTE  File size: 2.9 MB, was 3.2 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- No holes were found.
+- Flat areas: 7 walls and other flat areas (2625 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.12 percent of the part's size.
+- Walls: 3 walls moved to a 2048 px texture of their own, one rectangle each at one even scale. The old paint was smoothed to its colors (stains, bands and corners stay, thin lines and creases go) and a new stucco surface was laid over it. Material walls. Nothing was moved.
+- Color standard: every color texture was already inside the shared range. Nothing was changed.
+- Surface maps: every material already has its own.
+- Windows: none found. A window has to be set back from its frame in the mesh. Glass that is only painted on a flat wall cannot be told from the wall.
+- Reduced 58000 triangles to 26116. The surface moved by at most 0.3 percent of the model size. Edges between parts were held in place.
+- The model was scaled by 5.2718, set on the ground, centered.

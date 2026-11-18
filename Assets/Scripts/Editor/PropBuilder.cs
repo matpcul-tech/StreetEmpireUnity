@@ -109,7 +109,13 @@ namespace StreetEmpire.EditorTools
             var n = N(k); var t = T(k); int deal = b.id * 4 + k;
             // a lamp per side, staggered so facing sides do not line up
             var lamp = Place("street-lamp-1", "streetlight", b.id, At(b, k, CurbLine, k % 2 == 0 ? -10 : 10, SidewalkTop), Face(-n), parent, Col.Bounds, 0f);
-            if (lamp != null) LampSpots.Add(lamp.transform.position);
+            if (lamp != null)
+            {
+                // v74: the lamp light sits just under the head: the top of the model, over the middle of the arm
+                var rs = lamp.GetComponentsInChildren<Renderer>(); var bb = rs.Length > 0 ? rs[0].bounds : new Bounds(lamp.transform.position, Vector3.zero);
+                foreach (var r in rs) bb.Encapsulate(r.bounds);
+                LampSpots.Add(rs.Length > 0 ? new Vector3(bb.center.x, bb.max.y - 0.45f, bb.center.z) : lamp.transform.position + Vector3.up * 4.3f);
+            }
             // street palms along the curb like the original web Eastside (two slots a side, about a third left
             // empty); the east curb carries the utility poles at 14 m, so its palms stand nearer the middle
             for (int i = 0; i < 2; i++)

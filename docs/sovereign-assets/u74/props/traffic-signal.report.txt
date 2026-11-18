@@ -1,0 +1,36 @@
+Sovereign Asset report
+Source: traffic-signal
+Finish: Unity prop
+Output: traffic-signal-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (2 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 9 open edges. Fine for games and rendering. A 3D print needs none.
+NOTE  Triangles: 925 triangles. No target was set.
+NOTE  Draw calls: 16 draw calls, 5 materials.
+PASS  Texture size: All 3 readable textures are 2048 px or under.
+PASS  Color standard: Brightness runs from 2 to 3 percent, middle 2. Peak vividness 0. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 479 texture pixels per meter across most of the surface. Assets that share a street should be close to each other on this number.
+NOTE  Size: 4.91 wide, 5.60 tall, 0.400 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 5 materials, 3 textures.
+NOTE  File size: 0.5 MB, was 0.5 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- Closed 1 hole. 4 openings left open: too large or not a simple loop.
+- Normals: 3 faces lit from behind got corners of their own. Every other normal is the model's own.
+- Flat areas: 34 walls and other flat areas (176 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.00 percent of the part's size.
+- 1 tiling texture left as painted. A texture that repeats has no single pixel per point to correct.
+- Color standard: every color texture was already inside the shared range. Nothing was changed.
+- Surface maps: every material already has its own.
+- The model was set on the ground, centered. The change sits on one top node, so parts, bones and animation are untouched.

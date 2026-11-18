@@ -1,0 +1,39 @@
+Sovereign Asset report
+Source: store-bodega
+Finish: Unity building
+Output: store-bodega-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (2 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 3506 open edges and 99 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.
+PASS  Triangle target: 33561 triangles. Target 33000.
+NOTE  Draw calls: 4 draw calls, 4 materials.
+PASS  Texture size: All 6 readable textures are 2048 px or under.
+PASS  Walls: 6 walls on a brick texture of their own: 12040 triangles at 124 texture pixels per meter, evenly (0 percent stretched).
+PASS  Windows: 5 windows: 1 lit (27 triangles, material windows_lit) and 4 dark (107 triangles, material windows_dark).
+PASS  Color standard: Brightness runs from 3 to 25 percent, middle 5. Peak vividness 44. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 24 texture pixels per meter across most of the surface. 28 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.
+PASS  Size: The height is 7.00 m. Target 7.00 m.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 4 materials, 6 textures.
+NOTE  File size: 4.9 MB, was 3.6 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- Closed 1 hole. 15 openings left open: too large or not a simple loop.
+- Flat areas: 10 walls and other flat areas (24437 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.16 percent of the part's size.
+- Walls: 6 walls moved to a 2048 px texture of their own, one rectangle each at one even scale. The old paint was smoothed to its colors (stains, bands and corners stay, thin lines and creases go) and a new brick surface was laid over it, with courses where the old paint had them. Material walls. Nothing was moved.
+- Color standard: 1 color texture brought inside the shared range. Brightness ran from 1 to 25 percent and peak vividness was 47. Now 3 to 25 and 47. The middle of the range and every hue are untouched.
+- Surface maps: every material already has its own.
+- Windows: found 5 windows by shape (flat, upright, set back inside a frame, glass colored). 1 has a light on (material windows_lit) and 4 are dark (material windows_dark). The walls are untouched and nothing was moved.
+- Reduced 57996 triangles to 33561. The surface moved by at most 2.0 percent of the model size. Edges between parts were held in place.
+- The model was scaled by 4.0079, set on the ground, centered.
