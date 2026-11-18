@@ -38,7 +38,7 @@ namespace StreetEmpire.EditorTools
         public static readonly string[] XStreetNames = { "E 31ST ST", "E 33RD ST", "E 35TH ST", "E 37TH ST" };
         public static readonly string[] ZStreetNames = { "KING AVE", "GARFIELD AVE", "PRAIRIE AVE", "INDIANA AVE" };
 
-        [Serializable] class Entry { public string prop, material, alpha, basecolor, normal, metalsmooth; public float cutoff, metallic, roughness; public float[] color, tiling; }
+        [Serializable] class Entry { public string prop, material, alpha, basecolor, normal, metalsmooth, emission; public float cutoff, metallic, roughness; public float[] color, tiling, emissive; }
         [Serializable] class Manifest { public Entry[] materials; }
 
         enum Col { None, Bounds, Pole }
@@ -50,6 +50,8 @@ namespace StreetEmpire.EditorTools
         static System.Random rng;
         /// <summary>Where the street lamps stand (their feet), for the night light pools.</summary>
         public static readonly List<Vector3> LampSpots = new();
+        /// <summary>v75: prop materials with a lit window emission map (the far towers), for DayCycle.</summary>
+        public static readonly List<Material> EmissiveMaterials = new();
         static TrafficSignalCycle signals;
         static readonly Dictionary<string, PropBatch> batches = new();
         static readonly Dictionary<string, List<Matrix4x4>> placed = new();
@@ -58,7 +60,7 @@ namespace StreetEmpire.EditorTools
 
         public static void Build(IList<BlockInfo> blocks, float[] streetX, float[] streetZ, Transform parent)
         {
-            LoadManifest(); mats.Clear(); counts.Clear(); tris = 0; rng = new System.Random(1931); LampSpots.Clear();
+            LoadManifest(); mats.Clear(); counts.Clear(); tris = 0; rng = new System.Random(1931); LampSpots.Clear(); EmissiveMaterials.Clear();
             batches.Clear(); placed.Clear();
             KeepClear();
             var root = new GameObject("Props").transform; root.SetParent(parent, false);
@@ -78,6 +80,7 @@ namespace StreetEmpire.EditorTools
             Intersections(blocks, streetX, streetZ, streets, marks);
             Manholes(streetX, streetZ, streets);
             PowerLines(blocks, streets);
+            Edge(streetX, streetZ, root);
             foreach (var b in blocks) for (int k = 0; k < 4; k++) Grime(b, k, StreetAt(b, k, streetX, streetZ), marks);
             Graffiti(marks);
             marks.Save(root);
@@ -305,17 +308,85 @@ namespace StreetEmpire.EditorTools
                 }
         }
 
-        /// <summary>A mast arm signal with its pole on the corner. The model has its arm along -X and the heads
-        /// facing +Z (Unity space); mirrored on X it matches drive-on-the-right, so the arm runs along the
-        /// holder's +X (out over the street) and the heads face its +Z (oncoming traffic).</summary>
+        /// <summary>A mast arm signal with its pole on the corner sidewalk. The model has its arm along -X and the
+        /// heads facing +Z (Unity space); mirrored on X it matches drive-on-the-right, so the arm runs along the
+        /// holder's +X (out over the street) and the heads face its +Z (oncoming traffic). v75: the holder is placed
+        /// from where the pole really is in the mirrored mesh (the mean of its vertices under 1 m), so the pole stands
+        /// on the corner and only the arm and heads reach over the lanes (v74 put the pole about 4.7 m into the
+        /// road). PoleOnSidewalk checks it and the build stops if one would stand on the roadway.</summary>
         static void Signal(Vector3 corner, Vector3 arm, bool avenue, Transform parent)
         {
             var fwd = new Vector3(-arm.z, 0, arm.x);    // right = arm, so forward = (-arm.z, 0, arm.x)
-            var holder = Place("traffic-signal", "traffic signal", -1, corner + arm * 2.35f, Face(fwd), parent, Col.None, 0f, mirrorX: true, variant: avenue ? "A" : "B");
+            var batch = Batch("traffic-signal", true, avenue ? "A" : "B", Vector3.one);
+            if (batch == null) return;
+            var foot = PoleFoot(batch.lod0);
+            var rot = Face(fwd);
+            var off = rot * new Vector3(foot.x, 0, foot.z);
+            var holder = Place("traffic-signal", "traffic signal", -1, corner - off, rot, parent, Col.None, 0f, mirrorX: true, variant: avenue ? "A" : "B");
             if (holder == null) return;
+            var poleWorld = holder.transform.TransformPoint(new Vector3(foot.x, 0, foot.z));
+            if (Vector3.Distance(new Vector3(poleWorld.x, 0, poleWorld.z), new Vector3(corner.x, 0, corner.z)) > 0.05f)
+                throw new Exception($"[PropBuilder] traffic signal pole at {poleWorld} is not on its corner {corner}");
             var pole = new GameObject("Pole collider"); pole.transform.SetParent(holder.transform, false);
-            pole.transform.position = corner + Vector3.up * 2.8f;
+            pole.transform.position = new Vector3(poleWorld.x, corner.y + 2.8f, poleWorld.z);
             var c = pole.AddComponent<BoxCollider>(); c.size = new Vector3(0.24f, 5.6f, 0.24f);
+        }
+
+        /// <summary>The middle of a pole model's base: the mean of its vertices under 1 m, in the mesh's own space.</summary>
+        public static Vector3 PoleFoot(Mesh m)
+        {
+            var sum = Vector3.zero; int n = 0;
+            foreach (var v in m.vertices) if (v.y < 1f) { sum += v; n++; }
+            return n > 0 ? sum / n : Vector3.zero;
+        }
+
+        /// <summary>v75 district edge (Matthew's review of shot 08: the town ended on a bare plane under one flat
+        /// skyline strip). A raised freeway with a sound wall rings the district 40 m out from the outer streets,
+        /// and three rings of plain far towers (edge-tower-a to d, lit window maps that DayCycle brings up at night)
+        /// stand at about 190, 255 and 325 m from the middle, so the skyline stacks up in the fog. Low detail, no
+        /// colliders, no shadows: they are scenery only.</summary>
+        static void Edge(float[] xs, float[] zs, Transform parent)
+        {
+            var root = new GameObject("District Edge").transform; root.SetParent(parent, false);
+            float x0 = xs.Min(), x1 = xs.Max(), z0 = zs.Min(), z1 = zs.Max();
+            var mid = new Vector3((x0 + x1) / 2, 0, (z0 + z1) / 2);
+            const float Out = 40f, Seg = 40f;
+            var fw = Batch("edge-freeway", false, null, Vector3.one);
+            if (fw != null)
+            {
+                // which side of the model the sound wall is on, from the mesh itself (the vertices above the deck)
+                float wx = 0; int wn = 0;
+                foreach (var v in fw.lod0.vertices) if (v.y > 10.5f) { wx += v.x; wn++; }
+                float wallSide = wn > 0 && wx < 0 ? -1f : 1f;
+                float hx = (x1 - x0) / 2 + Out, hz = (z1 - z0) / 2 + Out;
+                // the four sides, each a run of 40 m segments along its length with the wall facing out
+                foreach (var (n, half, len) in new[] { (Vector3.right, hx, hz), (Vector3.left, hx, hz), (Vector3.forward, hz, hx), (Vector3.back, hz, hx) })
+                {
+                    var along = new Vector3(-n.z, 0, n.x);
+                    // the model runs along its z; its wall side (x * wallSide) has to point along n
+                    var rot = Quaternion.LookRotation(along, Vector3.up);
+                    if (Vector3.Dot(rot * Vector3.right * wallSide, n) < 0) rot = Quaternion.LookRotation(-along, Vector3.up);
+                    float runLen = 2 * len + 14f; int count = Mathf.CeilToInt(runLen / Seg);
+                    for (int i = 0; i < count; i++)
+                    {
+                        float t = -count * Seg / 2 + Seg * (i + 0.5f);
+                        Place("edge-freeway", "district edge", -1, mid + n * half + along * t, rot, root, Col.None, 0f);
+                    }
+                }
+            }
+            string[] towers = { "edge-tower-a", "edge-tower-b", "edge-tower-c", "edge-tower-d" };
+            var rand = new System.Random(75);
+            foreach (var (r, count) in new[] { (190f, 30), (255f, 36), (325f, 42) })
+                for (int i = 0; i < count; i++)
+                {
+                    float a = (i + (float)rand.NextDouble() * 0.6f) / count * Mathf.PI * 2f;
+                    float rr = r + ((float)rand.NextDouble() - 0.5f) * 26f;
+                    var p = mid + new Vector3(Mathf.Cos(a) * rr, 0, Mathf.Sin(a) * rr);
+                    var face = Quaternion.Euler(0, -a * Mathf.Rad2Deg + 90f * rand.Next(4) + ((float)rand.NextDouble() - 0.5f) * 14f, 0);
+                    // the tall ones more often in the back rings, so the layers step up
+                    int pick = rand.Next(4); if (r > 300f && pick == 3) pick = 1; if (r < 200f && pick == 1) pick = 2;
+                    Place(towers[pick], "district edge", -1, p, face, root, Col.None, 0f);
+                }
         }
 
         /// <summary>Zebra crosswalks on all four approaches and a stop bar in the lane that comes in.</summary>
@@ -442,6 +513,7 @@ namespace StreetEmpire.EditorTools
         /// <summary>Draw rules per model: where the lower detail mesh takes over, how far it draws, shadows.</summary>
         static (float lod1, float cull, bool shadows) Rule(string model)
         {
+            if (model.StartsWith("edge-")) return (99999f, 2000f, false);   // the far ring: no lower level, no shadows
             if (model is "street-lamp-1") return (20f, 170f, true);
             if (model is "utility-pole" or "traffic-signal" or "stop-sign" or "sign-post" or "bus-shelter" or "bus-stop-sign"
                 || model.StartsWith("tree-") || model.StartsWith("palm-") || model.StartsWith("street-blade")) return (40f, 170f, true);
@@ -634,8 +706,21 @@ namespace StreetEmpire.EditorTools
                 // our own modeled props are closed and cull their backs
                 m.SetFloat("_Cull", cutout || ms != null ? 0f : 2f);
             }
+            // v75: the signal mast read pure black (a 15% gray base, 60% metal and a dull sky to reflect): painted
+            // steel gray now, mostly not metal
+            if (prop == "traffic-signal" && e.material.Contains("pole")) { col = new Color(Mathf.Min(1, col.r * 2.6f), Mathf.Min(1, col.g * 2.6f), Mathf.Min(1, col.b * 2.6f), col.a); m.SetFloat("_Metallic", 0.4f); }
+            // the street name blades are flat two faced boards: cull the back so the far face's mirrored print never shows
+            if (prop.StartsWith("street-blade")) m.SetFloat("_Cull", 2f);
             m.SetColor("_BaseColor", col);
-            if (e.material.StartsWith("lens_"))
+            var emap = Tx(e.emission);
+            if (emap != null)
+            {
+                // v75 far towers: a lit window map, driven by DayCycle (skylineMaterials) with the night
+                m.SetTexture("_EmissionMap", emap); m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.black);
+                m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                if (!EmissiveMaterials.Contains(m)) EmissiveMaterials.Add(m);
+            }
+            else if (e.material.StartsWith("lens_"))
             {
                 // the traffic light lenses glow through TrafficSignalCycle; off by default
                 m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.black);

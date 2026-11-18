@@ -51,6 +51,33 @@ namespace StreetEmpire.Tests
             Debug.Log($"[PropTests] {props.Length} props: " + string.Join(", ", props.GroupBy(p => p.kind).OrderBy(g => g.Key).Select(g => $"{g.Key} {g.Count()}")));
         }
 
+        /// <summary>v75: no traffic signal pole stands on the roadway. The pole is found in the mesh the instancer
+        /// actually draws (its vertices under 1 m), moved by every placement matrix, and must land on a corner
+        /// sidewalk: 19 m to 22 m from a block center on both axes (the curb face is at 22.15 m).</summary>
+        [UnityTest]
+        public IEnumerator TrafficSignalPolesStandOnTheSidewalk()
+        {
+            yield return Load();
+            var inst = Object.FindFirstObjectByType<PropInstancer>();
+            var blocks = Object.FindObjectsByType<BlockMarker>(FindObjectsSortMode.None).Select(b => b.transform.position).ToArray();
+            int n = 0;
+            foreach (var b in inst.batches.Where(b => b.name.StartsWith("traffic-signal")))
+            {
+                Assert.IsTrue(b.lod0.isReadable, "signal mesh readable for the check");
+                var sum = Vector3.zero; int k = 0;
+                foreach (var v in b.lod0.vertices) if (v.y < 1f) { sum += v; k++; }
+                Assert.Greater(k, 0, "the signal mesh has a pole");
+                var foot = sum / k;
+                foreach (var m in b.matrices)
+                {
+                    var w = m.MultiplyPoint3x4(foot); n++;
+                    bool onWalk = blocks.Any(c => { float dx = Mathf.Abs(w.x - c.x), dz = Mathf.Abs(w.z - c.z); return dx <= 22.0f && dz <= 22.0f && Mathf.Max(dx, dz) >= 19f; });
+                    Assert.IsTrue(onWalk, $"traffic signal pole at {w} is on a corner sidewalk, not the roadway");
+                }
+            }
+            Assert.AreEqual(16, n, "all 16 signal poles checked");
+        }
+
         [UnityTest]
         public IEnumerator PropsUseTheirUrpMaterials()
         {
