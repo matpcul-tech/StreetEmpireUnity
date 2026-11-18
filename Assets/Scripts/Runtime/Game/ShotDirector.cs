@@ -352,8 +352,9 @@ namespace StreetEmpire.Game
             // and the high district edge view (8) are free cameras.
             // v75c (Matthew's second notes), on the numpad: 14 07:20 street, 15 09:36 skyline, 16 08:23 signal close,
             // 17 02:08 lamp pool (the shot 3 lamp), 18 05:55 street wide, 19 05:55 pawn shop sidewalk, 20 the EMPIRE
-            // graffiti house, 21 a parked sedan close up
-            float[] hours = { 14f, 19f, 22f, 22f, 22f, 14f, 14f, 14f, 14f, 14f, 22f, 14f, 22f, 7.333f, 9.6f, 8.383f, 2.133f, 5.917f, 5.917f, 14f, 14f };
+            // graffiti house, 21 a parked sedan close up. v75d (Matthew's v2 files): 22 the pawn shop by day, 23 the
+            // apartment by day, 24 the white house at 22:00 (Numpad9, Numpad0, NumpadPeriod)
+            float[] hours = { 14f, 19f, 22f, 22f, 22f, 14f, 14f, 14f, 14f, 14f, 22f, 14f, 22f, 7.333f, 9.6f, 8.383f, 2.133f, 5.917f, 5.917f, 14f, 14f, 14f, 14f, 22f };
             int view = 0; int shown = -1;
             // v75c: draw calls per view, a second and a half after each switch
             var draws = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "Draw Calls Count");
@@ -374,7 +375,7 @@ namespace StreetEmpire.Game
                 if (kb != null)
                 {
                     var keys = new[] { kb.digit1Key, kb.digit2Key, kb.digit3Key, kb.digit4Key, kb.digit5Key, kb.digit6Key, kb.digit7Key, kb.digit8Key, kb.digit9Key, kb.digit0Key, kb.minusKey, kb.equalsKey, kb.backspaceKey,
-                        kb.numpad1Key, kb.numpad2Key, kb.numpad3Key, kb.numpad4Key, kb.numpad5Key, kb.numpad6Key, kb.numpad7Key, kb.numpad8Key };
+                        kb.numpad1Key, kb.numpad2Key, kb.numpad3Key, kb.numpad4Key, kb.numpad5Key, kb.numpad6Key, kb.numpad7Key, kb.numpad8Key, kb.numpad9Key, kb.numpad0Key, kb.numpadPeriodKey };
                     for (int i = 0; i < keys.Length; i++) if (keys[i].isPressed) view = i;
                 }
                 bool free = view == 6 || view == 7;
@@ -429,9 +430,9 @@ namespace StreetEmpire.Game
                             var aim = Vector3.Lerp(f.face, new Vector3(lp.x, f.face.y, lp.z), bl > 8f ? 0.4f : 0f) + Vector3.up * 3f;
                             Game(spot, aim - spot, 16f, bl > 8f ? 8.5f : 7f); break;
                         }
-                        case 3: { var f = Face("store-pawn", 7f); Game(f.face + f.n * 4.2f + f.t * 0.6f, -f.n, 6f, 5f); break; }
-                        case 4: { var f = Face("apt-01", 12f); Game(f.face + f.n * 6.5f + f.t * 1.5f, -f.n, 18f, 6f); break; }
-                        case 5: { var f = Face("house-01", 9f); Game(f.face + f.n * 4.5f + f.t * 1.2f, -f.n, 8f, 5f); break; }
+                        case 3: case 21: { var f = Face("store-pawn", 7f); Game(f.face + f.n * 4.2f + f.t * 0.6f, -f.n, 6f, 5f); break; }
+                        case 4: case 22: { var f = Face("apt-01", 12f); Game(f.face + f.n * 6.5f + f.t * 1.5f, -f.n, 18f, 6f); break; }
+                        case 5: case 23: { var f = Face("house-01", 9f); Game(f.face + f.n * 4.5f + f.t * 1.2f, -f.n, 8f, 5f); break; }
                         // v75b: the liquor store sign at 22:00, and the mixed use block (the v74 black tower) by day
                         case 10: { var f = Face("store-liquor", 8f); Game(f.face + f.n * 6f - f.t * 2.5f, -f.n + f.t * 0.25f, 10f, 5.5f); break; }   // v75c: off the utility pole
                         case 11: { var f = Face("apt-mixed-use", 12f); Game(f.face + f.n * 8f + f.t * 2f, -f.n, 14f, 6.5f); break; }

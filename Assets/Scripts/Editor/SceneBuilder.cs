@@ -61,7 +61,7 @@ namespace StreetEmpire.EditorTools
         /// their own hue (brick stays brick).</summary>
         static readonly Dictionary<string, (Color32 mean, Color32 target)> WallPaint = new()
         {
-            ["apt-01-stucco"] = (new(129, 118, 107, 255), new(129, 118, 107, 255)),
+            ["apt-01-stucco"] = (new(200, 183, 165, 255), new(200, 183, 165, 255)),   // v75d: Matthew's v2 file, as it is
             ["apt-mixed-use"] = (new(53, 41, 36, 255), new(132, 98, 80, 255)),
             ["apt-02-brick"] = (new(62, 46, 38, 255), new(128, 86, 66, 255)),
             ["apt-motel-style"] = (new(99, 89, 78, 255), new(178, 172, 154, 255)),
@@ -70,7 +70,7 @@ namespace StreetEmpire.EditorTools
             ["store-bodega"] = (new(66, 48, 44, 255), new(104, 128, 116, 255)),
             ["store-laundromat"] = (new(90, 81, 69, 255), new(152, 162, 168, 255)),
             ["store-takeout"] = (new(134, 111, 109, 255), new(188, 166, 122, 255)),
-            ["store-pawn"] = (new(65, 63, 60, 255), new(104, 84, 72, 255)),
+            ["store-pawn"] = (new(98, 95, 91, 255), new(98, 95, 91, 255)),   // v75d: Matthew's v2 file, as it is
             ["house-02-two-story"] = (new(150, 104, 84, 255), new(150, 104, 84, 255)),
             ["house-01-bungalow"] = (new(221, 214, 198, 255), new(221, 214, 198, 255)),
         };
@@ -205,7 +205,7 @@ namespace StreetEmpire.EditorTools
             cycle.skylineMaterials = PropBuilder.EmissiveMaterials.ToArray();
             cycle.signMaterials = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None)
                 .SelectMany(b => b.GetComponentsInChildren<Renderer>(true)).SelectMany(r => r.sharedMaterials)
-                .Where(m => m != null && (Part(m) == "Sign_Blank_CoreEmission" || m.name.Contains("liquor_sign"))).Distinct().ToArray();
+                .Where(m => m != null && (Part(m) == "Sign_Blank_CoreEmission" || Part(m) == "sign_lit" || m.name.Contains("liquor_sign") || m.name.Contains("pawn_sign"))).Distinct().ToArray();
             LampLightsBuild(root.transform, cycle);
             PostAndQuality(root.transform);
 
@@ -256,7 +256,8 @@ namespace StreetEmpire.EditorTools
             var col = holder.AddComponent<BoxCollider>(); col.center = bounds.center; col.size = bounds.size;
             BindTextures(inst, name);
             SplitWindows(inst, name, bounds.size);
-            if (spot.kind == "house") { marker.wash = n % HouseTint.Length; Wash(inst, name, HouseTint[marker.wash], HouseWall[marker.wash % HouseWall.Length]); }
+            // v75d: Matthew's v2 white house is used as it is (its walls material carries the roof too), no wash
+            if (spot.kind == "house") { marker.wash = n % HouseTint.Length; if (name != "house-01-bungalow") Wash(inst, name, HouseTint[marker.wash], HouseWall[marker.wash % HouseWall.Length]); }
             if (name == "store-pawn") PawnSign(inst, holder);
             if (name == "store-liquor-blank") LiquorSign(inst, holder);
             var near = inst.GetComponentsInChildren<Renderer>();
@@ -329,7 +330,8 @@ namespace StreetEmpire.EditorTools
                 if (part == "walls" && WallPaint.TryGetValue(name, out var wp) && !name.StartsWith("house")) m.SetColor("_BaseColor", Paint(wp.mean, wp.target));
                 // v75: the liquor store sign glows again, the sign face only, its own print as the emission map
                 // (DayCycle.signMaterials: low by day, full at night)
-                if (part == "Sign_Blank_CoreEmission" && bc != null)
+                // v75d: the pawn shop's sign_lit (Matthew's v2 file) glows the same way
+                if ((part == "Sign_Blank_CoreEmission" || part == "sign_lit") && bc != null)
                 {
                     m.SetTexture("_EmissionMap", bc); m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.white * 0.6f);
                     m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
@@ -406,23 +408,43 @@ namespace StreetEmpire.EditorTools
         }
 
         /// <summary>v75: the pawn shop's blank sign band gets its board (pawn-sign: PAWN, LOANS, GOLD, through
-        /// Sovereign Asset), on the band of the front (model +Z) at y 1.08 to 1.22 of the 1.5 model units, 3 cm proud.</summary>
+        /// Sovereign Asset). v75d: Matthew's v2 file has its own sign_lit band, so the board sits on that band's
+        /// front (its bounds, from the sign_lit triangles), 2 cm proud, and glows from its own print like the liquor board.</summary>
         static void PawnSign(GameObject inst, GameObject holder)
         {
+            var sb = new Bounds(); bool any = false;
+            foreach (var r in inst.GetComponentsInChildren<MeshRenderer>())
+            {
+                var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
+                var mats = r.sharedMaterials; var v = mf.sharedMesh.vertices;
+                for (int i = 0; i < mats.Length && i < mf.sharedMesh.subMeshCount; i++)
+                {
+                    if (mats[i] == null || Part(mats[i]) != "sign_lit") continue;
+                    foreach (int t in mf.sharedMesh.GetTriangles(i)) { var w = r.transform.TransformPoint(v[t]); if (!any) { sb = new Bounds(w, Vector3.zero); any = true; } else sb.Encapsulate(w); }
+                }
+            }
+            if (!any) { Debug.LogWarning("[SceneBuilder] pawn shop has no sign_lit"); return; }
             var sign = PropBuilder.Loose("pawn-sign");
             if (sign == null) return;
             sign.name = "Pawn Sign"; sign.transform.SetParent(holder.transform, false);
-            var p = inst.transform.TransformPoint(new Vector3(0f, 1.15f, 0.754f));
-            float k = inst.transform.lossyScale.y;
-            sign.transform.position = p + holder.transform.forward * 0.03f;
             sign.transform.rotation = holder.transform.rotation;
-            var b = WorldBounds(sign); float w = 1.48f * k;   // the band is 1.48 model units wide
-            if (b.size.x > 1e-3f) sign.transform.localScale *= Mathf.Min(1.1f, w / b.size.x);
+            var b = WorldBounds(sign);
+            if (b.size.x > 1e-3f) sign.transform.localScale = new Vector3(sb.size.x * 0.94f / b.size.x, sb.size.y * 0.8f / Mathf.Max(b.size.y, 1e-3f), 1f);
+            b = WorldBounds(sign);
+            sign.transform.position += new Vector3(sb.center.x - b.center.x, sb.center.y - b.center.y, sb.max.z + 0.02f - b.center.z);
+            Debug.Log($"[SceneBuilder] pawn sign on sign_lit {sb.size.x:F2} x {sb.size.y:F2} m at {sb.center}");
             foreach (var r in sign.GetComponentsInChildren<Renderer>())
             {
                 r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = true;
-                // a painted board: buildings are never metal (the prop material takes metal from the map's red)
-                foreach (var m in r.sharedMaterials) if (m != null) { m.SetFloat("_Metallic", 0f); EditorUtility.SetDirty(m); }
+                foreach (var m in r.sharedMaterials)
+                {
+                    if (m == null) continue;
+                    // a painted board: buildings are never metal (the prop material takes metal from the map's red)
+                    m.SetFloat("_Metallic", 0f);
+                    m.SetTexture("_EmissionMap", m.GetTexture("_BaseMap")); m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.white * 0.6f);
+                    m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                    EditorUtility.SetDirty(m);
+                }
             }
         }
 
