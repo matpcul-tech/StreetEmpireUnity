@@ -99,6 +99,7 @@ namespace StreetEmpire.EditorTools
             float district = CityLayout.LineCoord(w, 3) - CityLayout.LineCoord(w, 0) + 60;
             var asphalt = TexMat("Asphalt", "worn_asphalt", district / 4.5f, 0.12f, new Color(0.78f, 0.78f, 0.8f));
             var sidewalk = TexMat("Sidewalk", "concrete_pavement", (w.block + 4) / 2.6f, 0.08f, Color.white);
+            var sidewalkStrip = TexMat("SidewalkStrips", "concrete_pavement", 1f, 0.08f, Color.white);
             var yard = TexMat("Yard", "sparse_grass", (w.block - 2) / 3.5f, 0.04f, new Color(0.74f, 0.71f, 0.52f));   // dry olive like the web yards
             YardVariation(yard, (w.block - 2) / 11f);
             var outer = TexMat("OuterGround", "sparse_grass", 1600f / 6f, 0.03f, new Color(0.62f, 0.56f, 0.42f));   // dry lots out to the haze, not green lawn
@@ -111,6 +112,25 @@ namespace StreetEmpire.EditorTools
             var (gx0, gz0) = WorldSpace.FromSource(min, min); var (gx1, gz1) = WorldSpace.FromSource(max, max);
             var ground = Box("Ground", root.transform, asphalt, new Vector3((gx0 + gx1) / 2, -0.05f, (gz0 + gz1) / 2), new Vector3(Mathf.Abs(gx1 - gx0), 0.1f, Mathf.Abs(gz1 - gz0)));
             GameObjectUtility.SetStaticEditorFlags(ground, StaticEditorFlags.BatchingStatic);
+            // v75c: URP's forward path lights each object with its nearest few lamps only (3 on High, 6 on Ultra),
+            // so one 230 m asphalt box got almost none of the 36 lamp pools. The box keeps its collider and the
+            // asphalt is drawn as about 26 m tiles (world-space UVs, same 4.5 m texture repeat), each in reach of a
+            // lamp or two.
+            {
+                Object.DestroyImmediate(ground.GetComponent<MeshRenderer>()); Object.DestroyImmediate(ground.GetComponent<MeshFilter>());
+                var tileMat = TexMat("AsphaltTiles", "worn_asphalt", 1f, 0.12f, new Color(0.78f, 0.78f, 0.8f));
+                var tiles = new GameObject("Ground Tiles").transform; tiles.SetParent(root.transform, false);
+                float x0 = Mathf.Min(gx0, gx1), x1 = Mathf.Max(gx0, gx1), z0 = Mathf.Min(gz0, gz1), z1 = Mathf.Max(gz0, gz1);
+                int nx = Mathf.Max(1, Mathf.RoundToInt((x1 - x0) / 26f)), nz = Mathf.Max(1, Mathf.RoundToInt((z1 - z0) / 26f));
+                for (int i = 0; i < nx; i++) for (int j = 0; j < nz; j++)
+                {
+                    float ax = Mathf.Lerp(x0, x1, i / (float)nx), bx = Mathf.Lerp(x0, x1, (i + 1) / (float)nx);
+                    float az = Mathf.Lerp(z0, z1, j / (float)nz), bz = Mathf.Lerp(z0, z1, (j + 1) / (float)nz);
+                    var t = Slab($"Ground {i}.{j}", tiles, tileMat, new Vector3((ax + bx) / 2, -0.05f, (az + bz) / 2), new Vector3(bx - ax, 0.1f, bz - az), 4.5f);
+                    t.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+                    var tf = t.GetComponent<MeshFilter>(); tf.sharedMesh = MeshMerge.Save(tf.sharedMesh, $"Assets/Art/Meshes/Ground/Ground-{i}-{j}.asset", compress: false);
+                }
+            }
             // grass out to the fog so the district does not end over nothing
             Box("Outer Ground", root.transform, outer, new Vector3((gx0 + gx1) / 2, -0.1f, (gz0 + gz1) / 2), new Vector3(1600, 0.1f, 1600));
 
@@ -153,8 +173,11 @@ namespace StreetEmpire.EditorTools
                 bm.district = CityLayout.DistrictOf(b.gx, b.gz, w.grid);
                 blockInfo.Add(new PropBuilder.BlockInfo { id = b.id, center = new Vector3(ux, 0, uz) });
                 // sidewalk slab with a curb edge, then the yard inside (city.js buildBlock)
-                Box("Sidewalk", bgo.transform, sidewalk, new Vector3(ux, 0.11f, uz), new Vector3(w.block + 4, 0.22f, w.block + 4));
-                Box("Curb", bgo.transform, curb, new Vector3(ux, 0.1f, uz), new Vector3(w.block + 4.3f, 0.2f, w.block + 4.3f), false);
+                // v75c: the slab keeps its collider; the sidewalk and curb are drawn as a strip per block side (see Ground Tiles)
+                var slab = Box("Sidewalk", bgo.transform, sidewalk, new Vector3(ux, 0.11f, uz), new Vector3(w.block + 4, 0.22f, w.block + 4));
+                Object.DestroyImmediate(slab.GetComponent<MeshRenderer>()); Object.DestroyImmediate(slab.GetComponent<MeshFilter>());
+                SideStrips(bgo.transform, new Vector3(ux, 0, uz), w.block - 2, w.block + 4, 0.22f, "Sidewalk", sidewalkStrip, 2.6f);
+                SideStrips(bgo.transform, new Vector3(ux, 0, uz), w.block + 4, w.block + 4.3f, 0.2f, "Curb", curb, 0f);
                 Box("Yard", bgo.transform, yard, new Vector3(ux, 0.12f, uz), new Vector3(w.block - 2, 0.24f, w.block - 2), false);
                 foreach (var spot in CityLayout.BuildingsFor(w, b)) if (PlaceBuilding(spot, bgo.transform)) placed++;
             }
@@ -182,7 +205,7 @@ namespace StreetEmpire.EditorTools
             cycle.skylineMaterials = PropBuilder.EmissiveMaterials.ToArray();
             cycle.signMaterials = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None)
                 .SelectMany(b => b.GetComponentsInChildren<Renderer>(true)).SelectMany(r => r.sharedMaterials)
-                .Where(m => m != null && Part(m) == "Sign_Blank_CoreEmission").Distinct().ToArray();
+                .Where(m => m != null && (Part(m) == "Sign_Blank_CoreEmission" || m.name.Contains("liquor_sign"))).Distinct().ToArray();
             LampLightsBuild(root.transform, cycle);
             PostAndQuality(root.transform);
 
@@ -235,6 +258,7 @@ namespace StreetEmpire.EditorTools
             SplitWindows(inst, name, bounds.size);
             if (spot.kind == "house") { marker.wash = n % HouseTint.Length; Wash(inst, name, HouseTint[marker.wash], HouseWall[marker.wash % HouseWall.Length]); }
             if (name == "store-pawn") PawnSign(inst, holder);
+            if (name == "store-liquor-blank") LiquorSign(inst, holder);
             var near = inst.GetComponentsInChildren<Renderer>();
             foreach (var r in near) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
             Compress(inst, name, "Near");
@@ -399,6 +423,36 @@ namespace StreetEmpire.EditorTools
                 r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = true;
                 // a painted board: buildings are never metal (the prop material takes metal from the map's red)
                 foreach (var m in r.sharedMaterials) if (m != null) { m.SetFloat("_Metallic", 0f); EditorUtility.SetDirty(m); }
+            }
+        }
+
+        /// <summary>v75c: the liquor store's blank main sign gets a lettered board (liquor-sign: LIQUOR, BEER, WINE,
+        /// through Sovereign Asset) on its face. The board's own print is its emission map, so only the letters and
+        /// their halo glow warm; DayCycle.signMaterials keeps it low by day and full at night.</summary>
+        static void LiquorSign(GameObject inst, GameObject holder)
+        {
+            var face = inst.GetComponentsInChildren<Renderer>().FirstOrDefault(r => r.name.Contains("MainSign"));
+            if (face == null) { Debug.LogWarning("[SceneBuilder] liquor store has no MainSign"); return; }
+            var sign = PropBuilder.Loose("liquor-sign");
+            if (sign == null) return;
+            sign.name = "Liquor Sign"; sign.transform.SetParent(holder.transform, false);
+            var fb = face.bounds;   // the holder is still at the origin here, so world is the model's own frame
+            sign.transform.rotation = holder.transform.rotation;
+            var b = WorldBounds(sign);
+            if (b.size.x > 1e-3f) sign.transform.localScale = new Vector3(fb.size.x * 0.94f / b.size.x, fb.size.y * 0.8f / b.size.y, 1f);
+            b = WorldBounds(sign);
+            sign.transform.position += new Vector3(fb.center.x - b.center.x, fb.center.y - b.center.y, fb.max.z + 0.02f - b.center.z);
+            foreach (var r in sign.GetComponentsInChildren<Renderer>())
+            {
+                r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = true;
+                foreach (var m in r.sharedMaterials)
+                {
+                    if (m == null) continue;
+                    m.SetFloat("_Metallic", 0f);
+                    m.SetTexture("_EmissionMap", m.GetTexture("_BaseMap")); m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.white * 0.6f);
+                    m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                    EditorUtility.SetDirty(m);
+                }
             }
         }
 
@@ -719,24 +773,84 @@ namespace StreetEmpire.EditorTools
             cam.clearFlags = CameraClearFlags.Skybox;
         }
 
+        /// <summary>v75c: a ring (outer size <paramref name="outer"/>, hole <paramref name="inner"/>, top at
+        /// <paramref name="top"/>) as four side boxes named "{name} {side}": the north and south ones run the full
+        /// width, the east and west ones fill between them.</summary>
+        static void SideStrips(Transform parent, Vector3 c, float inner, float outer, float top, string name, Material m, float uvMeters)
+        {
+            float o = outer / 2, i = inner / 2, wd = o - i, mid = (o + i) / 2;
+            Slab($"{name} N", parent, m, c + new Vector3(0, top / 2, mid), new Vector3(outer, top, wd), uvMeters);
+            Slab($"{name} S", parent, m, c + new Vector3(0, top / 2, -mid), new Vector3(outer, top, wd), uvMeters);
+            Slab($"{name} E", parent, m, c + new Vector3(mid, top / 2, 0), new Vector3(wd, top, inner), uvMeters);
+            Slab($"{name} W", parent, m, c + new Vector3(-mid, top / 2, 0), new Vector3(wd, top, inner), uvMeters);
+        }
+
+        /// <summary>v75c: a render-only box (no bottom face, no collider) with world-space planar UVs, one texture
+        /// repeat per <paramref name="uvMeters"/> (0: plain 0..1 per face), so tiles and strips line up seamlessly.</summary>
+        static GameObject Slab(string name, Transform parent, Material m, Vector3 center, Vector3 size, float uvMeters)
+        {
+            var go = new GameObject(name); go.transform.SetParent(parent, true); go.transform.position = center;
+            var h = size / 2; var v = new List<Vector3>(); var n = new List<Vector3>(); var uv = new List<Vector2>(); var tri = new List<int>();
+            void Face(Vector3 nrm, Vector3 a, Vector3 b, Vector3 cc, Vector3 d, System.Func<Vector3, Vector2> proj)
+            {
+                int k = v.Count;
+                foreach (var q in new[] { a, b, cc, d })
+                {
+                    v.Add(q); n.Add(nrm);
+                    var wp = q + center;
+                    uv.Add(uvMeters > 0 ? proj(wp) / uvMeters : proj(q - (a + cc) / 2) / 1f);
+                }
+                tri.AddRange(new[] { k, k + 1, k + 2, k, k + 2, k + 3 });
+            }
+            float x = h.x, y = h.y, z = h.z;
+            Face(Vector3.up, new(-x, y, -z), new(-x, y, z), new(x, y, z), new(x, y, -z), p => new Vector2(p.x, p.z));
+            Face(Vector3.forward, new(x, -y, z), new(x, y, z), new(-x, y, z), new(-x, -y, z), p => new Vector2(-p.x, p.y));
+            Face(Vector3.back, new(-x, -y, -z), new(-x, y, -z), new(x, y, -z), new(x, -y, -z), p => new Vector2(p.x, p.y));
+            Face(Vector3.right, new(x, -y, -z), new(x, y, -z), new(x, y, z), new(x, -y, z), p => new Vector2(p.z, p.y));
+            Face(Vector3.left, new(-x, -y, z), new(-x, y, z), new(-x, y, -z), new(-x, -y, -z), p => new Vector2(-p.z, p.y));
+            var mesh = new Mesh { name = name };
+            mesh.SetVertices(v); mesh.SetNormals(n); mesh.SetUVs(0, uv); mesh.SetTriangles(tri, 0);
+            mesh.RecalculateTangents(); mesh.RecalculateBounds();
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            go.AddComponent<MeshRenderer>().sharedMaterial = m;
+            GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+            return go;
+        }
+
         /// <summary>The center lines, sidewalks, curbs and yards drawn as one mesh (one draw per material) instead of
         /// about 130 boxes. The center line boxes go; the sidewalk slabs keep their colliders without a renderer.</summary>
         static void Combine(Transform root)
         {
             var parts = root.GetComponentsInChildren<MeshRenderer>()
-                .Where(r => r.name.StartsWith("Line ") || r.name == "Sidewalk" || r.name == "Curb" || r.name == "Yard").ToArray();
+                .Where(r => r.name.StartsWith("Line ") || r.name.StartsWith("Sidewalk ") || r.name.StartsWith("Curb ") || r.name == "Yard").ToArray();
             if (parts.Length == 0) return;
-            var order = new List<Material>();
-            var mesh = MeshMerge.Merge(parts, Matrix4x4.identity, m => m, order, false, "Assets/Art/Meshes/Streets-Combined.asset", compress: false);
-            var go = new GameObject("Streets Combined"); go.transform.SetParent(root, false);
-            go.AddComponent<MeshFilter>().sharedMesh = mesh;
-            var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterials = order.ToArray();
-            mr.shadowCastingMode = ShadowCastingMode.On; mr.receiveShadows = true;
+            // v75c: one mesh per block side (its sidewalk and curb strips), one per block yard, and the center lines
+            // by 26 m cell, so each chunk is lit by the one or two lamps that reach it (see Ground Tiles)
+            string Key(MeshRenderer r)
+            {
+                if (r.name.StartsWith("Line ")) { var c = r.bounds.center; return $"Lines {Mathf.FloorToInt(c.x / 26f)}.{Mathf.FloorToInt(c.z / 26f)}"; }
+                var block = r.transform.parent ? r.transform.parent.name : "";
+                return r.name == "Yard" ? $"{block} Yard" : $"{block} Side {r.name[^1]}";
+            }
+            var top = new GameObject("Streets Combined"); top.transform.SetParent(root, false);
+            Directory.CreateDirectory("Assets/Art/Meshes/Streets");
+            int chunk = 0;
+            foreach (var g in parts.GroupBy(Key).OrderBy(g => g.Key))
+            {
+                var order = new List<Material>();
+                var mesh = MeshMerge.Merge(g, Matrix4x4.identity, m => m, order, false, $"Assets/Art/Meshes/Streets/Streets-{chunk++:000}.asset", compress: false);
+                var go = new GameObject($"Streets {g.Key}"); go.transform.SetParent(top.transform, false);
+                go.AddComponent<MeshFilter>().sharedMesh = mesh;
+                var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterials = order.ToArray();
+                mr.shadowCastingMode = g.Key.Contains("Lines") ? ShadowCastingMode.Off : ShadowCastingMode.On; mr.receiveShadows = true;
+                GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+            }
             foreach (var r in parts)
             {
-                if (r.name.StartsWith("Line ")) { Object.DestroyImmediate(r.gameObject); continue; }
+                if (r.name.StartsWith("Line ") || r.name.StartsWith("Sidewalk ") || r.name.StartsWith("Curb ")) { Object.DestroyImmediate(r.gameObject); continue; }
                 var mf = r.GetComponent<MeshFilter>(); Object.DestroyImmediate(r); if (mf) Object.DestroyImmediate(mf);
             }
+            Debug.Log($"[SceneBuilder] streets in {chunk} chunks, ground in {root.Find("Ground Tiles")?.childCount ?? 0} tiles");
         }
 
         static GameObject Box(string name, Transform parent, Material m, Vector3 pos, Vector3 size, bool collider = true)

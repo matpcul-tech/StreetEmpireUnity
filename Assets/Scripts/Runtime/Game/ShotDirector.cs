@@ -350,8 +350,13 @@ namespace StreetEmpire.Game
             // v75: every street view is the game's own follow camera behind the player (no free debug camera), so
             // the player is in each one; the orbit is turned to look where the view needs. Only the palm close up (7)
             // and the high district edge view (8) are free cameras.
-            float[] hours = { 14f, 19f, 22f, 22f, 22f, 14f, 14f, 14f, 14f, 14f, 22f, 14f };
+            float[] hours = { 14f, 19f, 22f, 22f, 22f, 14f, 14f, 14f, 14f, 14f, 22f, 14f, 22f };
             int view = 0; int shown = -1;
+            // v75c: draw calls per view, a second and a half after each switch
+            var draws = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "Draw Calls Count");
+            var batches = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "Batches Count");
+            var setpass = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "SetPass Calls Count");
+            float drawLog = float.MaxValue;
             void Game(Vector3 at, Vector3 look, float pitch, float radius)
             {
                 look.y = 0; float yaw = Quaternion.LookRotation(look.normalized).eulerAngles.y;
@@ -365,17 +370,20 @@ namespace StreetEmpire.Game
                 var kb = UnityEngine.InputSystem.Keyboard.current;
                 if (kb != null)
                 {
-                    var keys = new[] { kb.digit1Key, kb.digit2Key, kb.digit3Key, kb.digit4Key, kb.digit5Key, kb.digit6Key, kb.digit7Key, kb.digit8Key, kb.digit9Key, kb.digit0Key, kb.minusKey, kb.equalsKey };
+                    var keys = new[] { kb.digit1Key, kb.digit2Key, kb.digit3Key, kb.digit4Key, kb.digit5Key, kb.digit6Key, kb.digit7Key, kb.digit8Key, kb.digit9Key, kb.digit0Key, kb.minusKey, kb.equalsKey, kb.backspaceKey };
                     for (int i = 0; i < keys.Length; i++) if (keys[i].isPressed) view = i;
                 }
                 bool free = view == 6 || view == 7;
                 if (view != shown)
                 {
-                    shown = view; GameClock.FrozenHour = hours[view];
+                    shown = view; GameClock.FrozenHour = hours[view]; drawLog = Time.time + 1.5f;
                     if (brain) brain.enabled = !free;
                     switch (view)
                     {
                         case 0: case 1: case 8: Game(b10 + new Vector3(28f, 0f, -20f), Vector3.forward, 8f, 5.2f); break;
+                        // v75c: the 22:00 street wide (Backspace): the same street as 1 and 2, the camera higher and
+                        // farther back so the run of lamp pools down the road is in frame
+                        case 12: Game(b10 + new Vector3(28f, 0f, -24f), Vector3.forward, 14f, 8f); break;
                         case 2:
                         {
                             // v75b: the lamp on this apartment's own curb (in front of the wall, beside it), the player
@@ -386,13 +394,16 @@ namespace StreetEmpire.Game
                             {
                                 if (m.model != "street-lamp-1") continue;
                                 var o = m.transform.position - f.face; float ahead = Vector3.Dot(o, f.n), side = Vector3.Dot(o, f.t);
-                                if (ahead < 3f || ahead > 13f || Mathf.Abs(side) > 14f) continue;
+                                // v75c: looser (v75b's 3 to 13 m out and 14 m along found none): any lamp in front of
+                                // the wall out to the far curb and up to 30 m along it, the nearest along the wall wins
+                                if (ahead < 0.5f || ahead > 18f || Mathf.Abs(side) > 30f) continue;
                                 if (Mathf.Abs(side) < bl) { bl = Mathf.Abs(side); lp = m.transform.position; }
                             }
                             float sd = Mathf.Sign(Vector3.Dot(lp - f.face, f.t)); if (sd == 0) sd = 1;
                             var spot = lp - f.n * 1.4f - f.t * sd * 3f;
                             Debug.Log($"[ShotDirector] v75 view 3 lamp at {lp}, {bl:0.0} m along the wall");
-                            Game(spot, (f.face + Vector3.up * 3f) - spot, 16f, 7f); break;
+                            var aim = Vector3.Lerp(f.face, new Vector3(lp.x, f.face.y, lp.z), bl > 8f ? 0.4f : 0f) + Vector3.up * 3f;
+                            Game(spot, aim - spot, 16f, bl > 8f ? 8.5f : 7f); break;
                         }
                         case 3: { var f = Face("store-pawn", 7f); Game(f.face + f.n * 4.2f + f.t * 0.6f, -f.n, 6f, 5f); break; }
                         case 4: { var f = Face("apt-01", 12f); Game(f.face + f.n * 6.5f + f.t * 1.5f, -f.n, 18f, 6f); break; }
@@ -417,6 +428,7 @@ namespace StreetEmpire.Game
                     var sun = RenderSettings.sun;
                     Debug.Log($"[ShotDirector] v75 view {view + 1} at {hours[view]}, lamp lights on {on}, sun {(sun && sun.enabled ? sun.intensity.ToString("0.00") : "off")}");
                 }
+                if (Time.time > drawLog) { drawLog = float.MaxValue; Debug.Log($"[ShotDirector] v75 view {view + 1} draws {draws.LastValue} batches {batches.LastValue} setpass {setpass.LastValue}"); }
                 if (free)
                 {
                     (Vector3 pos, Vector3 at) v;

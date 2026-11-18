@@ -35,3 +35,4 @@ Size set to the real height; props, the edge, signs and the fight dust use "Unit
 | palm-tall | palm-sa | unity-static | READY | 160 |  |
 | fx-dust | quads-sa | unity-static | READY | 2 |  |
 | pawn-sign | quads-sa | unity-static | READY | 2 |  |
+| liquor-sign | u75c | unity-static | READY | 2 | n/a |

@@ -82,21 +82,30 @@ namespace StreetEmpire.Tests
             yield return null; yield return null;
             var s = GameSession.Instance;
             // the center lines are part of the combined street mesh: no triangle of the line submesh reaches a crossing
-            var streets = GameObject.Find("Streets Combined"); Assert.IsNotNull(streets, "combined street mesh");
-            var mesh = streets.GetComponent<MeshFilter>().sharedMesh; var mats = streets.GetComponent<MeshRenderer>().sharedMaterials;
-            int sub = System.Array.FindIndex(mats, m => m != null && m.name.StartsWith("LaneYellow"));
-            Assert.GreaterOrEqual(sub, 0, "center line material in the combined mesh");
-            var v = mesh.vertices; var tri = mesh.GetTriangles(sub);
-            Assert.Greater(tri.Length / 36, 16, "center line boxes");
-            for (int i = 0; i < tri.Length; i += 3)
+            // v75c: the street mesh comes in chunks (block sides, yards, center lines by cell) so the lamps light it
+            var streets = GameObject.Find("Streets Combined"); Assert.IsNotNull(streets, "combined street meshes");
+            int boxes = 0, chunks = 0;
+            foreach (var mf in streets.GetComponentsInChildren<MeshFilter>())
             {
-                var b = new Bounds(v[tri[i]], Vector3.zero); b.Encapsulate(v[tri[i + 1]]); b.Encapsulate(v[tri[i + 2]]);
-                foreach (var x in s.streetX) foreach (var z in s.streetZ)
+                chunks++;
+                var mesh = mf.sharedMesh; var mats = mf.GetComponent<MeshRenderer>().sharedMaterials;
+                int sub = System.Array.FindIndex(mats, m => m != null && m.name.StartsWith("LaneYellow"));
+                if (sub < 0) continue;
+                var v = mesh.vertices; var tri = mesh.GetTriangles(sub); boxes += tri.Length / 36;
+                for (int i = 0; i < tri.Length; i += 3)
                 {
-                    bool inside = Mathf.Abs(x - b.center.x) < b.extents.x + 3f && Mathf.Abs(z - b.center.z) < b.extents.z + 3f;
-                    Assert.IsFalse(inside, $"a center line crosses the intersection at ({x:F0}, {z:F0})");
+                    var b = new Bounds(v[tri[i]], Vector3.zero); b.Encapsulate(v[tri[i + 1]]); b.Encapsulate(v[tri[i + 2]]);
+                    foreach (var x in s.streetX) foreach (var z in s.streetZ)
+                    {
+                        bool inside = Mathf.Abs(x - b.center.x) < b.extents.x + 3f && Mathf.Abs(z - b.center.z) < b.extents.z + 3f;
+                        Assert.IsFalse(inside, $"a center line crosses the intersection at ({x:F0}, {z:F0})");
+                    }
                 }
             }
+            Assert.Greater(boxes, 16, "center line boxes");
+            Assert.Greater(chunks, 20, "street mesh split into chunks for the lamp pools");
+            var tiles = GameObject.Find("Ground Tiles"); Assert.IsNotNull(tiles, "asphalt tiles");
+            Assert.Greater(tiles.transform.childCount, 16, "asphalt drawn as tiles");
             // the Eastside models are in and no block repeats a building: houses are the three stucco models
             // (the clapboard and brick ones are out), told apart by model and stucco wash
             var bs = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None);

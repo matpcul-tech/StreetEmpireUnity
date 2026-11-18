@@ -769,6 +769,27 @@
    "metalsmooth": "hydrant__fire_hydrant_2k_metalsmooth.png"
   },
   {
+   "prop": "liquor-sign",
+   "material": "liquor_sign",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "liquor-sign__liquor_sign_basecolor.jpg",
+   "normal": "liquor-sign__liquor_sign_normal.jpg",
+   "metalsmooth": "liquor-sign__liquor_sign_metalsmooth.png"
+  },
+  {
    "prop": "mailbox",
    "material": "usps",
    "alpha": "OPAQUE",
