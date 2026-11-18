@@ -310,18 +310,32 @@ namespace StreetEmpire.Game
                     if (m.model == model) { float d = (m.transform.position - near).sqrMagnitude; if (d < bd) { bd = d; best = m.transform; } }
                 return best;
             }
-            // the street face of the model's building nearest block 10: its foot, outward normal and tangent
-            (Vector3 face, Vector3 n, Vector3 t, float h) Face(string model)
+            // the street front of one building of the model: its foot, outward normal, tangent and height. The front is
+            // the holder's forward or back, whichever points away from its block; of every copy of the model, the one
+            // with the fewest palms, poles and lamps between the camera spot (back m out) and the wall
+            var blockers = new System.Collections.Generic.List<Vector3>();
+            foreach (var m in FindObjectsByType<StreetEmpire.City.PropMarker>(FindObjectsSortMode.None))
+                if (m.model != null && (m.model.StartsWith("palm") || m.model.StartsWith("tree") || m.model.Contains("pole") || m.model.Contains("lamp") || m.model.Contains("signal"))) blockers.Add(m.transform.position);
+            (Vector3 face, Vector3 n, Vector3 t, float h) Face(string model, float back = 9f)
             {
-                StreetEmpire.City.BuildingMarker best = null; float bd = float.MaxValue;
+                (Vector3, Vector3, Vector3, float) best = (b10, Vector3.back, Vector3.right, 8f); float bestScore = float.MaxValue;
                 foreach (var m in FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None))
-                    if (m.model != null && m.model.StartsWith(model)) { float d = (m.transform.position - b10).sqrMagnitude; if (d < bd) { bd = d; best = m; } }
-                if (best == null) return (b10, Vector3.back, Vector3.right, 8f);
-                var c = best.GetComponent<BoxCollider>(); var bb = c ? c.bounds : new Bounds(best.transform.position, Vector3.one * 10);
-                var o = bb.center - Block(best.blockId); o.y = 0;
-                var n = Mathf.Abs(o.x) > Mathf.Abs(o.z) ? new Vector3(Mathf.Sign(o.x), 0, 0) : new Vector3(0, 0, Mathf.Sign(o.z));
-                var face = bb.center + n * Mathf.Abs(Vector3.Dot(bb.extents, n)); face.y = bb.min.y;
-                return (face, n, Vector3.Cross(Vector3.up, n), bb.size.y);
+                {
+                    if (m.model == null || !m.model.StartsWith(model)) continue;
+                    var c = m.GetComponent<BoxCollider>(); var bb = c ? c.bounds : new Bounds(m.transform.position, Vector3.one * 10);
+                    var o = bb.center - Block(m.blockId); o.y = 0;
+                    var n = m.transform.forward; n.y = 0; n.Normalize(); if (Vector3.Dot(n, o) < 0) n = -n;
+                    var face = bb.center + n * Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(n.x), 0, Mathf.Abs(n.z)))); face.y = bb.min.y;
+                    var cam0 = face + n * back; float score = 0;
+                    foreach (var q in blockers)
+                    {
+                        var qq = q; qq.y = face.y; var seg = face - cam0; float u = Mathf.Clamp01(Vector3.Dot(qq - cam0, seg) / seg.sqrMagnitude);
+                        if ((cam0 + seg * u - qq).magnitude < 1.6f) score += 1f;
+                    }
+                    score += (bb.center - b10).magnitude * 0.002f;
+                    if (score < bestScore) { bestScore = score; best = (face, n, Vector3.Cross(Vector3.up, n), bb.size.y); }
+                }
+                return best;
             }
             float[] hours = { 14f, 19f, 22f, 22f, 22f, 14f, 14f, 14f, 14f };
             int view = 0; int shown = -1;
@@ -334,20 +348,25 @@ namespace StreetEmpire.Game
                     var keys = new[] { kb.digit1Key, kb.digit2Key, kb.digit3Key, kb.digit4Key, kb.digit5Key, kb.digit6Key, kb.digit7Key, kb.digit8Key, kb.digit9Key };
                     for (int i = 0; i < keys.Length; i++) if (keys[i].isPressed) view = i;
                 }
-                if (view != shown) { shown = view; GameClock.FrozenHour = hours[view]; Debug.Log($"[ShotDirector] v74 view {view + 1} at {hours[view]}"); }
+                if (view != shown)
+                {
+                    shown = view; GameClock.FrozenHour = hours[view];
+                    var ll = FindFirstObjectByType<StreetEmpire.City.LampLights>(); int on = 0; if (ll) foreach (var l in ll.lights) if (l && l.enabled) on++;
+                    Debug.Log($"[ShotDirector] v74 view {view + 1} at {hours[view]}, lamp lights on {on}");
+                }
                 (Vector3 pos, Vector3 at) v;
                 switch (view)
                 {
                     case 0: case 1: v = (b10 + new Vector3(28f, 1.7f, -24f), b10 + new Vector3(27f, 1.5f, 30f)); break;
                     case 2:
                     {
-                        var f = Face("apt-01"); var lamp = Prop("street-lamp-1", f.face + f.n * 6f); var lp = lamp ? lamp.position : f.face + f.n * 6f;
+                        var f = Face("apt-01", 12f); var lamp = Prop("street-lamp-1", f.face + f.n * 6f); var lp = lamp ? lamp.position : f.face + f.n * 6f;
                         var cpos = lp + f.n * 7f + f.t * 5f; cpos.y = 1.8f;
                         v = (cpos, Vector3.Lerp(lp, f.face, 0.5f) + Vector3.up * 3.2f); break;
                     }
-                    case 3: { var f = Face("store-pawn"); v = (f.face + f.n * 7f + f.t * 1.2f + Vector3.up * 1.7f, f.face + Vector3.up * 2.2f); break; }
-                    case 4: { var f = Face("apt-01"); v = (f.face + f.n * 12f + f.t * 2.5f + Vector3.up * 1.7f, f.face + Vector3.up * 4.5f); break; }
-                    case 5: { var f = Face("house-02"); v = (f.face + f.n * 9f + f.t * 2f + Vector3.up * 1.7f, f.face + Vector3.up * 2.8f); break; }
+                    case 3: { var f = Face("store-pawn", 7f); v = (f.face + f.n * 7f + f.t * 1.2f + Vector3.up * 1.7f, f.face + Vector3.up * 2.2f); break; }
+                    case 4: { var f = Face("apt-01", 12f); v = (f.face + f.n * 12f + f.t * 2.5f + Vector3.up * 1.7f, f.face + Vector3.up * 4.5f); break; }
+                    case 5: { var f = Face("house-02", 9f); v = (f.face + f.n * 9f + f.t * 2f + Vector3.up * 1.7f, f.face + Vector3.up * 2.8f); break; }
                     case 6: { var palm = Prop("palm-short", b10 + new Vector3(0, 0, -27f)); var a = palm ? palm.position : b10; v = (a + new Vector3(3.5f, 4.6f, -3.5f), a + new Vector3(0, 7.2f, 0)); break; }
                     case 7: { var c = (b0 + b20) / 2; v = (c + new Vector3(60f, 38f, -110f), c + new Vector3(-40f, 0f, 120f)); cam.farClipPlane = 800f; break; }
                     default: { var f = Prop("wood-fence", b10 + new Vector3(0, 0, -27f)); var a = f ? f.position : b10; var fw = f ? f.forward : Vector3.forward; v = (a + fw * 2.6f + (f ? f.right : Vector3.right) * 0.8f + Vector3.up * 1.4f, a + Vector3.up * 0.9f); break; }

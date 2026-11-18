@@ -1,7 +1,7 @@
 // Two URP quality tiers for the Eastside, both made from code like the rest of the project:
 //   Ultra (default): HDR, 4x MSAA, full render scale, high soft shadows over 100 m in 3 cascades on a 4096 map,
 //   SSAO, up to 6 lamp lights per object at night.
-//   High: HDR, 4x MSAA (v74: same as Ultra, the palm fronds need it), 70% render scale, low soft shadows over 40 m in
+//   High: HDR, 4x MSAA (v74: same as Ultra, the palm fronds need it), 70% render scale, hard shadows over 30 m in
 //   2 cascades on a 2048 map, no SSAO, up to 2 lamp lights per object at night.
 // Both feed the same global post volume (ACES tonemapping, a little bloom, color grading, vignette).
 // The player switches tiers at run time with the HUD button (GraphicsQuality); nothing here runs in the player.
@@ -31,7 +31,7 @@ namespace StreetEmpire.EditorTools
             Tier(ultra, msaa: 4, distance: 100f, cascades: 3, map: 4096, softQuality: 3, scale: 1f, lights: 6);
             Ssao(ultraRenderer, true);
             var high = Pipeline(HighPath, HighRendererPath, out var highRenderer);
-            Tier(high, msaa: 4, distance: 40f, cascades: 2, map: 2048, softQuality: 1, scale: 0.7f, lights: 2);   // High draws at 70% with low soft shadows over 40 m (visibly softer, cheaper)
+            Tier(high, msaa: 4, distance: 30f, cascades: 2, map: 2048, softQuality: 0, scale: 0.7f, lights: 2);   // High draws at 70% with low soft shadows over 40 m (visibly softer, cheaper)
             Ssao(highRenderer, false);
             AssetDatabase.SaveAssets();
             return ultra;
@@ -68,8 +68,8 @@ namespace StreetEmpire.EditorTools
             var so = new SerializedObject(p);
             Set(so, "m_MainLightShadowsSupported", true);
             Set(so, "m_MainLightShadowmapResolution", map);
-            Set(so, "m_SoftShadowsSupported", true);
-            Set(so, "m_SoftShadowQuality", softQuality); // 1 low, 2 medium, 3 high
+            Set(so, "m_SoftShadowsSupported", softQuality > 0);   // High: hard shadow edges (0)
+            if (softQuality > 0) Set(so, "m_SoftShadowQuality", softQuality); // 1 low, 2 medium, 3 high
             Set(so, "m_ShadowDepthBias", 1f);
             Set(so, "m_ShadowNormalBias", 1.0f);          // 0.6 left shadow acne on the hoodie (dark blotch on the chest and side)
             Set(so, "m_ColorGradingMode", 1);            // HDR grading

@@ -10,7 +10,7 @@ namespace StreetEmpire.City
     {
         public Light[] lights = new Light[0];
         public DayCycle cycle;
-        public float intensity = 4f;
+        public float intensity = 18f;   // v74: 4 barely showed (about 0.2 on the ground under a 4.3 m head)
         float last = -1f;
 
         void LateUpdate()
