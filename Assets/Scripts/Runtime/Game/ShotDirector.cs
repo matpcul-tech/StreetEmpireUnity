@@ -10,6 +10,9 @@
 //   shot=legs    side view of the player: idle, then keys 2 walk, 3 sprint, 1 stand; logs the knee angles
 //   shot=tour    fixed street views of the Eastside build-out, keys 1 to 8 pick the view (view=N in the URL
 //                starts on one); logs the frame's draw call, batch and triangle counters where the player has them
+//   shot=close   close ups of the playtest fixes, keys 1 to 9 and 0: 1 palm fronds, 2 barbershop wall, 3 bungalow
+//                (white house, red roof), 4 apartment windows, 5 the hoodie, 6 Unc and the player, 7 the objective
+//                marker from the game camera, 8 a yard with grass clumps, 9 a wood fence, 0 the windows at 21:00
 //   shot=mugger  the opening scuffle as a new game plays it (every other shot skips it)
 //   gfx=high     (with any shot) start on the High graphics tier instead of Ultra
 using System.Collections;
@@ -77,6 +80,9 @@ namespace StreetEmpire.Game
                 case "tour":
                     StartCoroutine(Tour(url));
                     break;
+                case "close":
+                    StartCoroutine(Close(p, job));
+                    break;
                 case "car":
                     var car = FindFirstObjectByType<CarController>();
                     p.Teleport(car.transform.position - car.transform.right * 2.4f, car.transform.eulerAngles.y);
@@ -130,6 +136,75 @@ namespace StreetEmpire.Game
                     Debug.Log($"[ShotDirector] tour view {view + 1} draws {draws.LastValue} batches {batches.LastValue} setpass {setpass.LastValue} tris {trisRec.LastValue} frame {Time.smoothDeltaTime * 1000f:0} ms (software renderer here, not a phone number)");
                     Debug.Log($"[ShotDirector] tour view {view + 1} drawn once (before shadow and depth passes): {Breakdown()}");
                 }
+                yield return null;
+            }
+        }
+
+        IEnumerator Close(PlayerMotor p, MissionRunner job)
+        {
+            var cam = Camera.main;
+            var brain = cam.GetComponent<Unity.Cinemachine.CinemachineBrain>();
+            Vector3 Block(int id) { foreach (var m in FindObjectsByType<StreetEmpire.City.BlockMarker>(FindObjectsSortMode.None)) if (m.blockId == id) return m.transform.position; return Vector3.zero; }
+            var b10 = Block(10);
+            Transform Prop(string model, Vector3 near)
+            {
+                Transform best = null; float bd = float.MaxValue;
+                foreach (var m in FindObjectsByType<StreetEmpire.City.PropMarker>(FindObjectsSortMode.None))
+                    if (m.model == model) { float d = (m.transform.position - near).sqrMagnitude; if (d < bd) { bd = d; best = m.transform; } }
+                return best;
+            }
+            (Vector3 pos, Vector3 at) Facade(string model, float back, float side, float h)
+            {
+                StreetEmpire.City.BuildingMarker best = null; float bd = float.MaxValue;
+                foreach (var m in FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None))
+                    if (m.model != null && m.model.StartsWith(model)) { float d = (m.transform.position - b10).sqrMagnitude; if (d < bd) { bd = d; best = m; } }
+                if (best == null) return (b10 + new Vector3(0, 30, -30), b10);
+                var c = best.GetComponent<BoxCollider>(); var bb = c ? c.bounds : new Bounds(best.transform.position, Vector3.one * 10);
+                var o = bb.center - Block(best.blockId); o.y = 0;
+                var n = Mathf.Abs(o.x) > Mathf.Abs(o.z) ? new Vector3(Mathf.Sign(o.x), 0, 0) : new Vector3(0, 0, Mathf.Sign(o.z));
+                var t = Vector3.Cross(Vector3.up, n);
+                float ext = Mathf.Abs(Vector3.Dot(bb.extents, n));
+                var face = bb.center + n * ext; face.y = bb.min.y;
+                return (face + n * back + t * side + Vector3.up * 1.7f, face + Vector3.up * h);
+            }
+            int view = 0; int shown = -1;
+            while (true)
+            {
+                var kb = UnityEngine.InputSystem.Keyboard.current;
+                if (kb != null)
+                {
+                    var keys = new[] { kb.digit1Key, kb.digit2Key, kb.digit3Key, kb.digit4Key, kb.digit5Key, kb.digit6Key, kb.digit7Key, kb.digit8Key, kb.digit9Key, kb.digit0Key };
+                    for (int i = 0; i < keys.Length; i++) if (keys[i].isPressed) view = i;
+                }
+                if (view != shown)
+                {
+                    shown = view; GameClock.FrozenHour = view == 9 ? 21f : GameClock.StartHour;
+                    bool game = view == 6;   // the marker is seen through the game camera
+                    if (brain) brain.enabled = game;
+                    var giver = job.giver;
+                    if (view == 4 || view == 5 || view == 6)
+                    {
+                        if (view == 6) p.Teleport(giver.position + giver.forward * 18f + giver.right * 4f, giver.eulerAngles.y + 180f);
+                        else if (view == 5) p.Teleport(giver.position + giver.forward * 0.9f, giver.eulerAngles.y + 180f);   // pushed out by his body
+                        else p.Teleport(b10 + new Vector3(28f, 0.4f, -24f), 0f);
+                    }
+                    Debug.Log($"[ShotDirector] close view {(view + 1) % 10}");
+                }
+                (Vector3 pos, Vector3 at) v = (cam.transform.position, cam.transform.position + cam.transform.forward);
+                switch (view)
+                {
+                    case 0: { var palm = Prop("palm-short", b10 + new Vector3(0, 0, -27f)); var a = palm ? palm.position : b10; v = (a + new Vector3(3.5f, 4.6f, -3.5f), a + new Vector3(0, 7.2f, 0)); break; }
+                    case 1: v = Facade("store-barber", 6.5f, 1.5f, 2.6f); break;
+                    case 2: v = Facade("house-01", 8f, 2f, 2.4f); break;
+                    case 3: v = Facade("apt-02", 9f, 2.5f, 5f); break;
+                    case 4: { var t = p.transform; v = (t.position + t.forward * 1.7f + t.right * 0.4f + Vector3.up * 1.35f, t.position + Vector3.up * 1.15f); break; }
+                    case 5: { var g = job.giver; v = (g.position + g.forward * 0.6f + g.right * 3.2f + Vector3.up * 1.5f, g.position + g.forward * 0.6f + Vector3.up * 1.1f); break; }
+                    case 6: break;
+                    case 7: { var c = Prop("grass-clump", b10 + new Vector3(0, 0, -27f)); var a = c ? c.position : b10; v = (a + new Vector3(2.6f, 1.3f, -2.6f), a + new Vector3(0, 0.15f, 0)); break; }
+                    case 8: { var f = Prop("wood-fence", b10 + new Vector3(0, 0, -27f)); var a = f ? f.position : b10; var fw = f ? f.forward : Vector3.forward; v = (a + fw * 2.6f + (f ? f.right : Vector3.right) * 0.8f + Vector3.up * 1.4f, a + Vector3.up * 0.9f); break; }
+                    case 9: v = Facade("apt-02", 14f, 4f, 5f); break;
+                }
+                if (view != 6) { cam.transform.position = v.pos; cam.transform.LookAt(v.at); }
                 yield return null;
             }
         }
