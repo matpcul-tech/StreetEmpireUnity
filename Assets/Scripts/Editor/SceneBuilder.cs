@@ -813,7 +813,7 @@ namespace StreetEmpire.EditorTools
             mesh.RecalculateTangents(); mesh.RecalculateBounds();
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
             go.AddComponent<MeshRenderer>().sharedMaterial = m;
-            GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+            // not static batched: that would fold the chunks back into one mesh (and unreadable for the tests)
             return go;
         }
 
@@ -843,7 +843,6 @@ namespace StreetEmpire.EditorTools
                 go.AddComponent<MeshFilter>().sharedMesh = mesh;
                 var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterials = order.ToArray();
                 mr.shadowCastingMode = g.Key.Contains("Lines") ? ShadowCastingMode.Off : ShadowCastingMode.On; mr.receiveShadows = true;
-                GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
             }
             foreach (var r in parts)
             {
