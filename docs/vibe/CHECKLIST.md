@@ -10,7 +10,24 @@ work below. Order of work was by visual impact.
 | 2 | Sunset sky, fog, grade | Golden hour, warm haze, ACES plus grade | Done in v67, but a horizon line and green outer ground | Done (3d4f9cc): sky below the horizon is the fog color, outer ground dry grass |
 | 3 | NPCs and the mugger mission | Mugger 2.5 s in, 9 m ahead, grab at 2.3 m and shove; two friends (50 hp fists, 56 hp bat) when he is hurt, grabs or after 3.2 s; "The street goes quiet. Unc wants a word."; Red Kings scout drive by; onboarding 1/3, 2/3, 3/3 | No mugger opening, no onboarding | Done (2a54bb9 and later): MuggerOpening and Brawler with the web numbers (reach, tells, lunge, damage, strike cap 2, ring at 6.6 m), bat model (Sovereign Asset READY) in the bat friend's hand, web messages, onboarding box 1/3 and 2/3. Left: the scout drive by; 3/3 (turf capture) is not in Unity; muggers reuse pedestrian models |
 | 4 | Minimap and heat HUD | Round radar top left, turns with the camera; top right clock, weapon, cash #f4e6c4, HEAT five slanted bars, red health bar, Rep and Turf; message strip | Green cash, five diamonds, no radar | Done: radar (blocks by crew, capture rings, dashed streets, Unc dot and letter, job dot at the rim, people and flashing cops, white arrow, N), the top right column in web colors and sizes, onboarding box, message strip, web keys (F or click hits, E uses). The clock runs like the web clock while the light stays at golden hour |
-| 5 | Fog hides the world edge on Ultra and High | as 2 | Not checked | Verified on both tiers (tour69 and tour69high, edge street and overview views) |
+| 5 | Fog hides the world edge on Ultra and High | as 2 | Not checked | Verified on both tiers (tour69/tour71 and tour69high/tour71high, edge street and overview views) |
 | 6 | Decals | Grime, cracks, trash | None | Done (21abb6b): cracks, oil, litter on streets and lots, graffiti on real walls; Sovereign Asset READY |
 | 7 | Palms, no blob foliage | Palms, dry yards | Hedges and bushes were blobs | Done (21abb6b): dry shrub and dry hedge models, READY |
 | 8 | Houses for the Eastside | Stucco, tile roofs, bars | Clapboard and brick houses read wrong | Done by replacement (3d4f9cc): only the three stucco, tile roof, barred window models with five stucco washes; house-03 once in seven for the frame budget. Not a Meshy reskin (no Meshy access on the box). store-pawn left as is (Matthew deciding) |
+
+## Build v71 (run 44199759576, commit 46108ab)
+
+Tests 23/23 passed. Sheet: docs/vibe/compare-checklist.jpg. Perf vs v67, Ultra tour, software renderer (draws / triangles):
+
+| View | v67 | v71 |
+|---|---|---|
+| 1 | 422 / 1,313,102 | 434 / 1,319,417 |
+| 2 | 461 / 1,370,694 | 491 / 1,436,540 |
+| 3 | 422 / 1,157,040 | 435 / 1,154,932 |
+| 4 | 273 / 833,862 | 292 / 875,176 |
+| 5 | 433 / 1,538,171 | 465 / 1,750,495 |
+| 6 | 362 / 1,066,180 | 385 / 1,060,885 |
+| 7 | 318 / 823,451 | 328 / 726,651 |
+| 8 | 146 / 264,012 | 170 / 241,207 |
+
+Draw calls are up 10 to 32 per view (HUD and radar, decals, graffiti, house washes); triangles are within 1 percent or lower in five views, up 5 to 14 percent in views 2, 4 and 5 (the stucco house models). The software frame time is the same. Not yet under v67 on draw calls. Phone frame rate is unverified until Matthew tests.
