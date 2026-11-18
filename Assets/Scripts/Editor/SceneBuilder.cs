@@ -394,7 +394,12 @@ namespace StreetEmpire.EditorTools
             sign.transform.rotation = holder.transform.rotation;
             var b = WorldBounds(sign); float w = 1.48f * k;   // the band is 1.48 model units wide
             if (b.size.x > 1e-3f) sign.transform.localScale *= Mathf.Min(1.1f, w / b.size.x);
-            foreach (var r in sign.GetComponentsInChildren<Renderer>()) { r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = true; }
+            foreach (var r in sign.GetComponentsInChildren<Renderer>())
+            {
+                r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = true;
+                // a painted board: buildings are never metal (the prop material takes metal from the map's red)
+                foreach (var m in r.sharedMaterials) if (m != null) { m.SetFloat("_Metallic", 0f); EditorUtility.SetDirty(m); }
+            }
         }
 
         /// <summary>A tinted copy of the house material (one asset per model and wash, so placements share it).</summary>
