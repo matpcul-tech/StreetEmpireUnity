@@ -1,0 +1,64 @@
+StreetEmpire Unity build: v74, town only. Do not touch characters or pedestrians in this pass.
+
+A. BUILDINGS: reprocess and re-import
+
+1. Run every building through Sovereign Asset (sovereign-draft-one.vercel.app/asset.html) with the "Unity building" preset. Before finishing each one, set Size to the real height in meters (apartments 10, pawn shop 4.5, single-story houses about 4, barbershop about 4.5). Only accept files that finish READY.
+2. Two are already done. Use these files as they are, apart from scale: apt-01-stucco-finished.glb and store-pawn-finished.glb. They are still 1.9 m wide, so scale them in Unity to the heights above.
+3. Replace the old building prefabs with the finished files. Keep positions and rotations.
+4. Each finished building has up to four materials. Keep them separate. Do not merge or atlas them:
+   - Material_0: trim, roof, frames, doors
+   - walls: the clean wall texture, with its own normal and roughness maps
+   - windows_lit: glass with a light on
+   - windows_dark: glass with no light
+5. Texture import settings: color textures sRGB on. Normal maps set to type Normal Map. Roughness textures sRGB off. Max size 2048.
+6. If a building finishes with "Windows: none found", leave its windows alone and list it in the report.
+7. The white house with the red roof: run it with Flatten walls set to Strong. If it still looks torn, list it for regeneration and do not ship it.
+
+B. WINDOW LIGHT
+
+1. Delete the old emission mask system and any emission texture on buildings.
+2. windows_lit: emission is a flat color, no emission map. Color (1.0, 0.74, 0.45), HDR intensity 2. It must not be multiplied by the base texture. No triangle lines may show in a lit pane.
+3. windows_dark: emission off, smoothness about 0.75.
+4. Tie windows_lit intensity to the game clock: 0 from 07:00 to 18:00, ramp up 18:00 to 19:30, full until 05:30, ramp down to 07:00.
+5. Walls must never glow. Check the apartment building and the pawn shop at 22:00.
+
+C. NIGHT LIGHTING
+
+1. Street lamps: replace the ground decals with real lights. One spot or point light per lamp, warm (about 3000 K), range about 9 m, soft falloff, no hard edge. The light must reach the wall next to the lamp and the player standing under it.
+2. Add moonlight: one directional light, blue-gray, low intensity, on only at night, so every building has a lit side and a dark side.
+3. Raise night ambient slightly so areas outside the lamp pools are dark but readable. No single flat brown or purple tint.
+4. Traffic lights: add a small emissive red, amber or green lens. They are dark boxes now.
+
+D. DAY LIGHTING (carried over, not yet confirmed fixed)
+
+1. One global post-processing volume: ACES tonemapping, fixed exposure, light bloom, contrast and saturation raised a little. Lock it. Do not retune it per build.
+2. Sun low and warm in the evening, with shadows on.
+3. Cut fog density and push the fog start distance out so the near street is clear. The pink haze must be gone from street-level shots.
+
+E. RENDERING FIXES
+
+1. Palm fronds still show stripes. On the frond texture turn on "Mip Maps Preserve Coverage" and use alpha clipping. Enable 4x MSAA in the URP asset. Turn off dithered LOD cross-fade on the palms.
+2. Building textures: mipmaps on, anisotropic filtering 4x or higher.
+3. Wood fence: fix the stretched plank UVs.
+4. GFX High and GFX Ultra must look visibly different. State in the report what each tier changes.
+
+F. HUD
+
+1. The waypoint label ("UNC 4 m") must never draw over the top-right HUD (clock, FISTS, money, heat, rep). Clamp it out of the HUD corners.
+2. On touch builds the prompt must read "USE  Arm guards ($80)", not "E".
+
+G. REPORT
+
+Send full-resolution screenshots, one per message or as separate files, not one tall combined sheet:
+1. Street at 14:00
+2. Street at 19:00
+3. Street at 22:00 with a lamp and the apartment building in frame
+4. Pawn shop front at 22:00, close
+5. Apartment building at 22:00, close
+6. White house, close, daytime
+7. Palm fronds, close, daytime
+8. District edge view
+9. Same street shot on GFX High and on GFX Ultra
+10. One fight with target ring and hit feedback visible
+
+Also list: every building processed and whether it finished READY, any building where no windows were found, and anything in this list that was not done.
