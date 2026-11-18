@@ -342,7 +342,7 @@ namespace StreetEmpire.EditorTools
             // v73: a soft dark backing behind the column so FISTS, the money and Rep read on a bright sky without
             // relying on the shadow (made first, so it draws behind the text)
             var back = PlayerBuilder.Rect("HUD Backing", canvas.transform, right, right, new Vector2(-14, -6), new Vector2(440, 226)); back.pivot = right;
-            var backImg = back.gameObject.AddComponent<Image>(); backImg.color = new Color(6 / 255f, 5 / 255f, 4 / 255f, 0.74f);   // v75: darker, so it reads on a bright day sky backImg.raycastTarget = false;
+            var backImg = back.gameObject.AddComponent<Image>(); backImg.color = new Color(6 / 255f, 5 / 255f, 4 / 255f, 0.92f);   // v75b: UI blends in linear, so 0.74 still read pale gray by day backImg.raycastTarget = false;
             hud.clock = T("Clock", right, new Vector2(-30, -14), new Vector2(300, 40), 33, TextAnchor.UpperRight); hud.clock.color = new Color32(0xee, 0xee, 0xee, 255);
             hud.weapon = T("Weapon", right, new Vector2(-30, -52), new Vector2(300, 30), 22, TextAnchor.UpperRight); hud.weapon.color = new Color32(0xdd, 0xdd, 0xdd, 255);
             hud.cash = T("Cash", right, new Vector2(-30, -78), new Vector2(400, 52), 45, TextAnchor.UpperRight); hud.cash.color = new Color32(0xf4, 0xe6, 0xc4, 255);

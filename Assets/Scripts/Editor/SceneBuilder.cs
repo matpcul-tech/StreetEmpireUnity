@@ -565,7 +565,7 @@ namespace StreetEmpire.EditorTools
         public static readonly Color DayFog = new(0.70f, 0.76f, 0.84f), NightFog = new(0.08f, 0.10f, 0.16f);
 
         /// <summary>v75 skies: 0 day (a blue sky, the sun high at 14:00), 1 the built golden hour, 2 night (near black
-        /// blue overhead, the sodium glow of the city along the horizon, a few stars). The painted skyline strip of v74
+        /// blue overhead, the sodium glow of the city along the horizon, stars from the sky shader). The painted skyline strip of v74
         /// is gone: the far skyline is real towers now (BuildEdge).</summary>
         static Color SkyColor(Vector3 d, int mode)
         {
@@ -588,13 +588,7 @@ namespace StreetEmpire.EditorTools
                 c = e < 0 ? fog : e < 0.035f ? Color.Lerp(fog, glow, Mathf.SmoothStep(0, 1, e / 0.035f))
                     : e < 0.25f ? Color.Lerp(glow, up, Mathf.SmoothStep(0, 1, (e - 0.035f) / 0.215f))
                     : Color.Lerp(up, zen, Mathf.SmoothStep(0, 1, (e - 0.25f) / 0.6f));
-                if (e > 0.18f)
-                {
-                    // sparse stars: one in a few hundred texels, dimmer near the glow
-                    var q3 = d * 220f; uint q = unchecked((uint)Mathf.FloorToInt(q3.x) * 73856093u ^ (uint)Mathf.FloorToInt(q3.y) * 19349663u ^ (uint)Mathf.FloorToInt(q3.z) * 83492791u);
-                    q ^= q >> 13; q *= 1274126177u; q ^= q >> 16;
-                    if ((q & 0x3ff) < 3) c += new Color(0.5f, 0.52f, 0.6f) * (0.4f + ((q >> 10) & 0xff) / 255f) * Mathf.Clamp01((e - 0.18f) * 4f);
-                }
+                // v75b: no stars in the cubemap (a 256 texel face made them big dots); SkyBlend draws them per pixel
             }
             else
             {
@@ -640,8 +634,8 @@ namespace StreetEmpire.EditorTools
             return cube;
         }
 
-        /// <summary>v75 night light: one warm spot light per street lamp at its head, straight down (a 120 degree cone with
-        /// a soft 60 degree inner core, range 13 m, about 3000 K, no shadows), so each lamp throws a real pool on the
+        /// <summary>v75 night light: one warm spot light per street lamp at its head, straight down (a 100 degree cone with
+        /// a soft 50 degree inner core, range 13 m, about 3000 K, no shadows), so each lamp throws a real pool on the
         /// ground; switched on by LampLights. No ground decals.</summary>
         public static readonly Color Lamp3000K = new(1f, 0.706f, 0.42f);
         const float LampRange = 13f;
@@ -656,7 +650,7 @@ namespace StreetEmpire.EditorTools
             {
                 var l = new GameObject($"Lamp Light {i + 1}").AddComponent<Light>(); l.transform.SetParent(go.transform, false);
                 l.transform.position = spots[i];   // PropBuilder records the point under each lamp head
-                l.type = LightType.Spot; l.range = LampRange; l.spotAngle = 120f; l.innerSpotAngle = 60f;
+                l.type = LightType.Spot; l.range = LampRange; l.spotAngle = 100f; l.innerSpotAngle = 50f;
                 l.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);
                 l.color = Lamp3000K; l.shadows = LightShadows.None;
                 l.intensity = 0f; l.renderingLayerMask = -1; l.renderMode = LightRenderMode.ForcePixel; l.enabled = false;

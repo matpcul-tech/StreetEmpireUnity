@@ -1,4 +1,4 @@
-// v75 night: a real warm spot light under every street lamp head, pointing straight down (about a 120 degree cone,
+// v75 night: a real warm spot light under every street lamp head, pointing straight down (a 100 degree cone,
 // range about 13 m, about 3000 K, no shadows), so each lamp throws a pool on the road and sidewalk with a soft edge
 // and still reaches the wall beside it and anyone standing under it. They follow DayCycle.Lamps (a little at the
 // golden hour, full from the blue hour on). URP shades each object with its nearest few lights: 6 on Ultra,
@@ -11,7 +11,7 @@ namespace StreetEmpire.City
     {
         public Light[] lights = new Light[0];
         public DayCycle cycle;
-        public float intensity = 34f;
+        public float intensity = 80f;   // v75b: 34 left the pools faint at 22:00
         float last = -1f;
 
         void LateUpdate()
