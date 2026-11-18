@@ -29,6 +29,12 @@ namespace StreetEmpire.Game
             string shot = url.Substring(i + 5).Split('&')[0];
             var opening = FindFirstObjectByType<MuggerOpening>();
             if (opening != null && shot != "mugger") opening.Skip();
+            // still shots keep the clock (and the sun) at the start hour, or at hour=N from the URL
+            if (shot != "mugger")
+            {
+                GameClock.Frozen = true;
+                int hq = url.IndexOf("hour="); if (hq >= 0 && float.TryParse(url.Substring(hq + 5).Split('&')[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float hh)) GameClock.FrozenHour = hh;
+            }
             if (url.Contains("gfx=high"))
             {
                 var gq = FindFirstObjectByType<StreetEmpire.UI.GraphicsQuality>();

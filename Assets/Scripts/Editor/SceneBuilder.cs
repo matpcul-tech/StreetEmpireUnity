@@ -123,7 +123,14 @@ namespace StreetEmpire.EditorTools
             }
 
             Combine(root.transform);
-            Lighting(root.transform);
+            var sunLight = Lighting(root.transform);
+            // the sun and sky follow the web clock (DayCycle); it dims and lights the building windows too
+            var cycle = new GameObject("Day Cycle").AddComponent<StreetEmpire.City.DayCycle>();
+            cycle.transform.SetParent(root.transform, false);
+            cycle.sun = sunLight; cycle.sky = RenderSettings.skybox; cycle.duskFog = RenderSettings.fogColor;
+            cycle.windowMaterials = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None)
+                .SelectMany(b => b.GetComponentsInChildren<Renderer>(true)).SelectMany(r => r.sharedMaterials)
+                .Where(m => m != null && m.IsKeywordEnabled("_EMISSION")).Distinct().ToArray();
             var player = PlayerBuilder.Build(w, s.blocks[0]);
             VehicleBuilder.BuildSedan(data, s.blocks[0]);
             GameBuilder.Build(data, s, player);
@@ -395,7 +402,7 @@ namespace StreetEmpire.EditorTools
             return cube;
         }
 
-        static void Lighting(Transform root)
+        static Light Lighting(Transform root)
         {
             // one shadowed sun, trilight ambient, fog: cheap on phones and WebGL. Golden hour like the original web
             // game: a low warm sun, a strong lavender sky fill that outweighs it, warm haze from 62 m to 270 m.
@@ -422,6 +429,7 @@ namespace StreetEmpire.EditorTools
             RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
             RenderSettings.customReflectionTexture = SkyCube("Assets/Art/Materials/SkyReflection.cubemap", 64);
             RenderSettings.reflectionIntensity = 0.35f;
+            return sun;
         }
 
         static void OverviewCamera(WorldFile w)

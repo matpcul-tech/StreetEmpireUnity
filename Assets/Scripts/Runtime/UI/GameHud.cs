@@ -16,8 +16,6 @@ namespace StreetEmpire.UI
         public MissionRunner mission;
         public MuggerOpening opening;
         public int turfOwned = 1, turfTotal = 25;
-        /// <summary>Hour the clock starts at and game hours per real second (state.js clock: 17.8 + t * 24 / 480).</summary>
-        public float startHour = 17.8f, hoursPerSecond = 24f / 480f;
 
         void Update()
         {
@@ -28,7 +26,7 @@ namespace StreetEmpire.UI
             if (heatLabel) heatLabel.color = new Color(0.96f, 0.9f, 0.77f, st > 0 ? 1f : 0.85f);
             if (clock)
             {
-                float h = Mathf.Repeat(startHour + Time.timeSinceLevelLoad * hoursPerSecond, 24f);
+                float h = GameClock.Hour;   // the same clock the sun follows (DayCycle)
                 clock.text = $"{Mathf.FloorToInt(h):00}:{Mathf.FloorToInt(h % 1f * 60f):00}";
             }
             if (weapon) weapon.text = "FISTS";

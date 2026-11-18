@@ -69,7 +69,7 @@ namespace StreetEmpire.EditorTools
             Set(so, "m_SoftShadowsSupported", true);
             Set(so, "m_SoftShadowQuality", softQuality); // 1 low, 2 medium, 3 high
             Set(so, "m_ShadowDepthBias", 1f);
-            Set(so, "m_ShadowNormalBias", 0.6f);
+            Set(so, "m_ShadowNormalBias", 1.0f);          // 0.6 left shadow acne on the hoodie (dark blotch on the chest and side)
             Set(so, "m_ColorGradingMode", 1);            // HDR grading
             Set(so, "m_UseSRPBatcher", true);
             Set(so, "m_EnableLODCrossFade", false);       // no dithered LOD cross fade (it read as stripes on the palms)
