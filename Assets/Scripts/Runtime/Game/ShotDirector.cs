@@ -350,7 +350,10 @@ namespace StreetEmpire.Game
             // v75: every street view is the game's own follow camera behind the player (no free debug camera), so
             // the player is in each one; the orbit is turned to look where the view needs. Only the palm close up (7)
             // and the high district edge view (8) are free cameras.
-            float[] hours = { 14f, 19f, 22f, 22f, 22f, 14f, 14f, 14f, 14f, 14f, 22f, 14f, 22f };
+            // v75c (Matthew's second notes), on the numpad: 14 07:20 street, 15 09:36 skyline, 16 08:23 signal close,
+            // 17 02:08 lamp pool (the shot 3 lamp), 18 05:55 street wide, 19 05:55 pawn shop sidewalk, 20 the EMPIRE
+            // graffiti house, 21 a parked sedan close up
+            float[] hours = { 14f, 19f, 22f, 22f, 22f, 14f, 14f, 14f, 14f, 14f, 22f, 14f, 22f, 7.333f, 9.6f, 8.383f, 2.133f, 5.917f, 5.917f, 14f, 14f };
             int view = 0; int shown = -1;
             // v75c: draw calls per view, a second and a half after each switch
             var draws = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "Draw Calls Count");
@@ -370,7 +373,8 @@ namespace StreetEmpire.Game
                 var kb = UnityEngine.InputSystem.Keyboard.current;
                 if (kb != null)
                 {
-                    var keys = new[] { kb.digit1Key, kb.digit2Key, kb.digit3Key, kb.digit4Key, kb.digit5Key, kb.digit6Key, kb.digit7Key, kb.digit8Key, kb.digit9Key, kb.digit0Key, kb.minusKey, kb.equalsKey, kb.backspaceKey };
+                    var keys = new[] { kb.digit1Key, kb.digit2Key, kb.digit3Key, kb.digit4Key, kb.digit5Key, kb.digit6Key, kb.digit7Key, kb.digit8Key, kb.digit9Key, kb.digit0Key, kb.minusKey, kb.equalsKey, kb.backspaceKey,
+                        kb.numpad1Key, kb.numpad2Key, kb.numpad3Key, kb.numpad4Key, kb.numpad5Key, kb.numpad6Key, kb.numpad7Key, kb.numpad8Key };
                     for (int i = 0; i < keys.Length; i++) if (keys[i].isPressed) view = i;
                 }
                 bool free = view == 6 || view == 7;
@@ -380,11 +384,31 @@ namespace StreetEmpire.Game
                     if (brain) brain.enabled = !free;
                     switch (view)
                     {
-                        case 0: case 1: case 8: Game(b10 + new Vector3(28f, 0f, -20f), Vector3.forward, 8f, 5.2f); break;
+                        case 0: case 1: case 8: case 13: Game(b10 + new Vector3(28f, 0f, -20f), Vector3.forward, 8f, 5.2f); break;
                         // v75c: the 22:00 street wide (Backspace): the same street as 1 and 2, the camera higher and
                         // farther back so the run of lamp pools down the road is in frame
-                        case 12: Game(b10 + new Vector3(28f, 0f, -24f), Vector3.forward, 14f, 8f); break;
-                        case 2:
+                        case 12: case 17: Game(b10 + new Vector3(28f, 0f, -24f), Vector3.forward, 14f, 8f); break;
+                        // the skyline past the freeway wall by day: low pitch toward the horizon
+                        case 14: Game(b10 + new Vector3(28f, 0f, -20f), Vector3.forward, 3f, 5.2f); break;
+                        case 18: { var f = Face("store-pawn", 7f); Game(f.face + f.n * 4.6f + f.t * 1.5f, -f.n, 22f, 6f); break; }
+                        case 19:
+                        {
+                            StreetEmpire.City.BuildingMarker g = null;
+                            foreach (var m in FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None)) if (m.graffiti == 3 && (g == null || (m.graffitiAt - b10).sqrMagnitude < (g.graffitiAt - b10).sqrMagnitude)) g = m;
+                            if (g == null) foreach (var m in FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None)) if (m.graffiti >= 0) { g = m; break; }
+                            if (g != null) { var at = g.graffitiAt; at.y = 0; Game(at + g.graffitiNormal * 4.2f, -g.graffitiNormal, 6f, 5.5f); Debug.Log($"[ShotDirector] v75 view 20 graffiti {g.graffiti} on {g.model} at {g.graffitiAt}"); }
+                            else Debug.Log("[ShotDirector] v75 view 20: no graffiti placed");
+                            break;
+                        }
+                        case 20:
+                        {
+                            Transform car = null; float cd = float.MaxValue;
+                            foreach (var m in FindObjectsByType<StreetEmpire.City.PropMarker>(FindObjectsSortMode.None))
+                                if (m.kind == "parked car" && m.model == "sedan") { float d = (m.transform.position - b10).sqrMagnitude; if (d < cd) { cd = d; car = m.transform; } }
+                            if (car != null) { var side = car.right; side.y = 0; side.Normalize(); Game(car.position + side * 3.2f + car.forward * 0.8f, -side, 12f, 4.6f); Debug.Log($"[ShotDirector] v75 view 21 sedan at {car.position}"); }
+                            break;
+                        }
+                        case 2: case 16:
                         {
                             // v75b: the lamp on this apartment's own curb (in front of the wall, beside it), the player
                             // just inside it toward the middle of the wall, the game camera behind them over the street:
@@ -409,9 +433,9 @@ namespace StreetEmpire.Game
                         case 4: { var f = Face("apt-01", 12f); Game(f.face + f.n * 6.5f + f.t * 1.5f, -f.n, 18f, 6f); break; }
                         case 5: { var f = Face("house-01", 9f); Game(f.face + f.n * 4.5f + f.t * 1.2f, -f.n, 8f, 5f); break; }
                         // v75b: the liquor store sign at 22:00, and the mixed use block (the v74 black tower) by day
-                        case 10: { var f = Face("store-liquor", 8f); Game(f.face + f.n * 6f + f.t * 1.5f, -f.n, 10f, 5.5f); break; }
+                        case 10: { var f = Face("store-liquor", 8f); Game(f.face + f.n * 6f - f.t * 2.5f, -f.n + f.t * 0.25f, 10f, 5.5f); break; }   // v75c: off the utility pole
                         case 11: { var f = Face("apt-mixed-use", 12f); Game(f.face + f.n * 8f + f.t * 2f, -f.n, 14f, 6.5f); break; }
-                        case 9:
+                        case 9: case 15:
                         {
                             // the signal crossing at the south east corner of block 10: standing on the crosswalk
                             // looking at one corner, its pole on the sidewalk and its arm over the lanes
@@ -420,7 +444,8 @@ namespace StreetEmpire.Game
                                 if (m.kind == "traffic signal") { float d = (PoleOf(m.transform) - (b10 + new Vector3(21.75f, 0, -20.5f))).sqrMagnitude; if (d < bd) { bd = d; sig = m.transform; } }
                             var pole = sig ? PoleOf(sig) : x; pole.y = 0;
                             var from = x + (x - pole).normalized * 2f;
-                            Game(from, pole - from, 10f, 6f);
+                            if (view == 15) { from = pole + (from - pole).normalized * 8f; Game(from, pole - from, 0f, 4f); }   // v75c: closer and level, the heads in the upper frame
+                            else Game(from, pole - from, 10f, 6f);
                             Debug.Log($"[ShotDirector] v75 signal pole at {pole} (crossing {x})"); break;
                         }
                     }

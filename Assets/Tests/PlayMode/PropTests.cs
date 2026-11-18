@@ -157,6 +157,18 @@ namespace StreetEmpire.Tests
             Assert.IsTrue(inst.batches.Any(b => b.materials.Contains(live)), "the instancer draws the live lens");
             Assert.AreEqual(0, cycle.Phase(1f)); Assert.AreEqual(1, cycle.Phase(cycle.green + 1f));
             Assert.AreEqual(3, cycle.Phase(cycle.green + cycle.yellow + cycle.allRed + 1f));
+            // v75c: one lens lit per head in every phase, the off lenses dark glass, and the green a green (not cyan)
+            for (int ph = 0; ph < 6; ph++)
+            {
+                cycle.Show(ph);
+                for (int g = 0; g < 2; g++)
+                {
+                    int lit = Enumerable.Range(0, 3).Count(k => cycle.Live(g * 3 + k).GetColor("_EmissionColor").maxColorComponent > 0.5f);
+                    Assert.AreEqual(1, lit, $"phase {ph}, group {g}: one lens lit");
+                }
+            }
+            Assert.IsTrue(cycle.lenses.All(m => m.GetColor("_BaseColor").maxColorComponent < 0.2f), "v75c: unlit lenses are dark");
+            Assert.Greater(cycle.greenOn.g, cycle.greenOn.b * 4f, "v75c: signal green, not cyan");
             for (int i = 0; i < 10; i++) yield return null;
         }
     }

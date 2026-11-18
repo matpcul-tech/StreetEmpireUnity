@@ -710,6 +710,12 @@ namespace StreetEmpire.EditorTools
                 l.intensity = 0f; l.renderingLayerMask = -1; l.renderMode = LightRenderMode.ForcePixel; l.enabled = false;
                 ll.lights[i] = l;
             }
+            // v75c: the globes glow only with the lamp level (a run-time copy of the glass, see LampLights)
+            var inst = Object.FindFirstObjectByType<StreetEmpire.City.PropInstancer>();
+            ll.instancer = inst;
+            ll.globe = inst == null ? null : inst.batches.Where(b => b != null && b.name != null && b.name.StartsWith("street-lamp-1"))
+                .SelectMany(b => b.materials).FirstOrDefault(m => m != null && m.name.Contains("glass"));
+            if (ll.globe == null) Debug.LogWarning("[SceneBuilder] no street lamp globe material");
         }
 
         static Light Lighting(Transform root)

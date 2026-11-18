@@ -40,3 +40,4 @@ Size set to the real height; props, the edge, signs and the fight dust use "Unit
 | sedan LOD1 | u75c rebake, Blender decimate 0.2 | unity-static | READY | 5996 | 267 px/m |
 | police | u75c rebake (WELD 2e-5, MARGIN 0.0015) | unity-static | READY | 30530 | 924 px/m in file |
 | police LOD1 | u75c rebake, decimate 0.25 | unity-static | READY | 7645 | 908 px/m in file |
+| edge-tower-a to d | u75c: base color 40% toward the day haze (186,196,212), gltf-tools/haze_tex.mjs | unity-static | READY | 10 each | 24 px/m |

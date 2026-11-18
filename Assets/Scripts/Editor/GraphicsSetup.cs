@@ -79,10 +79,14 @@ namespace StreetEmpire.EditorTools
             Set(so, "m_UseSRPBatcher", true);
             Set(so, "m_EnableLODCrossFade", false);       // no dithered LOD cross fade (it read as stripes on the palms)
             Set(so, "m_SupportsLightLayers", true);         // rendering layers: the character fill light lights people only
-            Set(so, "m_AdditionalLightsRenderingMode", 2);  // per pixel (the street lamp lights near the camera at night)
+            // per pixel (the street lamp lights near the camera at night). v75c: set by value: the enum is declared
+            // Disabled 0, PerVertex 2, PerPixel 1, and the old enumValueIndex 2 was not per pixel: the lamps lit
+            // only dense meshes (the player, the sidewalk joint strips) and never the big ground and wall faces
+            { var sp = so.FindProperty("m_AdditionalLightsRenderingMode"); if (sp != null) sp.intValue = (int)UnityEngine.Rendering.Universal.LightRenderingMode.PerPixel; }
             Set(so, "m_AdditionalLightsPerObjectLimit", lights);
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(p);
+            if (p.additionalLightsRenderingMode != UnityEngine.Rendering.Universal.LightRenderingMode.PerPixel) throw new Exception($"[GraphicsSetup] {p.name}: additional lights are {p.additionalLightsRenderingMode}, not per pixel");
         }
 
         static void Set(SerializedObject so, string name, object v)

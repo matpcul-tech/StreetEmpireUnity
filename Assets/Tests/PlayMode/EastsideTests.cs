@@ -90,6 +90,25 @@ namespace StreetEmpire.Tests
             StreetEmpire.Game.GameClock.Frozen = true; StreetEmpire.Game.GameClock.FrozenHour = 22f;
             for (int i = 0; i < 5; i++) yield return null;
             Assert.IsTrue(lamps.lights.Any(l => l != null && l.enabled), "lamp lights on at night");
+            // v75c: every quality tier shades the lamps per pixel (per vertex never lit the big ground faces)
+            var tiers = Enumerable.Range(0, QualitySettings.count).Select(i => QualitySettings.GetRenderPipelineAssetAt(i)).Append(UnityEngine.Rendering.GraphicsSettings.defaultRenderPipeline).Where(a => a != null).ToArray();
+            Assert.Greater(tiers.Length, 0, "URP assets");
+            foreach (var a in tiers)
+            {
+                var mode = a.GetType().GetProperty("additionalLightsRenderingMode")?.GetValue(a)?.ToString();
+                Assert.AreEqual("PerPixel", mode, $"v75c: {a.name} additional lights per pixel");
+            }
+            Assert.LessOrEqual(lamps.lights.Count(l => l != null && l.enabled), lamps.maxOn, "v75c: only the nearest lamps lit (URP's visible light cap)");
+            Assert.IsNotNull(lamps.LiveGlobe, "v75c: the lamp globe material is driven");
+            Assert.Greater(lamps.LiveGlobe.GetColor("_EmissionColor").maxColorComponent, 1f, "v75c: globes glow at night");
+            foreach (var hh in new[] { 2.13f, 5.92f })
+            {
+                StreetEmpire.Game.GameClock.FrozenHour = hh;
+                for (int i = 0; i < 5; i++) yield return null;
+                Assert.IsTrue(lamps.lights.Any(l => l != null && l.enabled && l.intensity > 25f), $"v75c: lamps cast light at {hh:0.00}");
+            }
+            StreetEmpire.Game.GameClock.FrozenHour = 22f;
+            for (int i = 0; i < 5; i++) yield return null;
             Assert.IsTrue(moon.enabled, "moon on at night");
             Assert.Less(moon.intensity, 0.2f, "v75: a dim moon");
             var sunL = Object.FindObjectsByType<Light>(FindObjectsInactive.Include, FindObjectsSortMode.None).First(l => l.name == "Sun");
@@ -105,6 +124,16 @@ namespace StreetEmpire.Tests
             StreetEmpire.Game.GameClock.FrozenHour = 12f;
             for (int i = 0; i < 5; i++) yield return null;
             Assert.IsFalse(lamps.lights.Any(l => l != null && l.enabled), "lamp lights off by day");
+            Assert.Less(lamps.LiveGlobe.GetColor("_EmissionColor").maxColorComponent, 0.01f, "v75c: globes dark by day");
+            foreach (var hh in new[] { 7.33f, 8.38f, 9.6f })
+            {
+                StreetEmpire.Game.GameClock.FrozenHour = hh;
+                for (int i = 0; i < 5; i++) yield return null;
+                Assert.IsFalse(lamps.lights.Any(l => l != null && l.enabled), $"v75c: lamps off at {hh:0.00}");
+                Assert.Less(lamps.LiveGlobe.GetColor("_EmissionColor").maxColorComponent, 0.01f, $"v75c: globes dark at {hh:0.00}");
+            }
+            StreetEmpire.Game.GameClock.FrozenHour = 12f;
+            for (int i = 0; i < 5; i++) yield return null;
             Assert.IsFalse(moon.enabled, "moon off by day");
             Assert.IsTrue(sunL.enabled && sunL.intensity > 1.2f, "v75: full sun at midday");
             StreetEmpire.Game.GameClock.Frozen = false; StreetEmpire.Game.GameClock.FrozenHour = StreetEmpire.Game.GameClock.StartHour;

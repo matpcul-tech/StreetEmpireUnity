@@ -12,7 +12,7 @@ namespace StreetEmpire.City
         /// <summary>Lens materials: red, yellow, green for phase A, then the same for phase B.</summary>
         public Material[] lenses = new Material[6];
         public float green = 14f, yellow = 3f, allRed = 1f;
-        public Color redOn = new(4f, 0.25f, 0.15f), yellowOn = new(4f, 2.6f, 0.2f), greenOn = new(0.3f, 4f, 1.4f);
+        public Color redOn = new(4f, 0.25f, 0.15f), yellowOn = new(4f, 2.6f, 0.2f), greenOn = new(0.35f, 3.4f, 0.5f);   // v75c: a true signal green (the old 1.4 blue read cyan at night under ACES)
         static readonly int Emission = Shader.PropertyToID("_EmissionColor");
         Material[] live; int shown = -1;
 
@@ -38,7 +38,7 @@ namespace StreetEmpire.City
             return off + (x < green ? 0 : x < green + yellow ? 1 : 2);
         }
 
-        void Show(int phase)
+        public void Show(int phase)
         {
             if (phase == shown || live == null) return; shown = phase;
             Set(2, phase == 0 ? greenOn : Color.black); Set(1, phase == 1 ? yellowOn : Color.black); Set(0, phase >= 2 ? redOn : Color.black);

@@ -19,6 +19,8 @@ namespace StreetEmpire.City
         public float Night { get; private set; }
         /// <summary>Street lamp level, 0 to 1 (LampLights).</summary>
         public float Lamps { get; private set; }
+        /// <summary>v75c: the far skyline window glow at full night (was 1.3, brighter than the town windows).</summary>
+        public const float SkylineGlow = 0.42f;
         [Header("Built golden hour values (filled by the scene builder)")]
         public Color duskSun = new(1f, 0.77f, 0.58f), duskFog = new(0.68f, 0.61f, 0.54f);
         public Color duskAmbSky = new(0.63f, 0.61f, 0.735f), duskAmbEq = new(0.57f, 0.53f, 0.50f), duskAmbGround = new(0.40f, 0.33f, 0.31f);
@@ -79,13 +81,13 @@ namespace StreetEmpire.City
                 K(0f, 0f, daySun, nSky, nEq, nGr, N, 1f, 0.12f, 1f, 1f, 0.15f, 0.30f, 70f, 420f),
                 K(4.6f, 0f, daySun, nSky, nEq, nGr, N, 1f, 0.12f, 1f, 1f, 0.15f, 0.30f, 70f, 420f),
                 K(5.8f, 0f, daySun, bSky, bEq, bGr, new Vector3(0, 0.1f, 0.9f), 3f, 0.07f, 1f, 0.7f, 0.25f, 0.40f, 90f, 440f),
-                K(6.7f, 0.55f, duskSun, Color.Lerp(duskAmbSky, bSky, 0.3f), Color.Lerp(duskAmbEq, bEq, 0.3f), Color.Lerp(duskAmbGround, bGr, 0.3f), new Vector3(0.1f, 0.9f, 0f), 0.9f, 0f, 0.3f, 0.2f, 0.3f, 0.5f, 110f, 440f),
+                K(6.7f, 0.55f, duskSun, Color.Lerp(duskAmbSky, bSky, 0.3f), Color.Lerp(duskAmbEq, bEq, 0.3f), Color.Lerp(duskAmbGround, bGr, 0.3f), new Vector3(0.1f, 0.9f, 0f), 0.9f, 0f, 0f, 0.2f, 0.3f, 0.5f, 110f, 440f),   // v75c: lamps off once the sun is up
                 K(8.2f, 1.2f, lateSun, Color.Lerp(duskAmbSky, dSky, 0.6f), Color.Lerp(duskAmbEq, dEq, 0.6f), Color.Lerp(duskAmbGround, dGr, 0.6f), new Vector3(0.65f, 0.35f, 0f), 1f, 0f, 0f, 0f, 0.38f, 0.5f, 130f, 500f),
                 K(10f, 1.45f, daySun, dSky, dEq, dGr, D, 1f, 0f, 0f, 0f, 0.4f, 0.5f, 140f, 520f),
                 K(15.3f, 1.45f, daySun, dSky, dEq, dGr, D, 1f, 0f, 0f, 0f, 0.4f, 0.5f, 140f, 520f),
                 K(16.8f, 1.25f, lateSun, Color.Lerp(duskAmbSky, dSky, 0.55f), Color.Lerp(duskAmbEq, dEq, 0.55f), Color.Lerp(duskAmbGround, dGr, 0.55f), new Vector3(0.6f, 0.4f, 0f), 1f, 0f, 0f, 0f, 0.38f, 0.52f, 130f, 490f),
                 // the anchor: the built golden hour, as in the 18:08 fight shot
-                K(18.13f, duskSunIntensity, duskSun, duskAmbSky, duskAmbEq, duskAmbGround, G, 1f, 0f, 0.25f, 0f, reflection, fillIntensity, 120f, 460f),
+                K(18.13f, duskSunIntensity, duskSun, duskAmbSky, duskAmbEq, duskAmbGround, G, 1f, 0f, 0f, 0f, reflection, fillIntensity, 120f, 460f),   // v75c: lamps not on before sunset
                 K(18.67f, 0f, duskSun, Color.Lerp(duskAmbSky, bSky, 0.5f), Color.Lerp(duskAmbEq, bEq, 0.5f), Color.Lerp(duskAmbGround, bGr, 0.5f), new Vector3(0, 0.6f, 0.4f), 1.2f, 0f, 0.7f, 0.3f, 0.3f, 0.45f, 100f, 420f),
                 K(19.1f, 0f, duskSun, bSky, bEq, bGr, new Vector3(0, 0.1f, 0.9f), 3f, 0.07f, 1f, 0.75f, 0.25f, 0.40f, 90f, 440f),
                 K(20.6f, 0f, daySun, nSky, nEq, nGr, N, 1f, 0.12f, 1f, 1f, 0.15f, 0.30f, 70f, 420f),
@@ -156,7 +158,8 @@ namespace StreetEmpire.City
                 lastGlow = glow + sky2 * 2f;
                 var em = WindowLight * WindowIntensity * glow;
                 foreach (var m in windowMaterials) if (m) m.SetColor("_EmissionColor", em);
-                foreach (var m in skylineMaterials) if (m) m.SetColor("_EmissionColor", Color.white * 1.3f * sky2);
+                // v75c: the far windows stay well under the town's own (Matthew: they outshone it at night)
+                foreach (var m in skylineMaterials) if (m) m.SetColor("_EmissionColor", new Color(1f, 0.85f, 0.65f) * SkylineGlow * sky2);
                 // the liquor store sign: a little by day, full from the blue hour on
                 foreach (var m in signMaterials) if (m) m.SetColor("_EmissionColor", Color.white * Mathf.Lerp(0.35f, 1.4f, Mathf.Max(glow, sky2)));
             }

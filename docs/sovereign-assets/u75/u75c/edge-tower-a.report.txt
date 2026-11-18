@@ -1,0 +1,35 @@
+Sovereign Asset report
+Source: edge-tower-a
+Finish: Unity prop
+Output: edge-tower-a-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (2 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 12 open edges. Fine for games and rendering. A 3D print needs none.
+NOTE  Triangles: 10 triangles. No target was set.
+NOTE  Draw calls: 2 draw calls, 2 materials.
+PASS  Texture size: All 7 readable textures are 2048 px or under.
+PASS  Color standard: Brightness runs from 13 to 42 percent, middle 30. Peak vividness 30. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 24 texture pixels per meter across most of the surface. Assets that share a street should be close to each other on this number.
+NOTE  Size: 18.0 wide, 42.0 tall, 18.0 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 2 materials, 7 textures.
+NOTE  File size: 0.6 MB, was 0.6 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- Closed 0 holes. 3 openings left open: too large or not a simple loop.
+- Flat areas: 4 walls and other flat areas (8 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.00 percent of the part's size.
+- 2 tiling textures left as painted. A texture that repeats has no single pixel per point to correct.
+- Color standard: every color texture was already inside the shared range. Nothing was changed.
+- Surface maps: every material already has its own.
+- Size and position were already right.

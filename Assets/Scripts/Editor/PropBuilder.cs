@@ -376,7 +376,9 @@ namespace StreetEmpire.EditorTools
             }
             string[] towers = { "edge-tower-a", "edge-tower-b", "edge-tower-c", "edge-tower-d" };
             var rand = new System.Random(75);
-            foreach (var (r, count) in new[] { (190f, 30), (255f, 36), (325f, 42) })
+            // v75c: pushed back from the freeway wall (was 190, 255, 325 m: flat gray boxes right behind it by day),
+            // so the day fog (140 to 520 m) hazes the near ring and nearly melts the back one into the sky
+            foreach (var (r, count) in new[] { (265f, 34), (340f, 40), (415f, 46) })
                 for (int i = 0; i < count; i++)
                 {
                     float a = (i + (float)rand.NextDouble() * 0.6f) / count * Mathf.PI * 2f;
@@ -458,7 +460,7 @@ namespace StreetEmpire.EditorTools
             {
                 var n = N(k); var t = T(k);
                 for (float s = -21f; s <= 21.01f; s += 1.5f)
-                    marks.Line(b.center + n * 20.5f + t * s, n, t, 3f, 0.05f, SidewalkTop + 0.003f, "Joint");
+                    marks.Line(b.center + n * 20.4f + t * s, n, t, 2.5f, 0.04f, SidewalkTop + 0.003f, "Joint");   // v75c: inside the walk (was 19 to 22 m, over the curb)
                 marks.Line(b.center + n * 21.86f, t, n, 44f, 0.28f, SidewalkTop + 0.003f, "CurbEdge");
             }
         }
@@ -722,14 +724,17 @@ namespace StreetEmpire.EditorTools
             }
             else if (e.material.StartsWith("lens_"))
             {
-                // the traffic light lenses glow through TrafficSignalCycle; off by default
+                // the traffic light lenses glow through TrafficSignalCycle; off by default. v75c: an unlit lens is
+                // dark tinted glass (a bright red base read as lit next to the green by day, Matthew 08:23)
                 m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.black);
+                col = new Color(col.r * 0.22f, col.g * 0.22f, col.b * 0.22f, 1f); m.SetColor("_BaseColor", col); m.SetFloat("_Smoothness", 0.85f);
                 m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
             }
             else if (prop == "street-lamp-1" && glass)
             {
-                // golden hour: the street lamps are already on, a warm glow the bloom picks up, as in the web game
-                m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", new Color(1f, 0.7f, 0.4f) * 2.4f);
+                // v75c: dark by default; LampLights lights a run-time copy with the night ramp (Matthew: the globes
+                // glowed at 07:20 and 09:36)
+                m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.black);
                 m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
             }
             else { m.DisableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.black); }
@@ -806,7 +811,7 @@ namespace StreetEmpire.EditorTools
         /// wall (a mesh collider on the near model while the scene is built, removed after) so they sit on it.</summary>
         static void Graffiti(Marks marks)
         {
-            int tagged = 0;
+            int tagged = 0, skipped = 0;
             foreach (var bm in Object.FindObjectsByType<BuildingMarker>(FindObjectsSortMode.None).OrderBy(x => x.blockId).ThenBy(x => x.index))
             {
                 int h = Hash(bm.blockId, bm.index, 5);
@@ -825,12 +830,62 @@ namespace StreetEmpire.EditorTools
                 {
                     var nrm = new Vector3(hit.normal.x, 0, hit.normal.z).normalized;
                     var right = Vector3.Cross(Vector3.up, -nrm);
-                    marks.Decal("Graffiti", hit.point + nrm * 0.03f, right, Vector3.up, nrm, 2.6f, 1.3f, Piece(h / 2 % 4));
-                    tagged++;
+                    // v75c: the piece must sit on plain flat wall (Matthew: a tag over a window on the EMPIRE house).
+                    // Try the first spot, then along the wall; every one of 7 x 4 points over the piece must hit the
+                    // same wall plane (within 6 cm: no window recess, frame, door or edge) on a part that is not glass
+                    Vector3? at = null;
+                    foreach (var slide in new[] { 0f, 1.2f, -1.2f, 2.4f, -2.4f, 3.6f, -3.6f })
+                    {
+                        foreach (var lift in new[] { 0f, 0.5f, -0.3f })
+                        {
+                            var c = hit.point + right * slide + Vector3.up * lift;
+                            if (c.y - 0.65f < 0.3f) continue;
+                            if (PlainWall(c, nrm, right, 2.6f, 1.3f, temp)) { at = c; break; }
+                        }
+                        if (at != null) break;
+                    }
+                    if (at != null)
+                    {
+                        marks.Decal("Graffiti", at.Value + nrm * 0.03f, right, Vector3.up, nrm, 2.6f, 1.3f, Piece(h / 2 % 4));
+                        bm.graffiti = h / 2 % 4; bm.graffitiAt = at.Value; bm.graffitiNormal = nrm;
+                        tagged++;
+                    }
+                    else skipped++;
                 }
                 foreach (var mc in temp) Object.DestroyImmediate(mc);
             }
-            Debug.Log($"[PropBuilder] graffiti on {tagged} walls");
+            Debug.Log($"[PropBuilder] graffiti on {tagged} walls, {skipped} walls with no plain spot clear of windows and doors left bare");
+        }
+
+        /// <summary>v75c: whether a w by h piece centered on c (facing n) lies on one flat plain wall of the model:
+        /// rays from just in front of every point of a 7 x 4 grid over it (plus a 0.15 m border) all hit the
+        /// building within 6 cm of the center's depth, on a material that is not glass, window or door.</summary>
+        static bool PlainWall(Vector3 c, Vector3 n, Vector3 right, float w, float h, List<MeshCollider> cols)
+        {
+            float? depth = null;
+            for (int i = 0; i < 7; i++) for (int j = 0; j < 4; j++)
+            {
+                var p = c + right * ((i / 6f - 0.5f) * (w + 0.3f)) + Vector3.up * ((j / 3f - 0.5f) * (h + 0.3f));
+                var from = p + n * 1.5f;
+                var hits = Physics.RaycastAll(from, -n, 3f, ~0, QueryTriggerInteraction.Ignore).Where(x => cols.Contains(x.collider as MeshCollider)).OrderBy(x => x.distance).ToArray();
+                if (hits.Length == 0) return false;
+                var hh = hits[0];
+                if (depth == null) depth = hh.distance; else if (Mathf.Abs(hh.distance - depth.Value) > 0.06f) return false;
+                if (Vector3.Dot(hh.normal, n) < 0.95f) return false;
+                var mc = hh.collider as MeshCollider; var mesh = mc.sharedMesh; var r = mc.GetComponent<Renderer>();
+                if (mesh == null || r == null) continue;
+                int sub = SubmeshOf(mesh, hh.triangleIndex);
+                var mats = r.sharedMaterials; var mat = sub >= 0 && sub < mats.Length ? mats[sub] : null;
+                string nm = mat != null ? mat.name.ToLowerInvariant() : "";
+                if (nm.Contains("window") || nm.Contains("glass") || nm.Contains("door")) return false;
+            }
+            return true;
+        }
+
+        static int SubmeshOf(Mesh mesh, int tri)
+        {
+            for (int i = 0; i < mesh.subMeshCount; i++) { var d = mesh.GetSubMesh(i); int a = d.indexStart / 3, b = a + d.indexCount / 3; if (tri >= a && tri < b) return i; }
+            return -1;
         }
 
         /// <summary>The decal material: lit, alpha blended over the ground or wall, no shadow of its own.</summary>
@@ -899,7 +954,7 @@ namespace StreetEmpire.EditorTools
                 var look = new Dictionary<string, Material>
                 {
                     ["White"] = Plain("Marking", new Color(0.66f, 0.65f, 0.61f), 0.25f),   // worn grey like the web crosswalks (9a9a92)
-                    ["Joint"] = Plain("SidewalkJoint", new Color(0.36f, 0.35f, 0.33f), 0.05f),
+                    ["Joint"] = Plain("SidewalkJoint", new Color(0.30f, 0.30f, 0.30f), 0.05f),   // v75c: neutral (the joints read as orange stripes under per vertex lamp light)
                     ["CurbEdge"] = Plain("CurbEdge", new Color(0.72f, 0.71f, 0.68f), 0.1f),
                     ["Lot"] = Textured("LotConcrete", "Assets/Art/Textures/Ground/cracked_concrete_basecolor.jpg", "Assets/Art/Textures/Ground/cracked_concrete_normal.jpg", 1f, 0.1f, Color.white),
                     ["Decal"] = DecalMat("Decal Ground"),
