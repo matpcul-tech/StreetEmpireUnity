@@ -407,7 +407,7 @@ namespace StreetEmpire.Game
                             // v75e: the nearest pedestrian, the camera low and close in front of them, 4 m out
                             StreetEmpire.Game.Ped pd = null; float pdd = float.MaxValue;
                             foreach (var q in FindObjectsByType<StreetEmpire.Game.Ped>(FindObjectsSortMode.None)) { float d = (q.transform.position - b10).sqrMagnitude; if (d < pdd) { pdd = d; pd = q; } }
-                            if (pd != null) { var fw = pd.transform.forward; fw.y = 0; fw.Normalize(); Game(pd.transform.position + fw * 3.2f + Vector3.Cross(Vector3.up, fw) * 0.6f, -fw, 4f, 2.4f); Debug.Log($"[ShotDirector] v75 view 26 pedestrian {pd.name} at {pd.transform.position}"); }
+                            if (pd != null) { var fw = pd.transform.forward; fw.y = 0; fw.Normalize(); Game(pd.transform.position + fw * 3.2f + Vector3.Cross(Vector3.up, fw) * 0.6f, -fw, 4f, 2.4f); if (brain) brain.enabled = false;   // v75e: Game() turns the follow camera back on; 26 is a free camera Debug.Log($"[ShotDirector] v75 view 26 pedestrian {pd.name} at {pd.transform.position}"); }
                             break;
                         }
                         case 20:
