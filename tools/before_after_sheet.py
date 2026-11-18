@@ -1,6 +1,6 @@
 import sys, os
 from PIL import Image, ImageDraw, ImageFont
-A,B=sys.argv[1],sys.argv[2]; S='/workspace/shots/eastside-build/stage2'
+A,B=sys.argv[1],sys.argv[2]; NAME=sys.argv[3] if len(sys.argv)>3 else B; S='/workspace/shots/eastside-build/stage2'
 f=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',30); g=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',22)
 w,h=960,540; pad=12; lab=36
 tour=['start.png']+[f'keys-{i}-Digit{i+1}.png' for i in range(1,8)]
@@ -15,7 +15,6 @@ u='keys-5-Digit6.png'
 sections.append(('HUD text and prompts, zoomed crops of the Unc view',[
  ('HUD: FISTS, money, Rep (ghosting)',(f'{S}/close{A}hr/{u}',hud),(f'{S}/close{B}/{u}',hud)),
  ('Talk to Unc prompt (left label, one prompt)',(f'{S}/close{A}hr/{u}',prm),(f'{S}/close{B}/{u}',prm)),
- ('Bottom prompt area',(f'{S}/close{A}hr/{u}',bot),(f'{S}/close{B}/{u}',bot)),
  (f'v{B} next to Unc (shot=close2 view 1) | v{B} Arm guards prompt on a held block',(f'{S}/close2_{B}/keys-1-Digit1.png',None),(f'{S}/close2_{B}/keys-3-Digit3.png',None))]))
 sections.append(('Lighting: post profile, lower warmer sun, fog pushed out, character fill',[
  ('Avenue at eye height',(f'{S}/tour{A}/start.png',None),(f'{S}/tour{B}/start.png',None)),
@@ -38,7 +37,7 @@ sections.append((f'GFX Ultra (left) vs High (right), v{B}',[
  ('Skyline',(f'{S}/close2_{B}/keys-6-Digit6.png',None),(f'{S}/close2high_{B}/keys-3-Digit6.png',None))]))
 H=70+sum(60+len(r)*(h+lab+pad) for _,r in sections)
 out=Image.new('RGB',(2*w+3*pad,H),(18,16,14)); d=ImageDraw.Draw(out)
-d.text((pad,18),f'Before: v{A} (left) vs after: v{B} (right). Ultra tier unless marked.',fill=(255,204,51),font=f)
+d.text((pad,18),f'Before: v{A} (left) vs after: v{NAME} work, build {B} (right). Ultra tier unless marked.',fill=(255,204,51),font=f)
 def tile(spec,x,y):
     p,crop=spec
     if not os.path.exists(p): d.text((x+20,y+20),'missing '+p.replace(S+'/',''),fill=(200,80,80),font=g); return
@@ -55,4 +54,4 @@ for title,rows in sections:
         la,lb=(t.split(' | ')+[None])[:2] if ' | ' in t else (t+f'  (v{A})',t+f'  (v{B})')
         d.text((pad,y+6),la,fill=(230,230,230),font=g); d.text((2*pad+w,y+6),lb,fill=(230,230,230),font=g)
         tile(a,pad,y+lab); tile(b,2*pad+w,y+lab); y+=h+lab+pad
-o=f'/workspace/shots/vibe/before-after-v{A}-v{B}.jpg'; out.save(o,quality=88); print(o,out.size)
+o=f'/workspace/shots/vibe/before-after-v{A}-v{NAME}.jpg'; out.save(o,quality=88); print(o,out.size)
