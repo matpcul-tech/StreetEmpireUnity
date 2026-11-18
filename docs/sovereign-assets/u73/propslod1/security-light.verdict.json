@@ -1,0 +1,42 @@
+{
+ "name": "security-light",
+ "banner": "READY",
+ "preset": "unity-static",
+ "options": {
+  "flat": "light",
+  "light": "light",
+  "maps": "light",
+  "color": true,
+  "tex": "2048",
+  "tris": ""
+ },
+ "tris_before": 930,
+ "tris_after": 930,
+ "texture_detail_px_per_m": 460,
+ "stretched_pct": 3,
+ "color_standard": "PASS",
+ "color_line": "PASS Color standard Brightness runs from 2 to 57 percent, middle 19. Peak vividness 29. The shared range is 2 to 82, vividness up to 90.",
+ "detail_line": "NOTE Texture detail 460 texture pixels per meter across most of the surface. Assets that share a street should be close to each other on this number.",
+ "sum": "Every check passed on the finished file.",
+ "checks": [
+  "PASS Valid glTF 2.0 The Khronos validator found no errors (3 warnings).",
+  "PASS Clean triangles No empty or repeated triangles.",
+  "PASS No floating debris No small pieces float free of the model.",
+  "PASS Faces point outward No shell is inside out.",
+  "PASS Normals Every part has normals that agree with its faces.",
+  "PASS Texture size All 4 readable textures are 2048 px or under.",
+  "PASS Color standard Brightness runs from 2 to 57 percent, middle 19. Peak vividness 29. The shared range is 2 to 82, vividness up to 90.",
+  "PASS On the ground Lowest point is at 0.0000 m.",
+  "PASS Centered Center is at X 0.0000, Z 0.0000.",
+  "PASS Nothing lost 2 materials, 4 textures.",
+  "NOTE Open edges 106 open edges and 7 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Triangles 930 triangles. No target was set.",
+  "NOTE Draw calls 3 draw calls, 2 materials.",
+  "NOTE Texture detail 460 texture pixels per meter across most of the surface. Assets that share a street should be close to each other on this number.",
+  "NOTE Size 0.320 wide, 0.531 tall, 0.403 long (meters). No size was set.",
+  "NOTE File size 0.7 MB, was 0.7 MB."
+ ],
+ "failed": [],
+ "found": "No broken geometry found. 106 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

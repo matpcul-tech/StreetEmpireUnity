@@ -46,9 +46,13 @@ namespace StreetEmpire.EditorTools
             bool art = assetPath.StartsWith("Assets/Art/Models/") || assetPath.StartsWith("Assets/Art/Textures/");
             if (!art) return;
             bool normal = assetPath.Contains("_normal");
-            bool data = assetPath.Contains("_metalsmooth");   // URP metallic (R) and smoothness (A): linear, keeps alpha
-            if (normal) t.textureType = TextureImporterType.NormalMap;
-            if (data) { t.sRGBTexture = false; t.alphaSource = TextureImporterAlphaSource.FromInput; }
+            // data maps hold numbers, not colors: URP metallic (R) and smoothness (A), or a roughness or occlusion map
+            bool data = assetPath.Contains("_metalsmooth") || assetPath.Contains("_roughness") || assetPath.Contains("_occlusion");
+            // v73 rule: normal and roughness (metalsmooth) maps import with sRGB off, every color map
+            // (base color, emission) with sRGB on. A normal map type is always sampled linear.
+            if (normal) { t.textureType = TextureImporterType.NormalMap; t.sRGBTexture = false; }
+            else if (data) { t.textureType = TextureImporterType.Default; t.sRGBTexture = false; t.alphaSource = TextureImporterAlphaSource.FromInput; }
+            else t.sRGBTexture = true;
             // hero props seen up close keep 2048 px color (tools/extract_prop_textures.mjs names them _2k); the
             // other prop maps are sized by how close they get seen (Size), which keeps the APK down
             bool prop = assetPath.StartsWith("Assets/Art/Textures/Props/");

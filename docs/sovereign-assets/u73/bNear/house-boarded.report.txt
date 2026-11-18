@@ -1,0 +1,36 @@
+Sovereign Asset report
+Source: house-boarded
+Finish: Unity building or prop
+Output: house-boarded-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (1 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 2 open edges and 10 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.
+NOTE  Triangles: 25998 triangles. No target was set.
+NOTE  Draw calls: 1 draw call, 1 material.
+PASS  Texture size: All 3 readable textures are 2048 px or under.
+PASS  Color standard: Brightness runs from 2 to 29 percent, middle 5. Peak vividness 26. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 135 texture pixels per meter across most of the surface. 15 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.
+NOTE  Size: 1.66 wide, 1.64 tall, 1.90 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 1 material, 3 textures.
+NOTE  File size: 2.0 MB, was 1.9 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- Closed 0 holes. 2 openings left open: too large or not a simple loop.
+- Flat areas: 2 walls and other flat areas (214 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.04 percent of the part's size.
+- 1 area that is nearly flat but curved was left alone.
+- Baked light: 1 color texture had light painted in. On the worst, the lit side was 5.00 times as bright as the dark side. It is now 5.97 times. Local painted shadows are not touched.
+- Color standard: 1 color texture brought inside the shared range. Brightness ran from 1 to 29 percent and peak vividness was 26. Now 2 to 29 and 26. The middle of the range and every hue are untouched.
+- Surface maps: every material already has its own.
+- The model was set on the ground, centered.

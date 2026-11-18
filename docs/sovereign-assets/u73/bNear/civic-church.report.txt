@@ -1,0 +1,35 @@
+Sovereign Asset report
+Source: civic-church
+Finish: Unity building or prop
+Output: civic-church-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (1 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 2 open edges and 2 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.
+NOTE  Triangles: 25999 triangles. No target was set.
+NOTE  Draw calls: 1 draw call, 1 material.
+PASS  Texture size: All 3 readable textures are 2048 px or under.
+PASS  Color standard: Brightness runs from 2 to 15 percent, middle 3. Peak vividness 87. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 163 texture pixels per meter across most of the surface. 16 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.
+NOTE  Size: 1.22 wide, 1.90 tall, 1.80 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 1 material, 3 textures.
+NOTE  File size: 1.7 MB, was 1.7 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- Closed 0 holes. 2 openings left open: too large or not a simple loop.
+- Flat areas: 7 walls and other flat areas (1201 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.02 percent of the part's size.
+- Baked light: 1 color texture had light painted in. On the worst, the lit side was 1.44 times as bright as the dark side. It is now 1.29 times. Local painted shadows are not touched.
+- Color standard: every color texture was already inside the shared range. Nothing was changed.
+- Surface maps: every material already has its own.
+- The model was set on the ground, centered.

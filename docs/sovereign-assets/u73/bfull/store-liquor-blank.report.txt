@@ -1,0 +1,35 @@
+Sovereign Asset report
+Source: store-liquor-blank
+Finish: Unity building or prop
+Output: store-liquor-blank-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (16 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: The mesh is closed, with 10 edges shared by more than two faces.
+NOTE  Triangles: 1572 triangles. No target was set.
+NOTE  Draw calls: 16 draw calls, 5 materials.
+PASS  Texture size: All 10 readable textures are 2048 px or under.
+PASS  Color standard: Brightness runs from 3 to 56 percent, middle 8. Peak vividness 88. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 50 texture pixels per meter across most of the surface. Assets that share a street should be close to each other on this number.
+NOTE  Size: 10.1 wide, 4.86 tall, 7.53 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 5 materials, 10 textures.
+NOTE  File size: 0.4 MB, was 0.2 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- No holes were found.
+- Flat areas: 104 walls and other flat areas (208 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.00 percent of the part's size. Tangents on those parts were dropped (the renderer rebuilds them).
+- Baked light: 1 color texture had light painted in. On the worst, the lit side was 2.34 times as bright as the dark side. It is now 2.20 times. Local painted shadows are not touched.
+- Color standard: 2 color textures brought inside the shared range. Brightness ran from 1 to 56 percent and peak vividness was 76. Now 3 to 56 and 76. The middle of the range and every hue are untouched.
+- Surface maps: made 4 normal map links and 4 roughness map links from the color texture, for materials that had none. 1 material kept the normal map it came with.
+- Size and position were already right.

@@ -1,0 +1,36 @@
+Sovereign Asset report
+Source: utility-box-2
+Finish: Unity building or prop
+Output: utility-box-2-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (1 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 792 open edges and 5 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.
+NOTE  Triangles: 2500 triangles. No target was set.
+NOTE  Draw calls: 1 draw call, 1 material.
+PASS  Texture size: All 3 readable textures are 2048 px or under.
+PASS  Color standard: Brightness runs from 5 to 31 percent, middle 21. Peak vividness 53. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 412 texture pixels per meter across most of the surface. Assets that share a street should be close to each other on this number.
+NOTE  Size: 0.920 wide, 1.12 tall, 0.432 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 1 material, 3 textures.
+NOTE  File size: 0.7 MB, was 0.7 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- Closed 0 holes. 112 openings left open: too large or not a simple loop.
+- Flat areas: 4 walls and other flat areas (19 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.00 percent of the part's size.
+- 5 areas that are nearly flat but curved were left alone.
+- Baked light: 1 color texture had light painted in. On the worst, the lit side was 2.06 times as bright as the dark side. It is now 1.57 times. Local painted shadows are not touched.
+- Color standard: every color texture was already inside the shared range. Nothing was changed.
+- Surface maps: every material already has its own.
+- Size and position were already right.

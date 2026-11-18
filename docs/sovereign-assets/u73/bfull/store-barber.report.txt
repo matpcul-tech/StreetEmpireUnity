@@ -1,0 +1,35 @@
+Sovereign Asset report
+Source: store-barber
+Finish: Unity building or prop
+Output: store-barber-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (1 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 27 open edges. Fine for games and rendering. A 3D print needs none.
+NOTE  Triangles: 57991 triangles. No target was set.
+NOTE  Draw calls: 1 draw call, 1 material.
+PASS  Texture size: All 4 readable textures are 2048 px or under.
+PASS  Color standard: Brightness runs from 2 to 62 percent, middle 33. Peak vividness 87. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 103 texture pixels per meter across most of the surface. 15 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.
+NOTE  Size: 1.68 wide, 1.48 tall, 1.91 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 1 material, 4 textures.
+NOTE  File size: 3.3 MB, was 3.3 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- Closed 18 holes. 9 openings left open: too large or not a simple loop.
+- Flat areas: 8 walls and other flat areas (28844 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.08 percent of the part's size.
+- Baked light: 1 color texture had light painted in. On the worst, the lit side was 2.08 times as bright as the dark side. It is now 1.60 times. Local painted shadows are not touched.
+- Color standard: 1 color texture brought inside the shared range. Brightness ran from 0 to 62 percent and peak vividness was 91. Now 2 to 62 and 85. The middle of the range and every hue are untouched.
+- Surface maps: every material already has its own.
+- Size and position were already right.

@@ -1,0 +1,31 @@
+Sovereign Asset report
+Source: store-takeout
+Finish: Unity building or prop
+Output: store-takeout-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors.
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 12873 open edges and 1 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.
+NOTE  Triangles: 12864 triangles. No target was set.
+NOTE  Draw calls: 1 draw call, 1 material.
+PASS  Texture size: The model has no textures.
+NOTE  Size: 1.68 wide, 1.90 tall, 1.72 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 1 material, 0 textures.
+NOTE  File size: 0.6 MB, was 0.6 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- Closed 0 holes. 4904 openings left open: too large or not a simple loop.
+- Flat areas: 7 walls and other flat areas (1758 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.01 percent of the part's size.
+- Surfaces: the model has no color texture, so there was nothing to work from.
+- Size and position were already right.

@@ -1,0 +1,37 @@
+Sovereign Asset report
+Source: chainlink-panel
+Finish: Unity building or prop
+Output: chainlink-panel-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (2 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 14 open edges. Fine for games and rendering. A 3D print needs none.
+NOTE  Triangles: 800 triangles. No target was set.
+NOTE  Draw calls: 2 draw calls, 2 materials.
+PASS  Texture size: All 6 readable textures are 2048 px or under.
+PASS  Color standard: Brightness runs from 2 to 47 percent, middle 14. Peak vividness 49. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 100 texture pixels per meter across most of the surface. Assets that share a street should be close to each other on this number.
+NOTE  Size: 0.933 wide, 2.37 tall, 0.049 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 2 materials, 6 textures.
+NOTE  File size: 0.8 MB, was 0.8 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- Closed 0 holes. 1 opening left open: too large or not a simple loop.
+- Normals: 29 faces lit from behind got corners of their own. Every other normal is the model's own.
+- Flat areas: 24 walls and other flat areas (68 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.06 percent of the part's size.
+- Baked light: 1 color texture had light painted in. On the worst, the lit side was 1.30 times as bright as the dark side. It is now 1.17 times. Local painted shadows are not touched.
+- 1 tiling texture left as painted. A texture that repeats has no single pixel per point to correct.
+- Color standard: every color texture was already inside the shared range. Nothing was changed.
+- Surface maps: every material already has its own.
+- The model was set on the ground, centered.

@@ -1,0 +1,35 @@
+Sovereign Asset report
+Source: house-shotgun
+Finish: Unity building or prop
+Output: house-shotgun-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (1 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: The mesh is closed.
+NOTE  Triangles: 58000 triangles. No target was set.
+NOTE  Draw calls: 1 draw call, 1 material.
+PASS  Texture size: All 4 readable textures are 2048 px or under.
+PASS  Color standard: Brightness runs from 3 to 36 percent, middle 3. Peak vividness 43. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 146 texture pixels per meter across most of the surface. 19 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.
+NOTE  Size: 1.02 wide, 1.14 tall, 1.89 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 1 material, 4 textures.
+NOTE  File size: 3.4 MB, was 3.4 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- No holes were found.
+- Flat areas: 1 wall or other flat area (57 triangles) pressed onto its plane and lit as one face each. No point moved more than 0.04 percent of the part's size.
+- Baked light: 1 color texture had light painted in. On the worst, the lit side was 2.20 times as bright as the dark side. It is now 1.54 times. Local painted shadows are not touched.
+- Color standard: 1 color texture brought inside the shared range. Brightness ran from 1 to 36 percent and peak vividness was 43. Now 3 to 36 and 43. The middle of the range and every hue are untouched.
+- Surface maps: every material already has its own.
+- The model was set on the ground, centered.

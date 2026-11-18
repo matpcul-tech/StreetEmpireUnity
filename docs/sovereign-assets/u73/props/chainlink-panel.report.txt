@@ -1,0 +1,36 @@
+Sovereign Asset report
+Source: chainlink-panel
+Finish: Unity building or prop
+Output: chainlink-panel-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (2 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 29 open edges. Fine for games and rendering. A 3D print needs none.
+NOTE  Triangles: 3021 triangles. No target was set.
+NOTE  Draw calls: 2 draw calls, 2 materials.
+PASS  Texture size: All 6 readable textures are 2048 px or under.
+PASS  Color standard: Brightness runs from 2 to 46 percent, middle 13. Peak vividness 50. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 201 texture pixels per meter across most of the surface. Assets that share a street should be close to each other on this number.
+NOTE  Size: 0.934 wide, 2.37 tall, 0.049 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 2 materials, 6 textures.
+NOTE  File size: 2.5 MB, was 2.5 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- Closed 0 holes. 1 opening left open: too large or not a simple loop.
+- Flat areas: 24 walls and other flat areas (124 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.07 percent of the part's size.
+- Baked light: 1 color texture had light painted in. On the worst, the lit side was 1.60 times as bright as the dark side. It is now 1.28 times. Local painted shadows are not touched.
+- 1 tiling texture left as painted. A texture that repeats has no single pixel per point to correct.
+- Color standard: 1 color texture brought inside the shared range. Brightness ran from 0 to 23 percent and peak vividness was 50. Now 2 to 23 and 50. The middle of the range and every hue are untouched.
+- Surface maps: every material already has its own.
+- Size and position were already right.

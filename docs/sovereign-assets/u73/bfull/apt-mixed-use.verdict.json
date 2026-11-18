@@ -1,0 +1,42 @@
+{
+ "name": "apt-mixed-use",
+ "banner": "READY",
+ "preset": "unity-static",
+ "options": {
+  "flat": "light",
+  "light": "light",
+  "maps": "light",
+  "color": true,
+  "tex": "2048",
+  "tris": ""
+ },
+ "tris_before": 58000,
+ "tris_after": 58000,
+ "texture_detail_px_per_m": 179,
+ "stretched_pct": 20,
+ "color_standard": "PASS",
+ "color_line": "PASS Color standard Brightness runs from 3 to 7 percent, middle 5. Peak vividness 0. The shared range is 2 to 82, vividness up to 90.",
+ "detail_line": "NOTE Texture detail 179 texture pixels per meter across most of the surface. 20 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.",
+ "sum": "Every check passed on the finished file.",
+ "checks": [
+  "PASS Valid glTF 2.0 The Khronos validator found no errors (1 warnings).",
+  "PASS Clean triangles No empty or repeated triangles.",
+  "PASS No floating debris No small pieces float free of the model.",
+  "PASS Faces point outward No shell is inside out.",
+  "PASS Normals Every part has normals that agree with its faces.",
+  "PASS Texture size All 4 readable textures are 2048 px or under.",
+  "PASS Color standard Brightness runs from 3 to 7 percent, middle 5. Peak vividness 0. The shared range is 2 to 82, vividness up to 90.",
+  "PASS On the ground Lowest point is at 0.0000 m.",
+  "PASS Centered Center is at X 0.0000, Z 0.0000.",
+  "PASS Nothing lost 1 material, 4 textures.",
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Triangles 58000 triangles. No target was set.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Texture detail 179 texture pixels per meter across most of the surface. 20 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.",
+  "NOTE Size 1.33 wide, 1.89 tall, 1.33 long (meters). No size was set.",
+  "NOTE File size 1.8 MB, was 1.9 MB."
+ ],
+ "failed": [],
+ "found": "No broken geometry found.",
+ "errors": []
+}

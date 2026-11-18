@@ -75,12 +75,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.550000011920929,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "bat__bat_wood_basecolor.jpg"
+   "basecolor": "bat__bat_wood_basecolor.jpg",
+   "normal": "bat__bat_wood_normal.jpg",
+   "metalsmooth": "bat__bat_wood_metalsmooth.png"
   },
   {
    "prop": "bench",
@@ -169,12 +171,14 @@
     1
    ],
    "metallic": 0.699999988079071,
-   "roughness": 0.44999998807907104,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "bus-stop-sign__galvanized_basecolor.jpg"
+   "basecolor": "bus-stop-sign__galvanized_basecolor.jpg",
+   "normal": "bus-stop-sign__galvanized_normal.jpg",
+   "metalsmooth": "bus-stop-sign__galvanized_metalsmooth.png"
   },
   {
    "prop": "bus-stop-sign",
@@ -188,12 +192,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.30000001192092896,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "bus-stop-sign__bus_basecolor.jpg"
+   "basecolor": "bus-stop-sign__bus_basecolor.jpg",
+   "normal": "bus-stop-sign__bus_normal.jpg",
+   "metalsmooth": "bus-stop-sign__bus_metalsmooth.png"
   },
   {
    "prop": "bush",
@@ -207,12 +213,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.8999999761581421,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "bush__bush_basecolor.jpg"
+   "basecolor": "bush__bush_basecolor.jpg",
+   "normal": "bush__bush_normal.jpg",
+   "metalsmooth": "bush__bush_metalsmooth.png"
   },
   {
    "prop": "cardboard-box",
@@ -352,12 +360,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.8999999761581421,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "decal-set__decals_basecolor.png"
+   "basecolor": "decal-set__decals_basecolor.png",
+   "normal": "decal-set__decals_normal.jpg",
+   "metalsmooth": "decal-set__decals_metalsmooth.png"
   },
   {
    "prop": "dry-hedge",
@@ -371,12 +381,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.949999988079071,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "dry-hedge__dry_blades_basecolor.png"
+   "basecolor": "dry-hedge__dry_blades_basecolor.png",
+   "normal": "dry-hedge__dry_blades_normal.jpg",
+   "metalsmooth": "dry-hedge__dry_blades_metalsmooth.png"
   },
   {
    "prop": "dry-shrub",
@@ -390,12 +402,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.949999988079071,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "dry-shrub__dry_blades_basecolor.png"
+   "basecolor": "dry-shrub__dry_blades_basecolor.png",
+   "normal": "dry-shrub__dry_blades_normal.jpg",
+   "metalsmooth": "dry-shrub__dry_blades_metalsmooth.png"
   },
   {
    "prop": "dumpster",
@@ -409,12 +423,14 @@
     1
    ],
    "metallic": 0.4000000059604645,
-   "roughness": 0.699999988079071,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "dumpster__dumpster_basecolor.jpg"
+   "basecolor": "dumpster__dumpster_basecolor.jpg",
+   "normal": "dumpster__dumpster_normal.jpg",
+   "metalsmooth": "dumpster__dumpster_metalsmooth.png"
   },
   {
    "prop": "dumpster",
@@ -446,12 +462,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.949999988079071,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "grass-clump__dry_blades_basecolor.png"
+   "basecolor": "grass-clump__dry_blades_basecolor.png",
+   "normal": "grass-clump__dry_blades_normal.jpg",
+   "metalsmooth": "grass-clump__dry_blades_metalsmooth.png"
   },
   {
    "prop": "hedge",
@@ -465,12 +483,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.8999999761581421,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "hedge__hedge_basecolor.jpg"
+   "basecolor": "hedge__hedge_basecolor.jpg",
+   "normal": "hedge__hedge_normal.jpg",
+   "metalsmooth": "hedge__hedge_metalsmooth.png"
   },
   {
    "prop": "hydrant-aged",
@@ -526,12 +546,14 @@
     1
    ],
    "metallic": 0.3499999940395355,
-   "roughness": 0.44999998807907104,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "mailbox__usps_basecolor.jpg"
+   "basecolor": "mailbox__usps_basecolor.jpg",
+   "normal": "mailbox__usps_normal.jpg",
+   "metalsmooth": "mailbox__usps_metalsmooth.png"
   },
   {
    "prop": "mailbox",
@@ -602,12 +624,14 @@
     1
    ],
    "metallic": 0.30000001192092896,
-   "roughness": 0.44999998807907104,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "newspaper-box__news_basecolor.jpg"
+   "basecolor": "newspaper-box__news_basecolor.jpg",
+   "normal": "newspaper-box__news_normal.jpg",
+   "metalsmooth": "newspaper-box__news_metalsmooth.png"
   },
   {
    "prop": "newspaper-box",
@@ -644,7 +668,9 @@
     1,
     1
    ],
-   "basecolor": "palm-short__palm_bark_basecolor.jpg"
+   "basecolor": "palm-short__palm_bark_basecolor.jpg",
+   "normal": "palm-short__palm_bark_normal.jpg",
+   "metalsmooth": "palm-short__palm_bark_metalsmooth.png"
   },
   {
    "prop": "palm-short",
@@ -658,12 +684,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.8999999761581421,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "palm-short__palm_frond_basecolor.png"
+   "basecolor": "palm-short__palm_frond_basecolor.png",
+   "normal": "palm-short__palm_frond_normal.jpg",
+   "metalsmooth": "palm-short__palm_frond_metalsmooth.png"
   },
   {
    "prop": "palm-tall",
@@ -682,7 +710,9 @@
     1,
     1
    ],
-   "basecolor": "palm-tall__palm_bark_basecolor.jpg"
+   "basecolor": "palm-tall__palm_bark_basecolor.jpg",
+   "normal": "palm-tall__palm_bark_normal.jpg",
+   "metalsmooth": "palm-tall__palm_bark_metalsmooth.png"
   },
   {
    "prop": "palm-tall",
@@ -696,12 +726,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.8999999761581421,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "palm-tall__palm_frond_basecolor.png"
+   "basecolor": "palm-tall__palm_frond_basecolor.png",
+   "normal": "palm-tall__palm_frond_normal.jpg",
+   "metalsmooth": "palm-tall__palm_frond_metalsmooth.png"
   },
   {
    "prop": "road-barrier",
@@ -778,12 +810,14 @@
     1
    ],
    "metallic": 0.699999988079071,
-   "roughness": 0.44999998807907104,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "sign-post__galvanized_basecolor.jpg"
+   "basecolor": "sign-post__galvanized_basecolor.jpg",
+   "normal": "sign-post__galvanized_normal.jpg",
+   "metalsmooth": "sign-post__galvanized_metalsmooth.png"
   },
   {
    "prop": "stop-sign",
@@ -797,12 +831,14 @@
     1
    ],
    "metallic": 0.699999988079071,
-   "roughness": 0.44999998807907104,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "stop-sign__galvanized_basecolor.jpg"
+   "basecolor": "stop-sign__galvanized_basecolor.jpg",
+   "normal": "stop-sign__galvanized_normal.jpg",
+   "metalsmooth": "stop-sign__galvanized_metalsmooth.png"
   },
   {
    "prop": "stop-sign",
@@ -816,12 +852,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.3499999940395355,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "stop-sign__stop_basecolor.jpg"
+   "basecolor": "stop-sign__stop_basecolor.jpg",
+   "normal": "stop-sign__stop_normal.jpg",
+   "metalsmooth": "stop-sign__stop_metalsmooth.png"
   },
   {
    "prop": "street-blade-0",
@@ -835,12 +873,14 @@
     1
    ],
    "metallic": 0.10000000149011612,
-   "roughness": 0.30000001192092896,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "street-blade-0__blade_basecolor.jpg"
+   "basecolor": "street-blade-0__blade_basecolor.jpg",
+   "normal": "street-blade-0__blade_normal.jpg",
+   "metalsmooth": "street-blade-0__blade_metalsmooth.png"
   },
   {
    "prop": "street-blade-1",
@@ -854,12 +894,14 @@
     1
    ],
    "metallic": 0.10000000149011612,
-   "roughness": 0.30000001192092896,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "street-blade-1__blade_basecolor.jpg"
+   "basecolor": "street-blade-1__blade_basecolor.jpg",
+   "normal": "street-blade-1__blade_normal.jpg",
+   "metalsmooth": "street-blade-1__blade_metalsmooth.png"
   },
   {
    "prop": "street-blade-2",
@@ -873,12 +915,14 @@
     1
    ],
    "metallic": 0.10000000149011612,
-   "roughness": 0.30000001192092896,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "street-blade-2__blade_basecolor.jpg"
+   "basecolor": "street-blade-2__blade_basecolor.jpg",
+   "normal": "street-blade-2__blade_normal.jpg",
+   "metalsmooth": "street-blade-2__blade_metalsmooth.png"
   },
   {
    "prop": "street-blade-3",
@@ -892,12 +936,14 @@
     1
    ],
    "metallic": 0.10000000149011612,
-   "roughness": 0.30000001192092896,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "street-blade-3__blade_basecolor.jpg"
+   "basecolor": "street-blade-3__blade_basecolor.jpg",
+   "normal": "street-blade-3__blade_normal.jpg",
+   "metalsmooth": "street-blade-3__blade_metalsmooth.png"
   },
   {
    "prop": "street-blade-4",
@@ -911,12 +957,14 @@
     1
    ],
    "metallic": 0.10000000149011612,
-   "roughness": 0.30000001192092896,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "street-blade-4__blade_basecolor.jpg"
+   "basecolor": "street-blade-4__blade_basecolor.jpg",
+   "normal": "street-blade-4__blade_normal.jpg",
+   "metalsmooth": "street-blade-4__blade_metalsmooth.png"
   },
   {
    "prop": "street-blade-5",
@@ -930,12 +978,14 @@
     1
    ],
    "metallic": 0.10000000149011612,
-   "roughness": 0.30000001192092896,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "street-blade-5__blade_basecolor.jpg"
+   "basecolor": "street-blade-5__blade_basecolor.jpg",
+   "normal": "street-blade-5__blade_normal.jpg",
+   "metalsmooth": "street-blade-5__blade_metalsmooth.png"
   },
   {
    "prop": "street-blade-6",
@@ -949,12 +999,14 @@
     1
    ],
    "metallic": 0.10000000149011612,
-   "roughness": 0.30000001192092896,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "street-blade-6__blade_basecolor.jpg"
+   "basecolor": "street-blade-6__blade_basecolor.jpg",
+   "normal": "street-blade-6__blade_normal.jpg",
+   "metalsmooth": "street-blade-6__blade_metalsmooth.png"
   },
   {
    "prop": "street-blade-7",
@@ -968,12 +1020,14 @@
     1
    ],
    "metallic": 0.10000000149011612,
-   "roughness": 0.30000001192092896,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "street-blade-7__blade_basecolor.jpg"
+   "basecolor": "street-blade-7__blade_basecolor.jpg",
+   "normal": "street-blade-7__blade_normal.jpg",
+   "metalsmooth": "street-blade-7__blade_metalsmooth.png"
   },
   {
    "prop": "street-lamp-1",
@@ -1029,12 +1083,14 @@
     1
    ],
    "metallic": 0.6000000238418579,
-   "roughness": 0.5,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "traffic-signal__signal_pole_basecolor.jpg"
+   "basecolor": "traffic-signal__signal_pole_basecolor.jpg",
+   "normal": "traffic-signal__signal_pole_normal.jpg",
+   "metalsmooth": "traffic-signal__signal_pole_metalsmooth.png"
   },
   {
    "prop": "traffic-signal",
@@ -1183,12 +1239,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.8500000238418579,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "tree-elm__bark_basecolor.jpg"
+   "basecolor": "tree-elm__bark_basecolor.jpg",
+   "normal": "tree-elm__bark_normal.jpg",
+   "metalsmooth": "tree-elm__bark_metalsmooth.png"
   },
   {
    "prop": "tree-elm",
@@ -1202,12 +1260,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.8999999761581421,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "tree-elm__leaves_basecolor.jpg"
+   "basecolor": "tree-elm__leaves_basecolor.jpg",
+   "normal": "tree-elm__leaves_normal.jpg",
+   "metalsmooth": "tree-elm__leaves_metalsmooth.png"
   },
   {
    "prop": "tree-maple",
@@ -1221,12 +1281,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.8500000238418579,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "tree-maple__bark_basecolor.jpg"
+   "basecolor": "tree-maple__bark_basecolor.jpg",
+   "normal": "tree-maple__bark_normal.jpg",
+   "metalsmooth": "tree-maple__bark_metalsmooth.png"
   },
   {
    "prop": "tree-maple",
@@ -1240,12 +1302,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.8999999761581421,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "tree-maple__leaves_basecolor.jpg"
+   "basecolor": "tree-maple__leaves_basecolor.jpg",
+   "normal": "tree-maple__leaves_normal.jpg",
+   "metalsmooth": "tree-maple__leaves_metalsmooth.png"
   },
   {
    "prop": "tree-young",
@@ -1259,12 +1323,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.8500000238418579,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "tree-young__bark_basecolor.jpg"
+   "basecolor": "tree-young__bark_basecolor.jpg",
+   "normal": "tree-young__bark_normal.jpg",
+   "metalsmooth": "tree-young__bark_metalsmooth.png"
   },
   {
    "prop": "tree-young",
@@ -1278,12 +1344,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.8999999761581421,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "tree-young__leaves_basecolor.jpg"
+   "basecolor": "tree-young__leaves_basecolor.jpg",
+   "normal": "tree-young__leaves_normal.jpg",
+   "metalsmooth": "tree-young__leaves_metalsmooth.png"
   },
   {
    "prop": "tyre",
@@ -1360,12 +1428,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.8500000238418579,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "utility-pole__pole_basecolor.jpg"
+   "basecolor": "utility-pole__pole_basecolor.jpg",
+   "normal": "utility-pole__pole_normal.jpg",
+   "metalsmooth": "utility-pole__pole_metalsmooth.png"
   },
   {
    "prop": "utility-pole",
@@ -1415,12 +1485,14 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.8799999952316284,
+   "roughness": 1,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "wood-fence__fence_boards_basecolor.jpg"
+   "basecolor": "wood-fence__fence_boards_basecolor.jpg",
+   "normal": "wood-fence__fence_boards_normal.jpg",
+   "metalsmooth": "wood-fence__fence_boards_metalsmooth.png"
   }
  ]
 }

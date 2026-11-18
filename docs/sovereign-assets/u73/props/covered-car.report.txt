@@ -1,0 +1,36 @@
+Sovereign Asset report
+Source: covered-car
+Finish: Unity building or prop
+Output: covered-car-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (5 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 1025 open edges and 2 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.
+NOTE  Triangles: 5994 triangles. No target was set.
+NOTE  Draw calls: 5 draw calls, 1 material.
+PASS  Texture size: All 3 readable textures are 2048 px or under.
+PASS  Color standard: Brightness runs from 2 to 11 percent, middle 5. Peak vividness 72. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 122 texture pixels per meter across most of the surface. 8 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.
+NOTE  Size: 1.79 wide, 1.41 tall, 4.37 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 1 material, 3 textures.
+NOTE  File size: 1.7 MB, was 2.1 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- Closed 0 holes. 79 openings left open: too large or not a simple loop.
+- No crumpled flat areas were found.
+- 17 areas that are nearly flat but curved were left alone.
+- Baked light: 1 color texture had light painted in. On the worst, the lit side was 1.27 times as bright as the dark side. It is now 1.19 times. Local painted shadows are not touched.
+- Color standard: 1 color texture brought inside the shared range. Brightness ran from 1 to 11 percent and peak vividness was 74. Now 2 to 11 and 74. The middle of the range and every hue are untouched.
+- Surface maps: every material already has its own.
+- The model was set on the ground, centered. The change sits on one top node, so parts, bones and animation are untouched.
