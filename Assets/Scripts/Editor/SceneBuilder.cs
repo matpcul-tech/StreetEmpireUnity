@@ -485,7 +485,7 @@ namespace StreetEmpire.EditorTools
             mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha); mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
             mat.SetFloat("_ZWrite", 0f); mat.SetFloat("_Cull", 0f);
             mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT"); mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent - 10;
-            mat.SetColor("_BaseColor", new Color(1f, 1f, 1f, 0.18f));
+            mat.SetColor("_BaseColor", new Color(1f, 1f, 1f, 0.03f));
             EditorUtility.SetDirty(mat);
             var go = new GameObject("Lamp Pools"); go.transform.SetParent(root, false);
             go.AddComponent<MeshFilter>().sharedMesh = mesh;

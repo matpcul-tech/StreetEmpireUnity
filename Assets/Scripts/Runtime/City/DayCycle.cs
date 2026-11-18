@@ -92,8 +92,8 @@ namespace StreetEmpire.City
             // window lights: dim at dusk, full at night, faint by day (only when it changes enough to matter)
             float glow = Mathf.Lerp(Mathf.Lerp(1f, 0.2f, day), 1.8f, night);
             if (fill) fill.intensity = fillIntensity * Mathf.Lerp(Mathf.Lerp(1f, 0.6f, day), 0.55f, night);
-            // lamp pools: faint at dusk (the lamps are already on), full at night, off by day
-            if (lampPools) lampPools.SetColor("_BaseColor", new Color(1f, 1f, 1f, Mathf.Lerp(Mathf.Lerp(0.18f, 0f, day), 1f, night)));
+            // lamp pools: off while the sun is up (at 0.18 they read as odd bright discs on a sunlit road), full at night
+            if (lampPools) lampPools.SetColor("_BaseColor", new Color(1f, 1f, 1f, Mathf.Lerp(Mathf.Lerp(0.03f, 0f, day), 1f, night)));
             if (Mathf.Abs(glow - lastNight) > 0.03f)
             {
                 lastNight = glow;

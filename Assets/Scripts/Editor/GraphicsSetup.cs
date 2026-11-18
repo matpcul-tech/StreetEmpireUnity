@@ -1,6 +1,7 @@
 // Two URP quality tiers for the Eastside, both made from code like the rest of the project:
 //   Ultra (default): HDR, 4x MSAA, soft shadows over 100 m in 3 cascades on a 4096 map, SSAO.
-//   High: HDR, 2x MSAA, soft shadows over 55 m in 2 cascades on a 2048 map, no SSAO.
+//   High: HDR, 2x MSAA, 70% render scale, low soft shadows over 40 m in 2 cascades on a 2048 map, no SSAO,
+//   two street lamp lights at night instead of four.
 // Both feed the same global post volume (ACES tonemapping, a little bloom, color grading, vignette).
 // The player switches tiers at run time with the HUD button (GraphicsQuality); nothing here runs in the player.
 using System;
@@ -29,7 +30,7 @@ namespace StreetEmpire.EditorTools
             Tier(ultra, msaa: 4, distance: 100f, cascades: 3, map: 4096, softQuality: 3, scale: 1f);
             Ssao(ultraRenderer, true);
             var high = Pipeline(HighPath, HighRendererPath, out var highRenderer);
-            Tier(high, msaa: 2, distance: 55f, cascades: 2, map: 2048, softQuality: 2, scale: 0.8f);   // High draws at 80% (visibly softer, cheaper)
+            Tier(high, msaa: 2, distance: 40f, cascades: 2, map: 2048, softQuality: 1, scale: 0.7f);   // High draws at 70% with low soft shadows over 40 m (visibly softer, cheaper)
             Ssao(highRenderer, false);
             AssetDatabase.SaveAssets();
             return ultra;
