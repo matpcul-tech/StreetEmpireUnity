@@ -235,6 +235,7 @@ namespace StreetEmpire.EditorTools
             anim.applyRootMotion = false; anim.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
             var mat = LookMaterial(look);
             foreach (var r in model.GetComponentsInChildren<SkinnedMeshRenderer>()) { r.sharedMaterial = mat; r.updateWhenOffscreen = true; r.renderingLayerMask |= 2u; }   // 2: the character fill light
+            if (look.dir == "Peds") foreach (var r in model.GetComponentsInChildren<SkinnedMeshRenderer>()) r.sharedMesh = ArmFix(r, look.prefix);
             // the files are authored at their height; only rescale one that came out of the converter far off it
             float h = ModelHeight(model);
             if (h > 0.1f && Mathf.Abs(h - look.height) > 0.1f * look.height) model.transform.localScale *= look.height / h;
@@ -247,6 +248,73 @@ namespace StreetEmpire.EditorTools
                 nb.restLean = RestLean(anim, root.transform);
             }
             return root;
+        }
+
+        static readonly System.Collections.Generic.Dictionary<string, Mesh> armFixed = new();
+
+        /// <summary>v75e (Matthew: the pedestrians' arms are fused to their shirts). The auto rig weighted the
+        /// torso's flanks, from the armpit down, to the upper arm bones, so with the arms down at the sides the
+        /// shirt's sides went with the arms and filled the gap between arm and body. On a copy of the mesh, the
+        /// arm chain's weight on the flank (below the armpit by more than a fifth of the upper arm, and no farther
+        /// out than the shoulder joint plus a quarter of it) moves to the spine bone at that height, faded in over
+        /// half an upper arm so no crease shows. Arms and hands keep their weights. The FBX is not touched.</summary>
+        static Mesh ArmFix(SkinnedMeshRenderer r, string key)
+        {
+            var src = r.sharedMesh; if (src == null) return src;
+            if (armFixed.TryGetValue(key, out var done) && done != null) return done;
+            var bones = r.bones; var bind = src.bindposes;
+            int B(string n) { for (int i = 0; i < bones.Length; i++) if (bones[i] != null && bones[i].name.EndsWith(n)) return i; return -1; }
+            Vector3 P(int i) => bind[i].inverse.GetColumn(3);
+            int hips = B(":Hips"), head = B(":Head"), lA = B(":LeftArm"), lF = B(":LeftForeArm"), rA = B(":RightArm");
+            var spineIds = new[] { hips, B(":Spine"), B(":Spine1"), B(":Spine2") }.Where(i => i >= 0).ToArray();
+            if (hips < 0 || head < 0 || lA < 0 || lF < 0 || rA < 0 || spineIds.Length == 0) { Debug.LogWarning($"[GameBuilder] {key}: no Mixamo arm bones, arms left as they are"); return src; }
+            var up = (P(head) - P(hips)).normalized; float L = (P(lF) - P(lA)).magnitude;
+            float drop = 0.2f * L, fade = 0.47f * L, reach = 0.24f * L, edge = 0.2f * L;
+            var mesh = Object.Instantiate(src); mesh.name = src.name + " (arms apart)";
+            var v = mesh.vertices; var per = mesh.GetBonesPerVertex().ToArray(); var all = mesh.GetAllBoneWeights().ToArray();
+            var outW = new System.Collections.Generic.List<BoneWeight1>(all.Length + 64); var outN = new byte[per.Length];
+            int moved = 0, k = 0;
+            bool[] chainL = new bool[bones.Length], chainR = new bool[bones.Length];
+            for (int i = 0; i < bones.Length; i++)
+            {
+                if (bones[i] == null) continue; var n = bones[i].name;
+                chainL[i] = n.Contains(":LeftArm") || n.Contains(":LeftForeArm") || n.Contains(":LeftHand");
+                chainR[i] = n.Contains(":RightArm") || n.Contains(":RightForeArm") || n.Contains(":RightHand");
+            }
+            for (int vi = 0; vi < per.Length; vi++)
+            {
+                var ws = new System.Collections.Generic.List<BoneWeight1>();
+                for (int j = 0; j < per[vi]; j++) ws.Add(all[k + j]);
+                k += per[vi];
+                foreach (var (a, chain) in new[] { (lA, chainL), (rA, chainR) })
+                {
+                    var A = P(a); var axis = P(hips) + Vector3.Project(A - P(hips), up);
+                    var outDir = Vector3.ProjectOnPlane(A - axis, up).normalized; float aLat = Vector3.Dot(A - axis, outDir);
+                    float dz = Vector3.Dot(v[vi] - A, up), lat = Vector3.Dot(v[vi] - axis, outDir);
+                    if (lat <= 0f || dz > -drop || lat > aLat + reach) continue;
+                    float f = Mathf.Clamp01((-dz - drop) / fade) * Mathf.Clamp01((aLat + reach - lat) / edge);
+                    if (f <= 0f) continue;
+                    float take = 0f;
+                    for (int j = 0; j < ws.Count; j++) if (chain[ws[j].boneIndex]) { var w = ws[j]; take += w.weight * f; w.weight *= 1f - f; ws[j] = w; }
+                    if (take <= 0f) continue;
+                    float h = Vector3.Dot(v[vi] - P(hips), up); int sp = spineIds.OrderBy(i => Mathf.Abs(Vector3.Dot(P(i) - P(hips), up) - h)).First();
+                    int at = ws.FindIndex(w => w.boneIndex == sp);
+                    if (at >= 0) { var w = ws[at]; w.weight += take; ws[at] = w; } else ws.Add(new BoneWeight1 { boneIndex = sp, weight = take });
+                    moved++;
+                }
+                ws = ws.Where(w => w.weight > 1e-4f).OrderByDescending(w => w.weight).Take(4).ToList();
+                float sum = ws.Sum(w => w.weight); if (sum <= 0f) sum = 1f;
+                for (int j = 0; j < ws.Count; j++) { var w = ws[j]; w.weight /= sum; ws[j] = w; }
+                outN[vi] = (byte)ws.Count; outW.AddRange(ws);
+            }
+            using (var na = new Unity.Collections.NativeArray<byte>(outN, Unity.Collections.Allocator.Temp))
+            using (var nw = new Unity.Collections.NativeArray<BoneWeight1>(outW.ToArray(), Unity.Collections.Allocator.Temp))
+                mesh.SetBoneWeights(na, nw);
+            System.IO.Directory.CreateDirectory("Assets/Art/Meshes/Characters");
+            string path = $"Assets/Art/Meshes/Characters/{key}-arms-apart.asset";
+            AssetDatabase.DeleteAsset(path); AssetDatabase.CreateAsset(mesh, path);
+            Debug.Log($"[GameBuilder] {key}: {moved} flank vertices moved off the arm bones onto the spine (upper arm {L:0.000} mesh units)");
+            armFixed[key] = mesh; return mesh;
         }
 
         public static float ModelBottom(GameObject model)
