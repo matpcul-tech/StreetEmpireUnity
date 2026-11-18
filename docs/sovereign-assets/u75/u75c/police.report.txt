@@ -1,0 +1,37 @@
+Sovereign Asset report
+Source: police
+Finish: Unity prop
+Output: police-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (5 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: 1750 open edges and 25 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.
+NOTE  Triangles: 30530 triangles. No target was set.
+NOTE  Draw calls: 5 draw calls, 1 material.
+PASS  Texture size: All 3 readable textures are 2048 px or under.
+PASS  Color standard: Brightness runs from 3 to 74 percent, middle 4. Peak vividness 84. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 924 texture pixels per meter across most of the surface. Assets that share a street should be close to each other on this number.
+NOTE  Size: 0.374 wide, 0.284 tall, 0.953 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 1 material, 3 textures.
+NOTE  File size: 2.5 MB, was 2.4 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- Closed 2 holes. 391 openings left open: too large or not a simple loop.
+- Normals: 1146 faces lit from behind got corners of their own. Every other normal is the model's own.
+- Flat areas: 2 walls and other flat areas (47 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.06 percent of the part's size.
+- 12 areas that are nearly flat but curved were left alone.
+- Baked light: 1 color texture had light painted in. On the worst, the lit side was 2.97 times as bright as the dark side. It is now 2.06 times. Local painted shadows are not touched.
+- Color standard: 1 color texture brought inside the shared range. Brightness ran from 2 to 81 percent and peak vividness was 87. Now 3 to 74 and 83. The middle of the range and every hue are untouched.
+- Surface maps: every material already has its own.
+- Size and position were already right.

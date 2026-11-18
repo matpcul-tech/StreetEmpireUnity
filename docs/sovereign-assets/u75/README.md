@@ -38,3 +38,5 @@ Size set to the real height; props, the edge, signs and the fight dust use "Unit
 | liquor-sign | u75c | unity-static | READY | 2 | n/a |
 | sedan | u75c rebake (tools/rebake_car.py) | unity-static | READY | 29996 | 270 px/m (was 105) |
 | sedan LOD1 | u75c rebake, Blender decimate 0.2 | unity-static | READY | 5996 | 267 px/m |
+| police | u75c rebake (WELD 2e-5, MARGIN 0.0015) | unity-static | READY | 30530 | 924 px/m in file |
+| police LOD1 | u75c rebake, decimate 0.25 | unity-static | READY | 7645 | 908 px/m in file |

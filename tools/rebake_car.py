@@ -4,11 +4,13 @@
 # roughness and normal into the new layout (Cycles, 8 px bake margin), and exports the car with the new
 # maps; the kit's paint mask in the emissive slot is dropped (black factor, it never glowed). Sovereign Asset
 # finishes and checks the result.
-#   blender -b --python rebake_car.py -- <car.glb> <painted atlas.jpg> <out.glb> <out painted.jpg> [lod ratio out_lod.glb]
+#   blender -b --python rebake_car.py -- <car.glb> <painted atlas.jpg> <out.glb> <out painted.jpg> [lod ratio out_lod.glb] [src=dst ...]
+# Each extra src=dst map is baked to dst on the new layout too (a .png dst also gets its alpha as dst + '.alpha.png').
 import bpy, sys, os
 a = sys.argv[sys.argv.index('--') + 1:]
 src, paint_src, out, paint_out = a[0], a[1], a[2], a[3]
-lod_ratio = float(a[4]) if len(a) > 4 else 0; lod_out = a[5] if len(a) > 5 else None
+lod_ratio = float(a[4]) if len(a) > 4 else 0; lod_out = a[5] if len(a) > 5 and a[5] != '-' else None
+extras = [x.split('=') for x in a[6:]]
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=src, merge_vertices=True)   # weld the old chart seams so the new islands are whole panels
 objs = [o for o in bpy.context.scene.objects if o.type == 'MESH']
@@ -41,21 +43,22 @@ for o in objs:
     o.data.uv_layers[old_uv].active_render = True
 bpy.context.view_layer.objects.active = objs[0]
 bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')
-bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=0.006, area_weight=0.0, scale_to_bounds=False)
-bpy.ops.uv.pack_islands(margin=0.006, rotate=True)
+if os.environ.get('WELD'): bpy.ops.mesh.remove_doubles(threshold=float(os.environ['WELD']))   # a triangle soup (the police car) welded first
+bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=float(os.environ.get('MARGIN', '0.006')), area_weight=0.0, scale_to_bounds=False)
+bpy.ops.uv.pack_islands(margin=float(os.environ.get('MARGIN', '0.006')), rotate=True)
 bpy.ops.object.mode_set(mode='OBJECT')
 sc = bpy.context.scene; sc.render.engine = 'CYCLES'; sc.cycles.samples = 4; sc.cycles.device = 'CPU'
 sc.render.bake.margin = 8; sc.render.bake.use_clear = True
 def target(name, size, color_space='sRGB'):
     im = bpy.data.images.new(name, size, size, alpha=False, float_buffer=False); im.colorspace_settings.name = color_space; return im
-def bake_emit(img_src, im, channel=None):
+def bake_emit(img_src, im, alpha=False):
     # a temporary emission material reading the old map through the old UVs, baked into im on the new UVs
     t = bpy.data.materials.new('bake_tmp'); t.use_nodes = True; nt = t.node_tree; nt.nodes.clear()
     uvn = nt.nodes.new('ShaderNodeUVMap'); uvn.uv_map = old_uv
     tx = nt.nodes.new('ShaderNodeTexImage'); tx.image = img_src; tx.interpolation = 'Closest'
     em = nt.nodes.new('ShaderNodeEmission'); outn = nt.nodes.new('ShaderNodeOutputMaterial')
     nt.links.new(uvn.outputs['UV'], tx.inputs['Vector'])
-    nt.links.new(tx.outputs['Color'], em.inputs['Color']); nt.links.new(em.outputs['Emission'], outn.inputs['Surface'])
+    nt.links.new(tx.outputs['Alpha' if alpha else 'Color'], em.inputs['Color']); nt.links.new(em.outputs['Emission'], outn.inputs['Surface'])
     tg = nt.nodes.new('ShaderNodeTexImage'); tg.image = im; nt.nodes.active = tg
     for o in objs: o.material_slots[0].material = t
     bpy.ops.object.select_all(action='DESELECT')
@@ -80,6 +83,15 @@ bpy.ops.object.select_all(action='DESELECT')
 for o in objs: o.select_set(True)
 bpy.ops.object.bake(type='NORMAL', normal_space='TANGENT', margin=8, use_clear=True)
 pal.filepath_raw = paint_out; pal.file_format = 'JPEG'; pal.save()
+for xs, xd in extras:
+    xi = bpy.data.images.load(xs); lin = xd.endswith('.png') and 'metal' in xd
+    if lin: xi.colorspace_settings.name = 'Non-Color'
+    xo = target('x', xi.size[0], 'Non-Color' if lin else 'sRGB'); bake_emit(xi, xo)
+    xo.filepath_raw = xd; xo.file_format = 'PNG' if xd.endswith('.png') else 'JPEG'; xo.save()
+    if xd.endswith('.png'):
+        xa = target('xa', xi.size[0], 'Non-Color'); xi.alpha_mode = 'STRAIGHT'; bake_emit(xi, xa, alpha=True)
+        xa.filepath_raw = xd + '.alpha.png'; xa.file_format = 'PNG'; xa.save()
+    print('BAKED', xd)
 # the new material on the new UVs: base color, glTF metallic roughness (as baked), normal
 nm = bpy.data.materials.new(mat.name); nm.use_nodes = True; nt = nm.node_tree
 p = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
