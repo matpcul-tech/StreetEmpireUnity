@@ -353,8 +353,9 @@ namespace StreetEmpire.Game
             // v75c (Matthew's second notes), on the numpad: 14 07:20 street, 15 09:36 skyline, 16 08:23 signal close,
             // 17 02:08 lamp pool (the shot 3 lamp), 18 05:55 street wide, 19 05:55 pawn shop sidewalk, 20 the EMPIRE
             // graffiti house, 21 a parked sedan close up. v75d (Matthew's v2 files): 22 the pawn shop by day, 23 the
-            // apartment by day, 24 the white house at 22:00 (Numpad9, Numpad0, NumpadPeriod)
-            float[] hours = { 14f, 19f, 22f, 22f, 22f, 14f, 14f, 14f, 14f, 14f, 22f, 14f, 22f, 7.333f, 9.6f, 8.383f, 2.133f, 5.917f, 5.917f, 14f, 14f, 14f, 14f, 22f };
+            // apartment by day, 24 the white house at 22:00 (Numpad9, Numpad0, NumpadPeriod). v75e: 25 the white
+            // house and its sedan at 19:24 (Matthew's phone dusk), 26 a pedestrian close up (NumpadMultiply, NumpadPlus)
+            float[] hours = { 14f, 19f, 22f, 22f, 22f, 14f, 14f, 14f, 14f, 14f, 22f, 14f, 22f, 7.333f, 9.6f, 8.383f, 2.133f, 5.917f, 5.917f, 14f, 14f, 14f, 14f, 22f, 19.4f, 14f };
             int view = 0; int shown = -1;
             // v75c: draw calls per view, a second and a half after each switch
             var draws = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "Draw Calls Count");
@@ -375,7 +376,7 @@ namespace StreetEmpire.Game
                 if (kb != null)
                 {
                     var keys = new[] { kb.digit1Key, kb.digit2Key, kb.digit3Key, kb.digit4Key, kb.digit5Key, kb.digit6Key, kb.digit7Key, kb.digit8Key, kb.digit9Key, kb.digit0Key, kb.minusKey, kb.equalsKey, kb.backspaceKey,
-                        kb.numpad1Key, kb.numpad2Key, kb.numpad3Key, kb.numpad4Key, kb.numpad5Key, kb.numpad6Key, kb.numpad7Key, kb.numpad8Key, kb.numpad9Key, kb.numpad0Key, kb.numpadPeriodKey };
+                        kb.numpad1Key, kb.numpad2Key, kb.numpad3Key, kb.numpad4Key, kb.numpad5Key, kb.numpad6Key, kb.numpad7Key, kb.numpad8Key, kb.numpad9Key, kb.numpad0Key, kb.numpadPeriodKey, kb.numpadMultiplyKey, kb.numpadPlusKey };
                     for (int i = 0; i < keys.Length; i++) if (keys[i].isPressed) view = i;
                 }
                 bool free = view == 6 || view == 7;
@@ -399,6 +400,14 @@ namespace StreetEmpire.Game
                             if (g == null) foreach (var m in FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None)) if (m.graffiti >= 0) { g = m; break; }
                             if (g != null) { var at = g.graffitiAt; at.y = 0; Game(at + g.graffitiNormal * 4.2f, -g.graffitiNormal, 6f, 5.5f); Debug.Log($"[ShotDirector] v75 view 20 graffiti {g.graffiti} on {g.model} at {g.graffitiAt}"); }
                             else Debug.Log("[ShotDirector] v75 view 20: no graffiti placed");
+                            break;
+                        }
+                        case 25:
+                        {
+                            // v75e: the nearest pedestrian, the camera low and close in front of them, 4 m out
+                            StreetEmpire.Game.Ped pd = null; float pdd = float.MaxValue;
+                            foreach (var q in FindObjectsByType<StreetEmpire.Game.Ped>(FindObjectsSortMode.None)) { float d = (q.transform.position - b10).sqrMagnitude; if (d < pdd) { pdd = d; pd = q; } }
+                            if (pd != null) { var fw = pd.transform.forward; fw.y = 0; fw.Normalize(); Game(pd.transform.position + fw * 3.2f + Vector3.Cross(Vector3.up, fw) * 0.6f, -fw, 4f, 2.4f); Debug.Log($"[ShotDirector] v75 view 26 pedestrian {pd.name} at {pd.transform.position}"); }
                             break;
                         }
                         case 20:
@@ -452,7 +461,7 @@ namespace StreetEmpire.Game
                         }
                         // v75e: the whole apartment with its roof: from farther out, a lower and longer camera
                         case 4: case 22: { var f = Face("apt-01", 16f); Game(f.face + f.n * 10.5f + f.t * 1.5f, -f.n, 5f, 8.5f); break; }
-                        case 5: case 23: { var f = Face("house-01", 9f); Game(f.face + f.n * 4.5f + f.t * 1.2f, -f.n, 8f, 5f); break; }
+                        case 5: case 23: case 24: { var f = Face("house-01", 9f); Game(f.face + f.n * 4.5f + f.t * 1.2f, -f.n, 8f, 5f); break; }
                         // v75b: the liquor store sign at 22:00, and the mixed use block (the v74 black tower) by day
                         case 10: { var f = Face("store-liquor", 8f); Game(f.face + f.n * 6f - f.t * 2.5f, -f.n + f.t * 0.25f, 10f, 5.5f); break; }   // v75c: off the utility pole
                         case 11: { var f = Face("apt-mixed-use", 12f); Game(f.face + f.n * 8f + f.t * 2f, -f.n, 14f, 6.5f); break; }
