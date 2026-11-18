@@ -129,6 +129,7 @@ namespace StreetEmpire.EditorTools
             var cycle = new GameObject("Day Cycle").AddComponent<StreetEmpire.City.DayCycle>();
             cycle.transform.SetParent(root.transform, false);
             cycle.sun = sunLight; cycle.sky = RenderSettings.skybox; cycle.duskFog = RenderSettings.fogColor;
+            var fillT = root.transform.Find("Character Fill"); if (fillT) cycle.fill = fillT.GetComponent<Light>();
             cycle.windowMaterials = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None)
                 .SelectMany(b => b.GetComponentsInChildren<Renderer>(true)).SelectMany(r => r.sharedMaterials)
                 .Where(m => m != null && m.IsKeywordEnabled("_EMISSION")).Distinct().ToArray();
@@ -139,6 +140,7 @@ namespace StreetEmpire.EditorTools
             var xs = Enumerable.Range(0, 4).Select(i => WorldSpace.FromSource(CityLayout.LineCoord(w, i), 0).x).ToArray();
             var zs = Enumerable.Range(0, 4).Select(i => WorldSpace.FromSource(0, CityLayout.LineCoord(w, i)).z).ToArray();
             PropBuilder.Build(blockInfo, xs, zs, root.transform);
+            LampPools(root.transform, cycle, blockInfo.Select(bi => bi.center).ToArray(), w.block);
             PostAndQuality(root.transform);
 
             Directory.CreateDirectory("Assets/Scenes");
@@ -213,7 +215,7 @@ namespace StreetEmpire.EditorTools
                 if (ms != null) { m.SetTexture("_MetallicGlossMap", ms); m.EnableKeyword("_METALLICSPECGLOSSMAP"); m.SetFloat("_Smoothness", 1f); m.SetFloat("_SmoothnessTextureChannel", 0f); }
                 if (em != null)
                 {
-                    m.SetTexture("_EmissionMap", em); m.SetColor("_EmissionColor", new Color(1.25f, 1.25f, 1.25f)); m.EnableKeyword("_EMISSION");
+                    m.SetTexture("_EmissionMap", em); m.SetColor("_EmissionColor", new Color(0.7f, 0.7f, 0.7f)); m.EnableKeyword("_EMISSION");   // v73: dimmer, the walls stay dark
                     m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
                 }
                 else { m.SetTexture("_EmissionMap", null); m.SetColor("_EmissionColor", Color.black); m.DisableKeyword("_EMISSION"); }
@@ -355,7 +357,7 @@ namespace StreetEmpire.EditorTools
         /// <summary>Direction to the sun: a fixed golden hour like the start of a new web game (17:48), the sun a few
         /// degrees up at the end of the east-west streets. The web sun direction (cos a * 0.8, sin a, 0.45) with x
         /// mirrored into Unity space (WorldSpace.FromSource), raised to 9 degrees so the streets stay readable.</summary>
-        public static readonly Vector3 SunDir = SunAt(9f);
+        public static readonly Vector3 SunDir = SunAt(7f);   // v73: a lower sun, longer shadows
         static Vector3 SunAt(float elevation)
         {
             var h = new Vector2(0.8f, 0.45f).normalized; float e = elevation * Mathf.Deg2Rad;
@@ -371,9 +373,33 @@ namespace StreetEmpire.EditorTools
         // fully fogged ground, so the far edge of the world melts into the haze with no line
         static readonly Color FogLinear = new Color(0.66f, 0.53f, 0.50f).linear;
 
-        static Color SkyColor(Vector3 d)
+        /// <summary>A far city skyline on the horizon all the way round (towers, roofs, a few lit windows), painted in the
+        /// sky so the district does not just dissolve into haze; DayCycle tints it with the fog, dark at night.</summary>
+        static float SkylineTop(float az, out int cell)
+        {
+            // buildings of uneven width round the horizon; elevation of each roof line (sine of the angle)
+            float a = (az / (2f * Mathf.PI) + 1f) % 1f * 220f; cell = Mathf.FloorToInt(a);
+            float h(int c) { uint x = unchecked((uint)c * 2654435761u) ^ 0x5bd1e995u; x ^= x >> 15; x *= 2246822519u; x ^= x >> 13; return (x & 0xffff) / 65535f; }
+            float r = h(cell), tall = h(cell + 911) > 0.86f ? 1f : 0f;
+            return 0.012f + 0.03f * r * r + tall * (0.025f + 0.03f * h(cell + 37));
+        }
+
+        static Color SkyColor(Vector3 d, bool skyline = false)
         {
             float e = d.y;
+            if (skyline && e >= 0 && e < 0.12f)
+            {
+                float az = Mathf.Atan2(d.z, d.x); float top = SkylineTop(az, out int cell);
+                if (e < top)
+                {
+                    // a silhouette a little darker and cooler than the haze, so it reads but stays far away
+                    var sil = new Color(FogLinear.r * 0.62f, FogLinear.g * 0.58f, FogLinear.b * 0.66f);
+                    float wx = (az / (2f * Mathf.PI) + 1f) % 1f * 220f * 9f, wy = e * 900f;
+                    uint q = unchecked((uint)Mathf.FloorToInt(wx) * 73856093u ^ (uint)Mathf.FloorToInt(wy) * 19349663u); q ^= q >> 13; q *= 1274126177u;
+                    if ((q & 0xff) < 14 && (wx % 1f) > 0.3f && (wy % 1f) > 0.35f) sil += new Color(0.55f, 0.32f, 0.12f);   // a lit window
+                    sil.a = 1; return sil;
+                }
+            }
             Color c = e < 0 ? FogLinear
                 : e < 0.08f ? Color.Lerp(FogLinear, SkyHorizon, Mathf.SmoothStep(0, 1, e / 0.08f))
                 : e < 0.3f ? Color.Lerp(SkyHorizon, SkyUpper, Mathf.SmoothStep(0, 1, (e - 0.08f) / 0.22f))
@@ -387,7 +413,7 @@ namespace StreetEmpire.EditorTools
 
         /// <summary>A golden hour sky cubemap (half float so the glow round the sun stays HDR), used both as the
         /// skybox and, smaller, as the reflection probe for the whole district.</summary>
-        static Cubemap SkyCube(string path, int n)
+        static Cubemap SkyCube(string path, int n, bool skyline)
         {
             var cube = AssetDatabase.LoadAssetAtPath<Cubemap>(path);
             if (cube != null && (cube.width != n || cube.format != TextureFormat.RGBAHalf)) { AssetDatabase.DeleteAsset(path); cube = null; }
@@ -406,7 +432,7 @@ namespace StreetEmpire.EditorTools
                             CubemapFace.PositiveY => new Vector3(u, 1, v), CubemapFace.NegativeY => new Vector3(u, -1, -v),
                             CubemapFace.PositiveZ => new Vector3(u, -v, 1), _ => new Vector3(-u, -v, -1),
                         };
-                        px[y * n + x] = SkyColor(d.normalized);
+                        px[y * n + x] = SkyColor(d.normalized, skyline);
                     }
                 cube.SetPixels(px, f);
             }
@@ -415,12 +441,75 @@ namespace StreetEmpire.EditorTools
             return cube;
         }
 
+        /// <summary>Night light under every street lamp: one mesh of soft warm discs (vertex colors, additive, no
+        /// texture, one draw call) lying on the sidewalk and spilling onto the road, faded in by DayCycle; plus
+        /// LampLights, a few real point lights that follow the lamps nearest the camera.</summary>
+        static void LampPools(Transform root, StreetEmpire.City.DayCycle cycle, Vector3[] blockCenters, float block)
+        {
+            var spots = PropBuilder.LampSpots;
+            if (spots.Count == 0) return;
+            float Ground(Vector3 p)
+            {
+                foreach (var c in blockCenters) if (Mathf.Abs(p.x - c.x) <= block / 2 + 2f && Mathf.Abs(p.z - c.z) <= block / 2 + 2f) return PropBuilder.SidewalkTop + 0.015f;
+                return 0.02f;
+            }
+            const int seg = 20; float[] radii = { 0f, 2.2f, 4.4f, 6.6f }; float[] glow = { 1f, 0.62f, 0.22f, 0f };
+            var verts = new List<Vector3>(); var cols = new List<Color>(); var tris = new List<int>();
+            foreach (var s in spots)
+            {
+                int b0 = verts.Count;
+                verts.Add(new Vector3(s.x, Ground(s), s.z)); cols.Add(new Color(1f, 0.66f, 0.36f, glow[0]));
+                for (int r = 1; r < radii.Length; r++)
+                    for (int i = 0; i < seg; i++)
+                    {
+                        float a = i * Mathf.PI * 2f / seg; var p = new Vector3(s.x + Mathf.Cos(a) * radii[r], 0, s.z + Mathf.Sin(a) * radii[r]); p.y = Ground(p);
+                        verts.Add(p); cols.Add(new Color(1f, 0.66f, 0.36f, glow[r]));
+                    }
+                for (int i = 0; i < seg; i++) { tris.Add(b0); tris.Add(b0 + 1 + (i + 1) % seg); tris.Add(b0 + 1 + i); }
+                for (int r = 1; r < radii.Length - 1; r++)
+                    for (int i = 0; i < seg; i++)
+                    {
+                        int a0 = b0 + 1 + (r - 1) * seg + i, a1 = b0 + 1 + (r - 1) * seg + (i + 1) % seg, c0 = a0 + seg, c1 = a1 + seg;
+                        tris.Add(a0); tris.Add(a1); tris.Add(c1); tris.Add(a0); tris.Add(c1); tris.Add(c0);
+                    }
+            }
+            var mesh = new Mesh { name = "Lamp Pools", indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+            mesh.SetVertices(verts); mesh.SetColors(cols); mesh.SetTriangles(tris, 0); mesh.RecalculateBounds();
+            var up = Enumerable.Repeat(Vector3.up, verts.Count).ToList(); mesh.SetNormals(up);
+            Directory.CreateDirectory("Assets/Art/Meshes");
+            AssetDatabase.DeleteAsset("Assets/Art/Meshes/Lamp-Pools.asset"); AssetDatabase.CreateAsset(mesh, "Assets/Art/Meshes/Lamp-Pools.asset");
+            var mat = AssetDatabase.LoadAssetAtPath<Material>($"{Mats}/LampPool.mat");
+            if (mat == null) { mat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit")); AssetDatabase.CreateAsset(mat, $"{Mats}/LampPool.mat"); }
+            mat.shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+            mat.SetFloat("_Surface", 1f); mat.SetFloat("_Blend", 2f);   // transparent, additive
+            mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha); mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+            mat.SetFloat("_ZWrite", 0f); mat.SetFloat("_Cull", 0f);
+            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT"); mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent - 10;
+            mat.SetColor("_BaseColor", new Color(1f, 1f, 1f, 0.18f));
+            EditorUtility.SetDirty(mat);
+            var go = new GameObject("Lamp Pools"); go.transform.SetParent(root, false);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterial = mat;
+            mr.shadowCastingMode = ShadowCastingMode.Off; mr.receiveShadows = false;
+            cycle.lampPools = mat;
+            var ll = go.AddComponent<StreetEmpire.City.LampLights>(); ll.cycle = cycle;
+            ll.lamps = spots.Select(p => p + Vector3.up * 3.6f).ToArray();
+            ll.lights = new Light[4];
+            for (int i = 0; i < 4; i++)
+            {
+                var l = new GameObject($"Lamp Light {i + 1}").AddComponent<Light>(); l.transform.SetParent(go.transform, false);
+                l.type = LightType.Point; l.range = 11f; l.color = new Color(1f, 0.72f, 0.45f); l.shadows = LightShadows.None; l.intensity = 0f; l.renderingLayerMask = -1;
+                l.enabled = false; ll.lights[i] = l;
+            }
+        }
+
         static Light Lighting(Transform root)
         {
             // one shadowed sun, trilight ambient, fog: cheap on phones and WebGL. Golden hour like the original web
-            // game: a low warm sun, a strong lavender sky fill that outweighs it, warm haze from 62 m to 270 m.
+            // game: a low warm sun, a strong lavender sky fill that outweighs it, warm haze. v73: the sun lower (7 deg)
+            // and warmer, the haze pushed out to 90 m to 340 m so the near street is clear.
             var sun = new GameObject("Sun").AddComponent<Light>();
-            sun.type = LightType.Directional; sun.color = new Color(1f, 0.77f, 0.58f); sun.intensity = 1.05f;
+            sun.type = LightType.Directional; sun.color = new Color(1f, 0.70f, 0.47f); sun.intensity = 0.95f;
             sun.shadows = LightShadows.Soft; sun.shadowStrength = 0.8f;
             sun.shadowBias = 0.08f; sun.shadowNormalBias = 0.5f;          // a grazing sun needs a little more bias
             sun.transform.rotation = Quaternion.LookRotation(-SunDir);
@@ -430,18 +519,25 @@ namespace StreetEmpire.EditorTools
             RenderSettings.ambientEquatorColor = new Color(0.58f, 0.51f, 0.53f);
             RenderSettings.ambientGroundColor = new Color(0.40f, 0.33f, 0.31f);
             RenderSettings.fog = true; RenderSettings.fogMode = FogMode.Linear;
-            RenderSettings.fogStartDistance = 62; RenderSettings.fogEndDistance = 270;
+            RenderSettings.fogStartDistance = 90; RenderSettings.fogEndDistance = 340;
             RenderSettings.fogColor = new Color(0.66f, 0.53f, 0.50f);
             var sky = AssetDatabase.LoadAssetAtPath<Material>($"{Mats}/Sky.mat");
             if (sky == null) { sky = new Material(Shader.Find("Skybox/Cubemap")); AssetDatabase.CreateAsset(sky, $"{Mats}/Sky.mat"); }
             sky.shader = Shader.Find("Skybox/Cubemap");
-            sky.SetTexture("_Tex", SkyCube("Assets/Art/Materials/SkyGoldenHour.cubemap", 128));
+            sky.SetTexture("_Tex", SkyCube("Assets/Art/Materials/SkyGoldenHour.cubemap", 256, true));   // with the far skyline
             sky.SetColor("_Tint", new Color(0.5f, 0.5f, 0.5f)); sky.SetFloat("_Exposure", 1f); sky.SetFloat("_Rotation", 0f);
             EditorUtility.SetDirty(sky);
             RenderSettings.skybox = sky;
             RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
-            RenderSettings.customReflectionTexture = SkyCube("Assets/Art/Materials/SkyReflection.cubemap", 64);
+            RenderSettings.customReflectionTexture = SkyCube("Assets/Art/Materials/SkyReflection.cubemap", 64, false);
             RenderSettings.reflectionIntensity = 0.35f;
+            // a soft fill for people only (rendering layer 2, set on every character): from the side away from the sun,
+            // no shadows, so the player and the people on the street stand out from the road
+            var fill = new GameObject("Character Fill").AddComponent<Light>();
+            fill.type = LightType.Directional; fill.color = new Color(0.86f, 0.84f, 1f); fill.intensity = 0.55f; fill.shadows = LightShadows.None;
+            fill.renderingLayerMask = 2;
+            fill.transform.rotation = Quaternion.LookRotation(-new Vector3(-SunDir.x, 0.55f, -SunDir.z).normalized);
+            fill.transform.SetParent(root, false);
             return sun;
         }
 

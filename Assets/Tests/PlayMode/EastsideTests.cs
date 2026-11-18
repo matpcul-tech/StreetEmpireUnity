@@ -49,12 +49,36 @@ namespace StreetEmpire.Tests
             }
             Assert.AreEqual(3, buildings.Select(b => b.kind).Distinct().Count(), "store, house and apt");
 
-            var sun = Object.FindObjectsByType<Light>(FindObjectsSortMode.None).FirstOrDefault(l => l.type == LightType.Directional);
+            var sun = Object.FindObjectsByType<Light>(FindObjectsSortMode.None).FirstOrDefault(l => l.type == LightType.Directional && l.name == "Sun");   // not the character fill
             Assert.IsNotNull(sun, "sun light");
             Assert.AreNotEqual(LightShadows.None, sun.shadows);
             Assert.IsNotNull(Camera.main, "main camera");
 
             for (int i = 0; i < 30; i++) yield return null; // run a few frames; any error log fails the test
+        }
+
+        /// <summary>v73: the character fill light, the lamp pools and their lights, fight feedback and the Arm
+        /// guards prompt are all built into the scene, and the night turns the lamp lights on.</summary>
+        [UnityTest]
+        public IEnumerator V73LightingNightAndFightPiecesAreBuilt()
+        {
+            StreetEmpire.Game.MuggerOpening.AutoStart = false; SceneManager.LoadScene("Eastside");
+            yield return null; yield return null;
+            var fill = Object.FindObjectsByType<Light>(FindObjectsSortMode.None).FirstOrDefault(l => l.name == "Character Fill");
+            Assert.IsNotNull(fill, "character fill light");
+            Assert.AreEqual(LightShadows.None, fill.shadows);
+            var lamps = Object.FindFirstObjectByType<LampLights>();
+            Assert.IsNotNull(lamps, "lamp lights");
+            Assert.Greater(lamps.lamps.Length, 8, "a lamp head per street lamp");
+            Assert.IsNotNull(Object.FindFirstObjectByType<StreetEmpire.Game.CombatFx>(), "fight feedback");
+            Assert.IsNotNull(Object.FindFirstObjectByType<StreetEmpire.Game.ArmGuards>(), "Arm guards prompt");
+            StreetEmpire.Game.GameClock.Frozen = true; StreetEmpire.Game.GameClock.FrozenHour = 22f;
+            for (int i = 0; i < 5; i++) yield return null;
+            Assert.IsTrue(lamps.lights.Any(l => l != null && l.enabled), "lamp lights on at night");
+            StreetEmpire.Game.GameClock.FrozenHour = 12f;
+            for (int i = 0; i < 5; i++) yield return null;
+            Assert.IsFalse(lamps.lights.Any(l => l != null && l.enabled), "lamp lights off by day");
+            StreetEmpire.Game.GameClock.Frozen = false; StreetEmpire.Game.GameClock.FrozenHour = StreetEmpire.Game.GameClock.StartHour;
         }
     }
 }

@@ -48,6 +48,8 @@ namespace StreetEmpire.EditorTools
         static long tris;
         static List<(Vector3 p, float r)> keep;
         static System.Random rng;
+        /// <summary>Where the street lamps stand (their feet), for the night light pools.</summary>
+        public static readonly List<Vector3> LampSpots = new();
         static TrafficSignalCycle signals;
         static readonly Dictionary<string, PropBatch> batches = new();
         static readonly Dictionary<string, List<Matrix4x4>> placed = new();
@@ -56,7 +58,7 @@ namespace StreetEmpire.EditorTools
 
         public static void Build(IList<BlockInfo> blocks, float[] streetX, float[] streetZ, Transform parent)
         {
-            LoadManifest(); mats.Clear(); counts.Clear(); tris = 0; rng = new System.Random(1931);
+            LoadManifest(); mats.Clear(); counts.Clear(); tris = 0; rng = new System.Random(1931); LampSpots.Clear();
             batches.Clear(); placed.Clear();
             KeepClear();
             var root = new GameObject("Props").transform; root.SetParent(parent, false);
@@ -106,7 +108,8 @@ namespace StreetEmpire.EditorTools
         {
             var n = N(k); var t = T(k); int deal = b.id * 4 + k;
             // a lamp per side, staggered so facing sides do not line up
-            Place("street-lamp-1", "streetlight", b.id, At(b, k, CurbLine, k % 2 == 0 ? -10 : 10, SidewalkTop), Face(-n), parent, Col.Bounds, 0f);
+            var lamp = Place("street-lamp-1", "streetlight", b.id, At(b, k, CurbLine, k % 2 == 0 ? -10 : 10, SidewalkTop), Face(-n), parent, Col.Bounds, 0f);
+            if (lamp != null) LampSpots.Add(lamp.transform.position);
             // street palms along the curb like the original web Eastside (two slots a side, about a third left
             // empty); the east curb carries the utility poles at 14 m, so its palms stand nearer the middle
             for (int i = 0; i < 2; i++)

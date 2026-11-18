@@ -26,10 +26,10 @@ namespace StreetEmpire.EditorTools
         public static UniversalRenderPipelineAsset Ensure()
         {
             var ultra = Pipeline(UltraPath, UltraRendererPath, out var ultraRenderer);
-            Tier(ultra, msaa: 4, distance: 100f, cascades: 3, map: 4096, softQuality: 3);
+            Tier(ultra, msaa: 4, distance: 100f, cascades: 3, map: 4096, softQuality: 3, scale: 1f);
             Ssao(ultraRenderer, true);
             var high = Pipeline(HighPath, HighRendererPath, out var highRenderer);
-            Tier(high, msaa: 2, distance: 55f, cascades: 2, map: 2048, softQuality: 2);
+            Tier(high, msaa: 2, distance: 55f, cascades: 2, map: 2048, softQuality: 2, scale: 0.8f);   // High draws at 80% (visibly softer, cheaper)
             Ssao(highRenderer, false);
             AssetDatabase.SaveAssets();
             return ultra;
@@ -52,11 +52,11 @@ namespace StreetEmpire.EditorTools
             return p;
         }
 
-        static void Tier(UniversalRenderPipelineAsset p, int msaa, float distance, int cascades, int map, int softQuality)
+        static void Tier(UniversalRenderPipelineAsset p, int msaa, float distance, int cascades, int map, int softQuality, float scale)
         {
             p.supportsHDR = true;               // tonemapping and bloom need HDR
             p.msaaSampleCount = msaa;
-            p.renderScale = 1f;
+            p.renderScale = scale;
             p.shadowDistance = distance;
             p.shadowCascadeCount = cascades;
             if (cascades == 2) p.cascade2Split = 0.25f;
@@ -73,6 +73,9 @@ namespace StreetEmpire.EditorTools
             Set(so, "m_ColorGradingMode", 1);            // HDR grading
             Set(so, "m_UseSRPBatcher", true);
             Set(so, "m_EnableLODCrossFade", false);       // no dithered LOD cross fade (it read as stripes on the palms)
+            Set(so, "m_SupportsLightLayers", true);         // rendering layers: the character fill light lights people only
+            Set(so, "m_AdditionalLightsRenderingMode", 2);  // per pixel (the street lamp lights near the camera at night)
+            Set(so, "m_AdditionalLightsPerObjectLimit", 4);
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(p);
         }
@@ -144,7 +147,9 @@ namespace StreetEmpire.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        /// <summary>The global post processing profile, rebuilt each time so the numbers here stay the truth.</summary>
+        /// <summary>The one global post processing profile, rebuilt each time so the numbers here stay the truth. It is
+        /// locked: the scene has this single global Volume, nothing changes it at run time, and the exposure is fixed
+        /// (URP has no auto exposure; post exposure is a constant), so every view and both tiers grade the same.</summary>
         public static VolumeProfile PostProfile()
         {
             if (AssetDatabase.LoadAssetAtPath<VolumeProfile>(VolumePath) != null) AssetDatabase.DeleteAsset(VolumePath);
@@ -154,10 +159,11 @@ namespace StreetEmpire.EditorTools
             var tone = Add<Tonemapping>(); tone.mode.Override(TonemappingMode.ACES);
             // the original web game's look (src/grade.js on top of ACES): a strong S curve, a little less saturation,
             // golden highlights, deep brown lifted shadows, a heavy vignette and a soft bloom on the lamps and sun
-            var bloom = Add<Bloom>(); bloom.threshold.Override(0.9f); bloom.intensity.Override(0.45f); bloom.scatter.Override(0.65f);
+            // v73: a little bloom (lamps, lit windows, the sun disk), contrast and saturation up a step
+            var bloom = Add<Bloom>(); bloom.threshold.Override(1.0f); bloom.intensity.Override(0.3f); bloom.scatter.Override(0.6f);
             bloom.tint.Override(new Color(1f, 0.86f, 0.7f));
             bloom.highQualityFiltering.Override(false);
-            var grade = Add<ColorAdjustments>(); grade.postExposure.Override(0.1f); grade.contrast.Override(20f); grade.saturation.Override(-6f);
+            var grade = Add<ColorAdjustments>(); grade.postExposure.Override(0f); grade.contrast.Override(28f); grade.saturation.Override(8f);
             var wb = Add<WhiteBalance>(); wb.temperature.Override(10f); wb.tint.Override(3f);
             var split = Add<SplitToning>(); split.highlights.Override(new Color(1f, 0.84f, 0.62f)); split.shadows.Override(new Color(0.5f, 0.38f, 0.32f));
             split.balance.Override(-10f);
