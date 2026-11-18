@@ -1,0 +1,24 @@
+Sun never turns off. At 19:00 and 22:00 the orange stucco wall and palm trunks are still lit full strength and pole shadows still fall on the sidewalk. Fade the directional light to zero below the horizon and swap in a dim blue moon light.
+Windows are pure white cards. Mask emission to the glass only, tint it warm, drop the intensity, and randomize it so about a third are off. The pawn shop door glass is a blank white rectangle.
+Lamps light nothing. The lamp heads glow but there is no pool on the ground. Each needs a point or spot light, or a baked decal.
+Time curve is off. 14:00 looks like sunset (pink sky, long shadows), and 19:00 and 22:00 are identical. The 18:08 fight shot is the best lighting in the set, so anchor the curve around it.
+Night sky is flat brown. The skyline disappears; give it lit windows and a horizon glow.
+Buildings and props
+Missing materials: the thick foreground utility pole (01) and the tower block in 08 render pure black.
+Street sign is mirrored in 05; the back face shows the flipped texture.
+Pawn shop sign is blank.
+Too much of one salmon stucco box. The apartment in 05 is your quality bar, so vary the wall colors toward that.
+White house (06): right call not shipping it. The porch has stretched triangles and smeared windows; rebuild the porch and windows as clean geometry and keep only the roof.
+Palms
+Leaflets read as barcodes up close and shimmer at distance. Use thicker leaflets, turn on alpha-to-coverage with mip alpha preservation, and add droop to the fronds.
+District edge (08)
+The town ends on a bare brown plane and the skyline is one flat cutout strip. Ring the district with a low-detail filler such as a freeway or wall, and stack two or three skyline layers in the fog.
+HUD
+The top-right panel washes out in daylight; time, weapon, Rep and Turf are unreadable. Darken the backing.
+The mission banner runs under that panel in the fight shot.
+"Talk to Unc" clips in 01.
+Ultra vs High (09a/b)
+Almost no visible difference, and High has the crisper palm shadow. Ultra is not earning its cost yet.
+Fight (10)
+Damage numbers and the ring read fine. The debris squares are untextured quads, and the ring clips over the curb.
+One question: in 03 the player is gone from the same camera spot. Is that a debug camera or is he not rendering?
