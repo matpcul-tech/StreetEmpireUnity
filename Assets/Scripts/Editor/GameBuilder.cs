@@ -328,11 +328,16 @@ namespace StreetEmpire.EditorTools
             {
                 var r = PlayerBuilder.Rect(name, canvas.transform, anchor, anchor, pos, size); r.pivot = anchor;
                 var t = r.gameObject.AddComponent<Text>(); t.font = font; t.fontSize = fs; t.alignment = align; t.color = Color.white; t.raycastTarget = false;
-                var o = t.gameObject.AddComponent<Shadow>(); o.effectColor = new Color(0, 0, 0, 0.8f); o.effectDistance = new Vector2(1.5f, -1.5f);   // one underlay, no outline (the two together ghosted)
+                // v73: a tight 1 px underlay (the 1.5 px gray copy still read as a ghost against a bright sky)
+                var o = t.gameObject.AddComponent<Shadow>(); o.effectColor = new Color(0, 0, 0, 0.6f); o.effectDistance = new Vector2(1f, -1f);
                 return t;
             }
             // the web #hud column, top right, at 1.5x its 1280 px sizes (the canvas is 1920 wide)
             var right = Vector2.one;
+            // v73: a soft dark backing behind the column so FISTS, the money and Rep read on a bright sky without
+            // relying on the shadow (made first, so it draws behind the text)
+            var back = PlayerBuilder.Rect("HUD Backing", canvas.transform, right, right, new Vector2(-14, -6), new Vector2(440, 226)); back.pivot = right;
+            var backImg = back.gameObject.AddComponent<Image>(); backImg.color = new Color(10 / 255f, 8 / 255f, 6 / 255f, 0.42f); backImg.raycastTarget = false;
             hud.clock = T("Clock", right, new Vector2(-30, -14), new Vector2(300, 40), 33, TextAnchor.UpperRight); hud.clock.color = new Color32(0xee, 0xee, 0xee, 255);
             hud.weapon = T("Weapon", right, new Vector2(-30, -52), new Vector2(300, 30), 22, TextAnchor.UpperRight); hud.weapon.color = new Color32(0xdd, 0xdd, 0xdd, 255);
             hud.cash = T("Cash", right, new Vector2(-30, -78), new Vector2(400, 52), 45, TextAnchor.UpperRight); hud.cash.color = new Color32(0xf4, 0xe6, 0xc4, 255);
