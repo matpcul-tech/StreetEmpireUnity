@@ -64,6 +64,7 @@ namespace StreetEmpire.EditorTools
             var asphalt = TexMat("Asphalt", "worn_asphalt", district / 4.5f, 0.12f, new Color(0.78f, 0.78f, 0.8f));
             var sidewalk = TexMat("Sidewalk", "concrete_pavement", (w.block + 4) / 2.6f, 0.08f, Color.white);
             var yard = TexMat("Yard", "sparse_grass", (w.block - 2) / 3.5f, 0.04f, new Color(0.74f, 0.71f, 0.52f));   // dry olive like the web yards
+            YardVariation(yard, (w.block - 2) / 11f);
             var outer = TexMat("OuterGround", "sparse_grass", 1600f / 6f, 0.03f, new Color(0.62f, 0.56f, 0.42f));   // dry lots out to the haze, not green lawn
             var line = Mat("LaneYellow", new Color32(0xb5, 0x9a, 0x3a, 255), 0.3f);   // the web center line color
             var curb = Mat("Curb", new Color32(0x6e, 0x6b, 0x66, 255), 0.1f);
@@ -321,6 +322,18 @@ namespace StreetEmpire.EditorTools
             t.fontSize = 24; t.alignment = TextAnchor.MiddleCenter; t.color = Color.white; t.raycastTarget = false; t.text = "GFX ULTRA";
             gq.label = t;
             UnityEditor.Events.UnityEventTools.AddPersistentListener(btn.onClick, gq.Toggle);
+        }
+
+        /// <summary>Big soft patches over the yard grass (greener olive, straw, bare dirt) so a yard is not one flat
+        /// tile repeated: an own-work map (tools/draw_yard_variation.py, through Sovereign Asset) on the URP detail
+        /// albedo slot, which multiplies by 2 so its 0.5 grey changes nothing.</summary>
+        static void YardVariation(Material m, float tile)
+        {
+            var v = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Textures/Ground/yard_variation.png");
+            if (v == null) return;
+            m.SetTexture("_DetailAlbedoMap", v); m.SetTextureScale("_DetailAlbedoMap", new Vector2(tile, tile));
+            m.SetFloat("_DetailAlbedoMapScale", 1f); m.EnableKeyword("_DETAIL_MULX2");
+            EditorUtility.SetDirty(m);
         }
 
         static Material TexMat(string name, string tex, float tile, float smooth, Color tint)

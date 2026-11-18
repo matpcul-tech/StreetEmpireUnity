@@ -57,6 +57,7 @@ namespace StreetEmpire.EditorTools
             t.mipmapEnabled = true; t.maxTextureSize = max;
             // ground textures tile across big boxes and are seen at grazing angles
             if (assetPath.StartsWith("Assets/Art/Textures/Ground/")) { t.wrapMode = UnityEngine.TextureWrapMode.Repeat; t.anisoLevel = 8; }
+            if (assetPath.EndsWith("yard_variation.png")) t.sRGBTexture = false;   // URP detail albedo: linear, 0.5 is neutral
             if (assetPath.StartsWith("Assets/Art/Textures/Props/") && assetPath.Contains("chainlink")) t.wrapMode = UnityEngine.TextureWrapMode.Repeat;
             // building walls are seen at grazing angles down the street: 8x anisotropic so the mips do not shimmer
             if (assetPath.StartsWith("Assets/Art/Textures/Buildings/")) { t.anisoLevel = 8; t.filterMode = UnityEngine.FilterMode.Trilinear; }

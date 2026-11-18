@@ -170,6 +170,7 @@ namespace StreetEmpire.EditorTools
                     Place("dry-hedge", "hedge", b.id, L(18.2f, 3.6f), Face(n), parent, Col.Bounds, 0.01f);
                     Place("bench", "bench", b.id, L(15.2f, 0.4f), Face(n), parent, Col.Bounds, 0.012f);
                     Place("dry-shrub", "bush", b.id, L(8.4f, -5f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
+                    LotClumps(b, k, parent, 10);
                     break;
                 case 1: // parking lot: cracked concrete pad, stalls, two cars, a barrier at the mouth
                     marks.Pad("Lot", L(13f, 0, 0), t, n, 12.6f, 11.6f, LotTop);
@@ -201,6 +202,7 @@ namespace StreetEmpire.EditorTools
                     Place("palm-tall", "tree", b.id, L(12f, 1.5f), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.32f);
                     Place("dry-shrub", "bush", b.id, L(16.6f, -4.4f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
                     Place("aircon", "aircon", b.id, L(9f, -6.1f), Face(t), parent, Col.Bounds, 0.015f);
+                    LotClumps(b, k, parent, 10);
                     break;
                 default: // service yard: dumpsters, bags, boxes, crates, a utility box
                     marks.Pad("Lot", L(13f, 0, 0), t, n, 12.6f, 11.6f, LotTop);
@@ -234,6 +236,29 @@ namespace StreetEmpire.EditorTools
             Place("tyre", "junk", b.id, b.center + new Vector3(-1.4f, YardTop, -4.4f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.02f);
             Place("dry-shrub", "bush", b.id, b.center + new Vector3(-5.6f, YardTop, -5.4f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
             Place("aircon", "aircon", b.id, b.center + new Vector3(5.8f, YardTop, 5.9f), Quaternion.Euler(0, 180, 0), parent, Col.Bounds, 0.015f);
+            var r = new System.Random(b.id * 31 + 7);
+            for (int i = 0; i < 14; i++)
+            {
+                var p = b.center + new Vector3(R(r, -6.4f, 6.4f), YardTop, R(r, -6.4f, 6.4f));
+                if (Mathf.Abs(p.x - b.center.x) < 0.5f) continue;   // not through the back fence
+                Clump(b.id, p, r, parent);
+            }
+        }
+
+        /// <summary>A dry grass clump on a yard (own model, through Sovereign Asset), size and turn varied.</summary>
+        static void Clump(int blockId, Vector3 p, System.Random r, Transform parent)
+        {
+            float s = R(r, 0.7f, 1.35f);
+            Place("grass-clump", "grass", blockId, p, Quaternion.Euler(0, R(r, 0, 360), 0), parent, Col.None, 0.006f, new Vector3(s, R(r, 0.8f, 1.25f) * s, s));
+        }
+
+        static float R(System.Random r, float a, float b) => a + (float)r.NextDouble() * (b - a);
+
+        /// <summary>Grass clumps across a lot that shows the yard (pocket park, side yard).</summary>
+        static void LotClumps(BlockInfo b, int k, Transform parent, int n)
+        {
+            var r = new System.Random(b.id * 53 + k * 11 + 3);
+            for (int i = 0; i < n; i++) Clump(b.id, At(b, k, R(r, 8f, 18f), R(r, -6f, 6f), YardTop), r, parent);
         }
 
         // ---------------------------------------------------------------- crossings, signs and signals
@@ -412,6 +437,8 @@ namespace StreetEmpire.EditorTools
             if (model is "street-lamp-1") return (20f, 170f, true);
             if (model is "utility-pole" or "traffic-signal" or "stop-sign" or "sign-post" or "bus-shelter" or "bus-stop-sign"
                 || model.StartsWith("tree-") || model.StartsWith("palm-") || model.StartsWith("street-blade")) return (40f, 170f, true);
+            if (model is "grass-clump") return (14f, 40f, false);
+            if (model is "dry-shrub" or "newspaper-box" or "mailbox") return (18f, 55f, false);   // small, low: no shadow caster pass (draw calls back toward v67)
             if (model is "manhole" or "cardboard-box" or "crate" or "trashbag" or "tyre") return (15f, 45f, false);
             if (model is "wood-fence" or "chainlink-panel" or "chainlink-post" or "hedge" or "dry-hedge" or "dumpster" or "road-barrier" or "bench") return (22f, 80f, true);
             return (18f, 60f, true);

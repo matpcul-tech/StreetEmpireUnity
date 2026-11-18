@@ -435,6 +435,25 @@
    ]
   },
   {
+   "prop": "grass-clump",
+   "material": "dry_blades",
+   "alpha": "MASK",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 0.949999988079071,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "grass-clump__dry_blades_basecolor.png"
+  },
+  {
    "prop": "hedge",
    "material": "hedge",
    "alpha": "OPAQUE",
@@ -1386,7 +1405,7 @@
   },
   {
    "prop": "wood-fence",
-   "material": "wood",
+   "material": "fence_boards",
    "alpha": "OPAQUE",
    "cutoff": 0.5,
    "color": [
@@ -1396,12 +1415,12 @@
     1
    ],
    "metallic": 0,
-   "roughness": 0.8500000238418579,
+   "roughness": 0.8799999952316284,
    "tiling": [
     1,
     1
    ],
-   "basecolor": "wood-fence__wood_basecolor.jpg"
+   "basecolor": "wood-fence__fence_boards_basecolor.jpg"
   }
  ]
 }

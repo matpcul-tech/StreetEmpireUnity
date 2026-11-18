@@ -9,9 +9,9 @@
  "failed": [
   "NOTE Open edges The mesh is closed.",
   "NOTE Triangles 240 triangles. No target was set.",
-  "NOTE Draw calls 20 draw calls, 1 material.",
+  "NOTE Draw calls 1 draw call, 1 material.",
   "NOTE Size 2.49 wide, 1.85 tall, 0.090 long (meters). No size was set.",
-  "NOTE File size 0.2 MB, was 0.2 MB."
+  "NOTE File size 1.3 MB, was 1.3 MB."
  ],
  "found": "No broken geometry found.",
  "errors": []

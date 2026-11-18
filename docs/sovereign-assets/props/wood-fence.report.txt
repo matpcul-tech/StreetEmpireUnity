@@ -13,17 +13,17 @@ PASS  Faces point outward: No shell is inside out.
 PASS  Normals: Every part has normals that agree with its faces.
 NOTE  Open edges: The mesh is closed.
 NOTE  Triangles: 240 triangles. No target was set.
-NOTE  Draw calls: 20 draw calls, 1 material.
+NOTE  Draw calls: 1 draw call, 1 material.
 PASS  Texture size: All 1 readable textures are 1024 px or under.
 NOTE  Size: 2.49 wide, 1.85 tall, 0.090 long (meters). No size was set.
 PASS  On the ground: Lowest point is at 0.0000 m.
 PASS  Centered: Center is at X 0.0000, Z 0.0000.
 PASS  Nothing lost: 1 material, 1 texture.
-NOTE  File size: 0.2 MB, was 0.2 MB.
+NOTE  File size: 1.3 MB, was 1.3 MB.
 
 What was done
 - No empty or repeated triangles were found.
 - No floating debris was found.
 - No inside-out shells were found.
 - No holes were found.
-- The model was set on the ground, centered. The change sits on one top node, so parts, bones and animation are untouched.
+- The model was set on the ground, centered.
