@@ -45,6 +45,9 @@ for (const f of fs.readdirSync(dir).filter((f) => f.endsWith('.glb')).sort()) {
       e.metalsmooth = `${base}_metalsmooth.png`;
       await sharp(out, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toFile(path.join(texDir, e.metalsmooth));
     }
+    // v75: emission maps (the far skyline towers' lit windows); the color factor stays in the manifest
+    const em = m.getEmissiveTexture();
+    if (em) { e.emission = `${base}_emission.jpg`; e.emissive = m.getEmissiveFactor(); await img(em).jpeg({ quality: 90 }).toFile(path.join(texDir, e.emission)); }
     manifest.push(e);
   }
   console.log(prop);

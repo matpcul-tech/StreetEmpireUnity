@@ -451,6 +451,240 @@
    ]
   },
   {
+   "prop": "edge-freeway",
+   "material": "concrete",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "edge-freeway__concrete_basecolor.jpg",
+   "normal": "edge-freeway__concrete_normal.jpg",
+   "metalsmooth": "edge-freeway__concrete_metalsmooth.png"
+  },
+  {
+   "prop": "edge-tower-a",
+   "material": "tower",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "edge-tower-a__tower_basecolor.jpg",
+   "normal": "edge-tower-a__tower_normal.jpg",
+   "metalsmooth": "edge-tower-a__tower_metalsmooth.png",
+   "emission": "edge-tower-a__tower_emission.jpg",
+   "emissive": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "edge-tower-a",
+   "material": "roof",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "edge-tower-a__roof_basecolor.jpg",
+   "normal": "edge-tower-a__roof_normal.jpg",
+   "metalsmooth": "edge-tower-a__roof_metalsmooth.png"
+  },
+  {
+   "prop": "edge-tower-b",
+   "material": "tower",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "edge-tower-b__tower_basecolor.jpg",
+   "normal": "edge-tower-b__tower_normal.jpg",
+   "metalsmooth": "edge-tower-b__tower_metalsmooth.png",
+   "emission": "edge-tower-b__tower_emission.jpg",
+   "emissive": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "edge-tower-b",
+   "material": "roof",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "edge-tower-b__roof_basecolor.jpg",
+   "normal": "edge-tower-b__roof_normal.jpg",
+   "metalsmooth": "edge-tower-b__roof_metalsmooth.png"
+  },
+  {
+   "prop": "edge-tower-c",
+   "material": "tower",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "edge-tower-c__tower_basecolor.jpg",
+   "normal": "edge-tower-c__tower_normal.jpg",
+   "metalsmooth": "edge-tower-c__tower_metalsmooth.png",
+   "emission": "edge-tower-c__tower_emission.jpg",
+   "emissive": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "edge-tower-c",
+   "material": "roof",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "edge-tower-c__roof_basecolor.jpg",
+   "normal": "edge-tower-c__roof_normal.jpg",
+   "metalsmooth": "edge-tower-c__roof_metalsmooth.png"
+  },
+  {
+   "prop": "edge-tower-d",
+   "material": "tower",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "edge-tower-d__tower_basecolor.jpg",
+   "normal": "edge-tower-d__tower_normal.jpg",
+   "metalsmooth": "edge-tower-d__tower_metalsmooth.png",
+   "emission": "edge-tower-d__tower_emission.jpg",
+   "emissive": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "prop": "edge-tower-d",
+   "material": "roof",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "edge-tower-d__roof_basecolor.jpg",
+   "normal": "edge-tower-d__roof_normal.jpg",
+   "metalsmooth": "edge-tower-d__roof_metalsmooth.png"
+  },
+  {
+   "prop": "fx-dust",
+   "material": "fx_dust",
+   "alpha": "BLEND",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "fx-dust__fx_dust_basecolor.png",
+   "normal": "fx-dust__fx_dust_normal.jpg",
+   "metalsmooth": "fx-dust__fx_dust_metalsmooth.png"
+  },
+  {
    "prop": "grass-clump",
    "material": "dry_blades",
    "alpha": "MASK",
@@ -734,6 +968,27 @@
    "basecolor": "palm-tall__palm_frond_basecolor.png",
    "normal": "palm-tall__palm_frond_normal.jpg",
    "metalsmooth": "palm-tall__palm_frond_metalsmooth.png"
+  },
+  {
+   "prop": "pawn-sign",
+   "material": "pawn_sign",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "pawn-sign__pawn_sign_basecolor.jpg",
+   "normal": "pawn-sign__pawn_sign_normal.jpg",
+   "metalsmooth": "pawn-sign__pawn_sign_metalsmooth.png"
   },
   {
    "prop": "road-barrier",

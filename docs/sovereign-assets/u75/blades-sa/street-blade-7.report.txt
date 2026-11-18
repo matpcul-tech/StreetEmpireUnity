@@ -1,0 +1,34 @@
+Sovereign Asset report
+Source: street-blade-7
+Finish: Unity prop
+Output: street-blade-7-finished.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (1 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: The mesh is closed.
+NOTE  Triangles: 12 triangles. No target was set.
+NOTE  Draw calls: 1 draw call, 1 material.
+PASS  Texture size: All 3 readable textures are 2048 px or under.
+PASS  Color standard: Brightness runs from 10 to 77 percent, middle 10. Peak vividness 84. The shared range is 2 to 82, vividness up to 90.
+NOTE  Texture detail: 545 texture pixels per meter across most of the surface. 9 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.
+NOTE  Size: 0.920 wide, 0.150 tall, 0.012 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 1 material, 3 textures.
+NOTE  File size: 38 KB, was 38 KB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- Flat areas: 4 walls and other flat areas (8 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.00 percent of the part's size.
+- Baked light: none found. Brightness does not follow the direction faces point or how high they sit.
+- Color standard: every color texture was already inside the shared range. Nothing was changed.
+- Surface maps: every material already has its own.
+- Size and position were already right.
