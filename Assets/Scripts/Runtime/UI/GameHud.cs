@@ -32,7 +32,8 @@ namespace StreetEmpire.UI
             if (weapon) weapon.text = "FISTS";
             if (hpFill && s.playerHealth) hpFill.rectTransform.anchorMax = new Vector2(Mathf.Clamp01(s.playerHealth.hp / s.playerHealth.max), 1f);
             if (sub) sub.text = $"Rep {s.rep}   Turf {turfOwned}/{turfTotal}";
-            if (objective) objective.text = mission != null ? mission.Objective : "";
+            // one Unc prompt: while the onboarding box says "Talk to Unc", the objective line stays empty
+            if (objective) objective.text = mission != null && !(opening != null && opening.Step == 1) ? mission.Objective : "";
             if (onboarding)
             {
                 string step = opening != null ? opening.StepText : "";

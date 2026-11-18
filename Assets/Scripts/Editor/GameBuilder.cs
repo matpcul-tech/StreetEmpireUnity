@@ -38,8 +38,10 @@ namespace StreetEmpire.EditorTools
             // Unc: on the home block, 6 m in from the center, facing back toward the street (ensureContacts)
             var b0 = s.blocks[0]; var (cx, cz) = Simulation.BlockCenter(w, b0);
             var (ux, uz) = WorldSpace.FromSource(cx + 6, cz + 6);
-            var unc = Character("Unc", new Vector3(ux, 0.3f, uz), WorldSpace.YawFromSource(Mathf.PI) * Mathf.Rad2Deg, Unc, false);
-            Object.DestroyImmediate(unc.GetComponent<CharacterController>());
+            var unc = Character("Unc", new Vector3(ux, 0.3f, uz), WorldSpace.YawFromSource(Mathf.PI) * Mathf.Rad2Deg, Unc, true);
+            // a wider capsule: the player stops about a meter off (talk range is 3 m), not in his chest
+            var ucc = unc.GetComponent<CharacterController>(); ucc.radius = 0.55f;
+            unc.AddComponent<UncIdle>();
 
             var job = new GameObject("Job: Bag Back");
             var runner = job.AddComponent<MissionRunner>();
@@ -85,6 +87,7 @@ namespace StreetEmpire.EditorTools
             }).ToArray();
 
             var hud = Hud(runner, opening);
+            ObjectiveMarker(hud.transform, runner, opening);
             var radar = Radar(hud.transform, unc.transform, runner);
             float lo = Mathf.Min(WorldSpace.FromSource(min, 0).x, WorldSpace.FromSource(max, 0).x) - 120f, size = max - min + 240f;
             radar.worldMin = new Vector2(lo, min - 120f); radar.worldSize = new Vector2(size, size);
@@ -111,6 +114,24 @@ namespace StreetEmpire.EditorTools
             foreach (var r in bat.GetComponentsInChildren<Renderer>()) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
         }
 
+        /// <summary>The yellow objective triangle with "UNC 18 m" under it (ObjectiveArrow).</summary>
+        static void ObjectiveMarker(Transform canvas, MissionRunner job, MuggerOpening opening)
+        {
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var holder = PlayerBuilder.Rect("Objective Marker", canvas, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            var root = PlayerBuilder.Rect("Marker", holder, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(160, 90));
+            var arrow = PlayerBuilder.Rect("Triangle", root, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 14), new Vector2(34, 30)).gameObject.AddComponent<Image>();
+            arrow.color = new Color32(0xff, 0xcc, 0x33, 255); arrow.raycastTarget = false;
+            var sh = arrow.gameObject.AddComponent<Shadow>(); sh.effectColor = new Color(0, 0, 0, 0.7f); sh.effectDistance = new Vector2(1.5f, -1.5f);
+            var lr = PlayerBuilder.Rect("Label", root, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -16), new Vector2(220, 30));
+            var t = lr.gameObject.AddComponent<Text>(); t.font = font; t.fontSize = 20; t.fontStyle = FontStyle.Bold; t.alignment = TextAnchor.MiddleCenter;
+            t.color = new Color32(0xff, 0xcc, 0x33, 255); t.raycastTarget = false;
+            var ts = t.gameObject.AddComponent<Shadow>(); ts.effectColor = new Color(0, 0, 0, 0.8f); ts.effectDistance = new Vector2(1.5f, -1.5f);
+            var oa = holder.gameObject.AddComponent<ObjectiveArrow>();
+            oa.job = job; oa.opening = opening; oa.canvas = (RectTransform)canvas; oa.root = root; oa.arrow = arrow; oa.label = t;
+            root.gameObject.SetActive(false);
+        }
+
         static Minimap Radar(Transform canvas, Transform unc, MissionRunner job)
         {
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -129,7 +150,7 @@ namespace StreetEmpire.EditorTools
                 var r = PlayerBuilder.Rect(name, frame, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(40, 40));
                 var t = r.gameObject.AddComponent<Text>(); t.font = font; t.fontSize = fs; t.fontStyle = FontStyle.Bold; t.alignment = TextAnchor.MiddleCenter;
                 t.color = c; t.text = text; t.raycastTarget = false;
-                var o = t.gameObject.AddComponent<Outline>(); o.effectColor = Color.black; o.effectDistance = new Vector2(2, -2);
+                var o = t.gameObject.AddComponent<Shadow>(); o.effectColor = new Color(0, 0, 0, 0.8f); o.effectDistance = new Vector2(1.5f, -1.5f);   // one underlay, no outline (the two together ghosted)
                 return t;
             }
             var north = Label("North", "N", 28, Color.white);
@@ -277,7 +298,7 @@ namespace StreetEmpire.EditorTools
             {
                 var r = PlayerBuilder.Rect(name, canvas.transform, anchor, anchor, pos, size); r.pivot = anchor;
                 var t = r.gameObject.AddComponent<Text>(); t.font = font; t.fontSize = fs; t.alignment = align; t.color = Color.white; t.raycastTarget = false;
-                var o = t.gameObject.AddComponent<Outline>(); o.effectColor = new Color(0, 0, 0, 0.85f); o.effectDistance = new Vector2(2, -2);
+                var o = t.gameObject.AddComponent<Shadow>(); o.effectColor = new Color(0, 0, 0, 0.8f); o.effectDistance = new Vector2(1.5f, -1.5f);   // one underlay, no outline (the two together ghosted)
                 return t;
             }
             // the web #hud column, top right, at 1.5x its 1280 px sizes (the canvas is 1920 wide)
