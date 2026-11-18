@@ -16,7 +16,8 @@ const args = ['--no-sandbox', '--window-size=1280,720', '--ignore-gpu-blocklist'
 args.push(...(no3d ? ['--disable-webgl', '--disable-webgl2', '--disable-3d-apis'] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader']));
 const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new', args, protocolTimeout: 600000 });
 const page = await browser.newPage();
-await page.setViewport({ width: 1280, height: 720 });
+const scale = Number((flags.find((f) => f.startsWith('--scale=')) || '--scale=1').slice(8));   // device pixel ratio: 1.5 renders 1920 x 1080
+await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: scale });
 const logs = []; page.on('console', (m) => logs.push(m.type() + ': ' + m.text()));
 await page.goto('http://localhost:8765/' + (query ? '?' + query : ''), { waitUntil: 'load', timeout: 120000 });
 const t0 = Date.now();
