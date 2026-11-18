@@ -102,7 +102,8 @@ namespace StreetEmpire.EditorTools
             {
                 if (m.GetTexture("_BaseMap") == null) continue;
                 m.SetTexture("_BaseMap", bc);
-                if (m.IsKeywordEnabled("_EMISSION")) m.SetTexture("_EmissionMap", em);
+                // v75e: the v75c police rebake dropped the glTF emissive slot, so the light bar map is set and switched on here
+                if (em != null) { m.SetTexture("_EmissionMap", em); m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.white); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None; }
                 if (ms != null)
                 {
                     m.SetTexture("_MetallicGlossMap", ms); m.EnableKeyword("_METALLICSPECGLOSSMAP");

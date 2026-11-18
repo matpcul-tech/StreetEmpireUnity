@@ -100,7 +100,11 @@ def tex(im):
 nt.links.new(tex(alb).outputs['Color'], p.inputs['Base Color'])
 if orm is not None:
     sep = nt.nodes.new('ShaderNodeSeparateColor'); nt.links.new(tex(orm).outputs['Color'], sep.inputs['Color'])
-    nt.links.new(sep.outputs['Green'], p.inputs['Roughness']); nt.links.new(sep.outputs['Blue'], p.inputs['Metallic'])
+    nt.links.new(sep.outputs['Green'], p.inputs['Roughness'])
+    # v75e: metal only where the source material read it from the map (the sedan's source had metallicFactor 0,
+    # and linking the map's blue anyway made its red paint a dark brown metal at dusk)
+    if bsdf.inputs['Metallic'].links: nt.links.new(sep.outputs['Blue'], p.inputs['Metallic'])
+    else: p.inputs['Metallic'].default_value = bsdf.inputs['Metallic'].default_value
 else:
     p.inputs['Roughness'].default_value = 0.6; p.inputs['Metallic'].default_value = 0.0
 nmap = nt.nodes.new('ShaderNodeNormalMap'); nt.links.new(tex(nrm).outputs['Color'], nmap.inputs['Color']); nt.links.new(nmap.outputs['Normal'], p.inputs['Normal'])
