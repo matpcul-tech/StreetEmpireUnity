@@ -61,3 +61,17 @@ normals. Verdicts in u75d/. No Meshy spend.
 | store-pawn | u75d near | unity-building | READY | 58000 | 70 px/m, color PASS |
 | store-pawn | u75d far | unity-static | READY | 12760 | |
 | store-pawn | u75d low | unity-static | READY | 3480 | |
+
+## v75e: the white house's normals, roof material and front panes (tools/house01_v2_fix.py)
+
+Matthew's v2 house-01-bungalow had its vertex normals smoothed across the wall and roof edges (39% of the wall
+triangles bent up toward the sky), so the walls caught the sky light and moonlight and read almost as bright at night
+as by day. The custom normals are cleared and smoothed by angle (30 degrees). The up-facing faces of its walls material
+(the roof) move to a "roof" material on the same textures, so the walls can be tinted per lot without the roof. The
+two front windows were painted only, so each gets a windows_lit pane. Far and Low decimated again from it. No Meshy spend.
+
+| Asset | Group | Preset | Verdict | Triangles |
+|---|---|---|---|---|
+| house-01-bungalow | u75e near | unity-building | READY | 58932 |
+| house-01-bungalow | u75e far | unity-static | READY | 12965 |
+| house-01-bungalow | u75e low | unity-static | READY | 3535 |
