@@ -126,6 +126,11 @@ namespace StreetEmpire.EditorTools
             var fx = new GameObject("Combat Fx").AddComponent<CombatFx>();
             fx.canvas = (RectTransform)canvas; fx.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             fx.ringMat = Fx("FxRing", false); fx.particleMat = Fx("FxParticle", false);
+            // v75: the sparks and dust were plain squares; they use the fx-dust sprite (a soft puff with grit,
+            // through Sovereign Asset) now
+            var dustTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Textures/Props/fx-dust__fx_dust_basecolor.png");
+            if (dustTex == null) Debug.LogError("[GameBuilder] missing the fx-dust sprite");
+            fx.particleMat.SetTexture("_BaseMap", dustTex); EditorUtility.SetDirty(fx.particleMat);
         }
 
         /// <summary>The bat (Models/Props/bat.glb, through Sovereign Asset) in the right fist, barrel forward in the bind pose.</summary>
@@ -337,7 +342,7 @@ namespace StreetEmpire.EditorTools
             // v73: a soft dark backing behind the column so FISTS, the money and Rep read on a bright sky without
             // relying on the shadow (made first, so it draws behind the text)
             var back = PlayerBuilder.Rect("HUD Backing", canvas.transform, right, right, new Vector2(-14, -6), new Vector2(440, 226)); back.pivot = right;
-            var backImg = back.gameObject.AddComponent<Image>(); backImg.color = new Color(10 / 255f, 8 / 255f, 6 / 255f, 0.42f); backImg.raycastTarget = false;
+            var backImg = back.gameObject.AddComponent<Image>(); backImg.color = new Color(6 / 255f, 5 / 255f, 4 / 255f, 0.74f);   // v75: darker, so it reads on a bright day sky backImg.raycastTarget = false;
             hud.clock = T("Clock", right, new Vector2(-30, -14), new Vector2(300, 40), 33, TextAnchor.UpperRight); hud.clock.color = new Color32(0xee, 0xee, 0xee, 255);
             hud.weapon = T("Weapon", right, new Vector2(-30, -52), new Vector2(300, 30), 22, TextAnchor.UpperRight); hud.weapon.color = new Color32(0xdd, 0xdd, 0xdd, 255);
             hud.cash = T("Cash", right, new Vector2(-30, -78), new Vector2(400, 52), 45, TextAnchor.UpperRight); hud.cash.color = new Color32(0xf4, 0xe6, 0xc4, 255);
@@ -360,6 +365,10 @@ namespace StreetEmpire.EditorTools
 
             // under the radar: the job objective and the onboarding box (rgba(10,8,6,.62), 3 px #ffcc33 left edge)
             hud.objective = T("Objective", new Vector2(0, 1), new Vector2(26, -336), new Vector2(760, 44), 27, TextAnchor.UpperLeft);
+            // v75: "Talk to Unc" clipped; it never cuts off now, with a 2 px outline over a bright street
+            hud.objective.horizontalOverflow = HorizontalWrapMode.Overflow; hud.objective.verticalOverflow = VerticalWrapMode.Overflow;
+            Object.DestroyImmediate(hud.objective.GetComponent<Shadow>());
+            var ol = hud.objective.gameObject.AddComponent<Outline>(); ol.effectColor = new Color(0, 0, 0, 0.85f); ol.effectDistance = new Vector2(2f, -2f);
             var box = PlayerBuilder.Rect("Onboarding", canvas.transform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(24, -384), new Vector2(560, 50)); box.pivot = new Vector2(0, 1);
             var bg = box.gameObject.AddComponent<Image>(); bg.color = new Color(10 / 255f, 8 / 255f, 6 / 255f, 0.62f); bg.raycastTarget = false;
             var edge = PlayerBuilder.Rect("Edge", box, Vector2.zero, new Vector2(0, 1), Vector2.zero, new Vector2(5, 0)); edge.pivot = Vector2.zero;
@@ -370,10 +379,16 @@ namespace StreetEmpire.EditorTools
             hud.onboardingBox = box.gameObject; box.gameObject.SetActive(false);
 
             // the message strip across the top (job briefs, the scuffle lines, BUSTED), bold #fc6 on a dark band
-            var band = PlayerBuilder.Rect("Message Band", canvas.transform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -12), new Vector2(1020, 50)); band.pivot = new Vector2(0.5f, 1);
-            var bandImg = band.gameObject.AddComponent<Image>(); bandImg.color = new Color(0, 0, 0, 0.45f); bandImg.raycastTarget = false;
+            // v75: it ran under the top right panel in the fight shot. It now spans only the gap between the radar
+            // (ends 324 px in) and the panel (454 px from the right edge) at any screen width, and the text
+            // wraps and shrinks to fit instead of running under either.
+            var band = PlayerBuilder.Rect("Message Band", canvas.transform, new Vector2(0, 1), new Vector2(1, 1), Vector2.zero, Vector2.zero);
+            band.pivot = new Vector2(0.5f, 1); band.offsetMin = new Vector2(344, -12 - 64); band.offsetMax = new Vector2(-474, -12);
+            var bandImg = band.gameObject.AddComponent<Image>(); bandImg.color = new Color(0, 0, 0, 0.6f); bandImg.raycastTarget = false;
             hud.messageBox = band.gameObject;
-            hud.message = T("Message", new Vector2(0.5f, 1), new Vector2(0, -12), new Vector2(1000, 50), 27, TextAnchor.MiddleCenter);
+            hud.message = T("Message", new Vector2(0.5f, 1), Vector2.zero, Vector2.zero, 27, TextAnchor.MiddleCenter);
+            var mr = hud.message.rectTransform; mr.SetParent(band, false); mr.anchorMin = Vector2.zero; mr.anchorMax = Vector2.one; mr.offsetMin = new Vector2(12, 2); mr.offsetMax = new Vector2(-12, -2);
+            hud.message.horizontalOverflow = HorizontalWrapMode.Wrap; hud.message.resizeTextForBestFit = true; hud.message.resizeTextMinSize = 16; hud.message.resizeTextMaxSize = 27;
             hud.message.fontStyle = FontStyle.Bold;
             // the build label moves to the bottom right, out of the radar's way
             var ver = T("BuildLabel", new Vector2(1, 0), new Vector2(-24, 16), new Vector2(500, 30), 18, TextAnchor.LowerRight);

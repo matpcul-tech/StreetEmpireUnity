@@ -19,6 +19,11 @@
 //   shot=v74     v74 report views, keys 1 to 9: 1 the avenue at 14:00, 2 the same at 19:00, 3 a street lamp and the
 //                stucco apartment at 22:00, 4 the pawn shop front at 22:00, 5 the apartment close at 22:00, 6 a house
 //                close by day, 7 palm fronds close by day, 8 the district edge, 9 a wood fence close by day
+//   shot=v75     v75 report views, keys 1 to 9 and 0, all but 7 and 8 through the game camera with the player in
+//                frame: 1 the avenue at 14:00, 2 the same at 19:00, 3 under a street lamp by the stucco apartment at
+//                22:00, 4 the pawn shop front at 22:00, 5 the apartment close at 22:00, 6 the white house by day,
+//                7 palm fronds close (free camera), 8 the district edge (free camera), 9 the avenue at 14:00 (for
+//                the Ultra and High pair), 0 a signal crossing at 14:00 (poles on the corners)
 //   shot=fight   the opening scuffle with a hit landed on a mugger every 0.8 s, so the target ring, warning rings,
 //                hit numbers, sparks, dust and shockwaves show on cue (game camera)
 //   shot=mugger  the opening scuffle as a new game plays it (every other shot skips it)
@@ -96,6 +101,9 @@ namespace StreetEmpire.Game
                     break;
                 case "v74":
                     StartCoroutine(V74(p));
+                    break;
+                case "v75":
+                    StartCoroutine(V75(p));
                     break;
                 case "fight":
                     StartCoroutine(Fight(p));
@@ -290,6 +298,113 @@ namespace StreetEmpire.Game
                     (Vector3 pos, Vector3 at) v;
                     if (view == 3) { var l = Prop("street-lamp-1", b10 + new Vector3(0, 0, -27f)); var a = l ? l.position : b10; v = (a + new Vector3(7f, 7f, -7f), a + new Vector3(0, 0.2f, 0)); }
                     else if (view == 4) v = (b10 + new Vector3(28f, 1.7f, -24f), b10 + new Vector3(27f, 1.5f, 30f));
+                    else { var c = (b0 + b20) / 2; v = (c + new Vector3(60f, 38f, -110f), c + new Vector3(-40f, 0f, 120f)); cam.farClipPlane = 800f; }
+                    cam.transform.position = v.pos; cam.transform.LookAt(v.at);
+                }
+                yield return null;
+            }
+        }
+
+        IEnumerator V75(PlayerMotor p)
+        {
+            var cam = Camera.main;
+            var brain = cam.GetComponent<Unity.Cinemachine.CinemachineBrain>();
+            var rig = FindFirstObjectByType<StreetEmpire.Player.CameraRig>();
+            Vector3 Block(int id) { foreach (var m in FindObjectsByType<StreetEmpire.City.BlockMarker>(FindObjectsSortMode.None)) if (m.blockId == id) return m.transform.position; return Vector3.zero; }
+            var b10 = Block(10); var b0 = Block(0); var b20 = Block(20);
+            Transform Prop(string model, Vector3 near)
+            {
+                Transform best = null; float bd = float.MaxValue;
+                foreach (var m in FindObjectsByType<StreetEmpire.City.PropMarker>(FindObjectsSortMode.None))
+                    if (m.model == model) { float d = (m.transform.position - near).sqrMagnitude; if (d < bd) { bd = d; best = m.transform; } }
+                return best;
+            }
+            // the street front of one building of the model: its foot, outward normal, tangent and height. The front is
+            // the holder's forward or back, whichever points away from its block; of every copy of the model, the one
+            // with the fewest palms, poles and lamps between the camera spot (back m out) and the wall
+            var blockers = new System.Collections.Generic.List<Vector3>();
+            foreach (var m in FindObjectsByType<StreetEmpire.City.PropMarker>(FindObjectsSortMode.None))
+                if (m.model != null && (m.model.StartsWith("palm") || m.model.StartsWith("tree") || m.model.Contains("pole") || m.model.Contains("lamp") || m.model.Contains("signal"))) blockers.Add(m.transform.position);
+            (Vector3 face, Vector3 n, Vector3 t, float h) Face(string model, float back = 9f)
+            {
+                (Vector3, Vector3, Vector3, float) best = (b10, Vector3.back, Vector3.right, 8f); float bestScore = float.MaxValue;
+                foreach (var m in FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None))
+                {
+                    if (m.model == null || !m.model.StartsWith(model)) continue;
+                    var c = m.GetComponent<BoxCollider>(); var bb = c ? c.bounds : new Bounds(m.transform.position, Vector3.one * 10);
+                    var o = bb.center - Block(m.blockId); o.y = 0;
+                    var n = m.transform.forward; n.y = 0; n.Normalize(); if (Vector3.Dot(n, o) < 0) n = -n;
+                    var face = bb.center + n * Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(n.x), 0, Mathf.Abs(n.z)))); face.y = bb.min.y;
+                    var cam0 = face + n * back; float score = 0;
+                    foreach (var q in blockers)
+                    {
+                        var qq = q; qq.y = face.y; var seg = face - cam0; float u = Mathf.Clamp01(Vector3.Dot(qq - cam0, seg) / seg.sqrMagnitude);
+                        if ((cam0 + seg * u - qq).magnitude < 1.6f) score += 1f;
+                    }
+                    score += (bb.center - b10).magnitude * 0.002f;
+                    if (score < bestScore) { bestScore = score; best = (face, n, Vector3.Cross(Vector3.up, n), bb.size.y); }
+                }
+                return best;
+            }
+            // v75: every street view is the game's own follow camera behind the player (no free debug camera), so
+            // the player is in each one; the orbit is turned to look where the view needs. Only the palm close up (7)
+            // and the high district edge view (8) are free cameras.
+            float[] hours = { 14f, 19f, 22f, 22f, 22f, 14f, 14f, 14f, 14f, 14f };
+            int view = 0; int shown = -1;
+            void Game(Vector3 at, Vector3 look, float pitch, float radius)
+            {
+                look.y = 0; float yaw = Quaternion.LookRotation(look.normalized).eulerAngles.y;
+                at.y = 0.4f; p.Teleport(at, yaw);
+                if (brain) brain.enabled = true;
+                if (rig) { rig.radius = radius; rig.orbit.Radius = radius; rig.orbit.HorizontalAxis.Value = Mathf.DeltaAngle(0f, yaw); rig.orbit.VerticalAxis.Value = pitch; }
+            }
+            Vector3 PoleOf(Transform signal) { var c = signal.Find("Pole collider"); return c ? c.position : signal.position; }
+            while (true)
+            {
+                var kb = UnityEngine.InputSystem.Keyboard.current;
+                if (kb != null)
+                {
+                    var keys = new[] { kb.digit1Key, kb.digit2Key, kb.digit3Key, kb.digit4Key, kb.digit5Key, kb.digit6Key, kb.digit7Key, kb.digit8Key, kb.digit9Key, kb.digit0Key };
+                    for (int i = 0; i < keys.Length; i++) if (keys[i].isPressed) view = i;
+                }
+                bool free = view == 6 || view == 7;
+                if (view != shown)
+                {
+                    shown = view; GameClock.FrozenHour = hours[view];
+                    if (brain) brain.enabled = !free;
+                    switch (view)
+                    {
+                        case 0: case 1: case 8: Game(b10 + new Vector3(28f, 0f, -20f), Vector3.forward, 8f, 5.2f); break;
+                        case 2:
+                        {
+                            var f = Face("apt-01", 12f); var lamp = Prop("street-lamp-1", f.face + f.n * 6f); var lp = lamp ? lamp.position : f.face + f.n * 6f;
+                            // under the lamp's pool, the apartment ahead and to the side
+                            Game(lp + f.n * 2.5f + f.t * 2.5f, -f.n - f.t * 0.45f, 14f, 6.5f); break;
+                        }
+                        case 3: { var f = Face("store-pawn", 7f); Game(f.face + f.n * 4.2f + f.t * 0.6f, -f.n, 6f, 5f); break; }
+                        case 4: { var f = Face("apt-01", 12f); Game(f.face + f.n * 6.5f + f.t * 1.5f, -f.n, 18f, 6f); break; }
+                        case 5: { var f = Face("house-01", 9f); Game(f.face + f.n * 4.5f + f.t * 1.2f, -f.n, 8f, 5f); break; }
+                        case 9:
+                        {
+                            // the signal crossing at the south east corner of block 10: standing on the crosswalk
+                            // looking at one corner, its pole on the sidewalk and its arm over the lanes
+                            var x = b10 + new Vector3(29f, 0, -29f); Transform sig = null; float bd = float.MaxValue;
+                            foreach (var m in FindObjectsByType<StreetEmpire.City.PropMarker>(FindObjectsSortMode.None))
+                                if (m.kind == "traffic signal") { float d = (PoleOf(m.transform) - (b10 + new Vector3(21.75f, 0, -20.5f))).sqrMagnitude; if (d < bd) { bd = d; sig = m.transform; } }
+                            var pole = sig ? PoleOf(sig) : x; pole.y = 0;
+                            var from = x + (x - pole).normalized * 2f;
+                            Game(from, pole - from, 10f, 6f);
+                            Debug.Log($"[ShotDirector] v75 signal pole at {pole} (crossing {x})"); break;
+                        }
+                    }
+                    var ll = FindFirstObjectByType<StreetEmpire.City.LampLights>(); int on = 0; if (ll) foreach (var l in ll.lights) if (l && l.enabled) on++;
+                    var sun = RenderSettings.sun;
+                    Debug.Log($"[ShotDirector] v75 view {(view + 1) % 10} at {hours[view]}, lamp lights on {on}, sun {(sun && sun.enabled ? sun.intensity.ToString("0.00") : "off")}");
+                }
+                if (free)
+                {
+                    (Vector3 pos, Vector3 at) v;
+                    if (view == 6) { var palm = Prop("palm-short", b10 + new Vector3(0, 0, -27f)); var a = palm ? palm.position : b10; v = (a + new Vector3(3.5f, 4.6f, -3.5f), a + new Vector3(0, 7.2f, 0)); }
                     else { var c = (b0 + b20) / 2; v = (c + new Vector3(60f, 38f, -110f), c + new Vector3(-40f, 0f, 120f)); cam.farClipPlane = 800f; }
                     cam.transform.position = v.pos; cam.transform.LookAt(v.at);
                 }

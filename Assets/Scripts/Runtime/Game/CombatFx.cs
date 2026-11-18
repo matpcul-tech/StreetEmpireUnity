@@ -72,7 +72,8 @@ namespace StreetEmpire.Game
             var ps = go.AddComponent<ParticleSystem>();
             ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = ps.main; main.playOnAwake = false; main.loop = true;   // emission is off: it only simulates what Burst emits
-            main.startLifetime = life; main.startSize = size;
+            main.startLifetime = life; main.startSize = new ParticleSystem.MinMaxCurve(size * 0.6f, size * 1.3f);
+            main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);   // the dust sprite, turned at random
             main.gravityModifier = gravity / 9.81f; main.simulationSpace = ParticleSystemSimulationSpace.World; main.maxParticles = 200;
             var em = ps.emission; em.enabled = false;
             var shape = ps.shape; shape.enabled = false;
@@ -122,7 +123,28 @@ namespace StreetEmpire.Game
         void Shockwave(Vector3 at, float size, Color c)
         {
             Wave w = waves[0]; foreach (var x in waves) if (x.t > w.t) w = x;
-            w.t = 0; w.c = c; w.size = size; w.tr.position = new Vector3(at.x, at.y + 0.06f, at.z); w.tr.gameObject.SetActive(true);
+            w.t = 0; w.c = c; w.size = size; w.tr.position = OnGround(at, 0.84f * size, 0.03f); w.tr.gameObject.SetActive(true);
+        }
+
+        /// <summary>v75: the rings sat 6 to 7 cm over the feet and cut through a curb next to the fight. They now ride
+        /// on the highest ground under the ring (the middle and 8 points round its edge; people ignored), so a ring
+        /// half on the sidewalk lies on the sidewalk instead of through the curb.</summary>
+        static readonly RaycastHit[] hits = new RaycastHit[8];
+        public static Vector3 OnGround(Vector3 at, float radius, float lift)
+        {
+            float top = float.NegativeInfinity;
+            for (int i = -1; i < 8; i++)
+            {
+                var p = i < 0 ? at : at + new Vector3(Mathf.Cos(i * Mathf.PI / 4f), 0, Mathf.Sin(i * Mathf.PI / 4f)) * radius;
+                int n = Physics.RaycastNonAlloc(p + Vector3.up * 0.6f, Vector3.down, hits, 1.4f, ~0, QueryTriggerInteraction.Ignore);
+                for (int k = 0; k < n; k++)
+                {
+                    var c = hits[k].collider;
+                    if (c is CharacterController || c.GetComponentInParent<Health>() != null) continue;
+                    if (hits[k].point.y > top) top = hits[k].point.y;
+                }
+            }
+            return new Vector3(at.x, (float.IsNegativeInfinity(top) ? at.y : top) + lift, at.z);
         }
 
         void SetColor(Transform tr, Color c) { var r = tr.GetComponent<MeshRenderer>(); mpb.SetColor(BaseColor, c); r.SetPropertyBlock(mpb); }
@@ -145,7 +167,7 @@ namespace StreetEmpire.Game
             lockRing.gameObject.SetActive(target != null);
             if (target != null)
             {
-                lockRing.position = target.transform.position + Vector3.up * 0.07f; lockRing.rotation = Quaternion.Euler(0, Time.time * 140f, 0);
+                lockRing.position = OnGround(target.transform.position, 0.84f * 0.95f, 0.04f); lockRing.rotation = Quaternion.Euler(0, Time.time * 140f, 0);
                 lockRing.localScale = Vector3.one * 0.95f; SetColor(lockRing, new Color(1f, 0.25f, 0.19f, 0.85f));
             }
             // warning rings under anyone winding up
@@ -155,8 +177,8 @@ namespace StreetEmpire.Game
                 if (ti >= tells.Count) break;
                 if (b == null || b.Windup <= 0) continue;
                 var tr = tells[ti++]; tr.gameObject.SetActive(true);
-                tr.position = b.transform.position + Vector3.up * 0.06f;
                 float k = Mathf.Min(1f, b.Windup / 0.5f); tr.localScale = Vector3.one * (0.85f + (1f - k) * 0.5f);
+                tr.position = OnGround(b.transform.position, 0.84f * tr.localScale.x, 0.035f);
                 var c = b.style == Brawler.Style.Flank ? new Color(0.27f, 0.87f, 1f) : new Color(1f, 0.33f, 0.19f);
                 c.a = 0.55f + 0.35f * Mathf.Min(1f, b.Windup / 0.36f); SetColor(tr, c);
             }

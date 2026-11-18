@@ -1,8 +1,11 @@
 // Two URP quality tiers for the Eastside, both made from code like the rest of the project:
-//   Ultra (default): HDR, 4x MSAA, full render scale, high soft shadows over 100 m in 3 cascades on a 4096 map,
-//   SSAO, up to 6 lamp lights per object at night.
-//   High: HDR, 4x MSAA (v74: same as Ultra, the palm fronds need it), 70% render scale, hard shadows over 30 m in
-//   2 cascades on a 2048 map, no SSAO, up to 2 lamp lights per object at night.
+//   v75 (Matthew: Ultra did not earn its cost, and High had the crisper palm shadow):
+//   Ultra (default): HDR, 4x MSAA, full render scale, medium soft shadows over 120 m in 4 cascades on a 4096 map
+//   (the first cascade only 6 m deep, so the shadows at the player's feet are the sharpest in the game), full
+//   resolution SSAO, up to 6 lamp lights per object, props and building detail held 30% farther (GraphicsQuality).
+//   High: HDR, 4x MSAA (the palm fronds need it), 70% render scale, low soft shadows over 40 m in 2 cascades on a
+//   2048 map (10 m first cascade: softer, blurrier edges), no SSAO, up to 3 lamp lights per object, props and
+//   building detail drop 20% sooner.
 // Both feed the same global post volume (ACES tonemapping, a little bloom, color grading, vignette).
 // The player switches tiers at run time with the HUD button (GraphicsQuality); nothing here runs in the player.
 using System;
@@ -28,10 +31,10 @@ namespace StreetEmpire.EditorTools
         public static UniversalRenderPipelineAsset Ensure()
         {
             var ultra = Pipeline(UltraPath, UltraRendererPath, out var ultraRenderer);
-            Tier(ultra, msaa: 4, distance: 100f, cascades: 3, map: 4096, softQuality: 3, scale: 1f, lights: 6);
+            Tier(ultra, msaa: 4, distance: 120f, cascades: 4, map: 4096, softQuality: 2, scale: 1f, lights: 6);
             Ssao(ultraRenderer, true);
             var high = Pipeline(HighPath, HighRendererPath, out var highRenderer);
-            Tier(high, msaa: 4, distance: 30f, cascades: 2, map: 2048, softQuality: 0, scale: 0.7f, lights: 2);   // High draws at 70% with low soft shadows over 40 m (visibly softer, cheaper)
+            Tier(high, msaa: 4, distance: 40f, cascades: 2, map: 2048, softQuality: 1, scale: 0.7f, lights: 3);
             Ssao(highRenderer, false);
             AssetDatabase.SaveAssets();
             return ultra;
@@ -63,7 +66,7 @@ namespace StreetEmpire.EditorTools
             p.shadowCascadeCount = cascades;
             if (cascades == 2) p.cascade2Split = 0.25f;
             if (cascades == 3) p.cascade3Split = new Vector2(0.1f, 0.3f);
-            if (cascades == 4) p.cascade4Split = new Vector3(0.067f, 0.2f, 0.47f);
+            if (cascades == 4) p.cascade4Split = new Vector3(0.05f, 0.15f, 0.4f);
             p.supportsCameraDepthTexture = true;
             var so = new SerializedObject(p);
             Set(so, "m_MainLightShadowsSupported", true);
@@ -120,8 +123,8 @@ namespace StreetEmpire.EditorTools
             {
                 void F(string n, float v) { var p = s.FindPropertyRelative(n); if (p != null) p.floatValue = v; }
                 void B(string n, bool v) { var p = s.FindPropertyRelative(n); if (p != null) p.boolValue = v; }
-                F("Intensity", 1.6f); F("Radius", 0.45f); F("DirectLightingStrength", 0.25f);
-                B("Downsample", true);        // half resolution: most of the look for a quarter of the cost
+                F("Intensity", 2.2f); F("Radius", 0.55f); F("DirectLightingStrength", 0.3f);
+                B("Downsample", false);       // v75: full resolution, so the contact shadows read on Ultra
                 B("AfterOpaque", false);
                 // depth only, normals rebuilt from it: the depth-normals source draws the whole scene once more
                 void E(string n, int v) { var p = s.FindPropertyRelative(n); if (p != null) p.enumValueIndex = v; else Debug.LogWarning($"[GraphicsSetup] SSAO has no {n}"); }
