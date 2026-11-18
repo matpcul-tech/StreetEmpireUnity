@@ -36,3 +36,5 @@ Size set to the real height; props, the edge, signs and the fight dust use "Unit
 | fx-dust | quads-sa | unity-static | READY | 2 |  |
 | pawn-sign | quads-sa | unity-static | READY | 2 |  |
 | liquor-sign | u75c | unity-static | READY | 2 | n/a |
+| sedan | u75c rebake (tools/rebake_car.py) | unity-static | READY | 29996 | 270 px/m (was 105) |
+| sedan LOD1 | u75c rebake, Blender decimate 0.2 | unity-static | READY | 5996 | 267 px/m |
