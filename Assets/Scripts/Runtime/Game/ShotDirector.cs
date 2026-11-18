@@ -13,6 +13,11 @@
 //   shot=close   close ups of the playtest fixes, keys 1 to 9 and 0: 1 palm fronds, 2 barbershop wall, 3 bungalow
 //                (white house, red roof), 4 apartment windows, 5 the hoodie, 6 Unc and the player, 7 the objective
 //                marker from the game camera, 8 a yard with grass clumps, 9 a wood fence, 0 the windows at 21:00
+//   shot=close2  v73 views, keys 1 to 6: 1 the HUD and the Unc prompt next to Unc (game camera), 2 the player on
+//                the avenue (character fill against the road, game camera), 3 the Arm guards prompt on a held block,
+//                4 street lamp pools from above at 21:00, 5 the avenue at eye height at 21:00, 6 the skyline edge
+//   shot=fight   the opening scuffle with a hit landed on a mugger every 0.8 s, so the target ring, warning rings,
+//                hit numbers, sparks, dust and shockwaves show on cue (game camera)
 //   shot=mugger  the opening scuffle as a new game plays it (every other shot skips it)
 //   gfx=high     (with any shot) start on the High graphics tier instead of Ultra
 using System.Collections;
@@ -31,9 +36,9 @@ namespace StreetEmpire.Game
             if (i < 0) yield break;
             string shot = url.Substring(i + 5).Split('&')[0];
             var opening = FindFirstObjectByType<MuggerOpening>();
-            if (opening != null && shot != "mugger") opening.Skip();
+            if (opening != null && shot != "mugger" && shot != "fight") opening.Skip();
             // still shots keep the clock (and the sun) at the start hour, or at hour=N from the URL
-            if (shot != "mugger")
+            if (shot != "mugger" && shot != "fight")
             {
                 GameClock.Frozen = true;
                 int hq = url.IndexOf("hour="); if (hq >= 0 && float.TryParse(url.Substring(hq + 5).Split('&')[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float hh)) GameClock.FrozenHour = hh;
@@ -82,6 +87,12 @@ namespace StreetEmpire.Game
                     break;
                 case "close":
                     StartCoroutine(Close(p, job));
+                    break;
+                case "close2":
+                    StartCoroutine(Close2(p, job));
+                    break;
+                case "fight":
+                    StartCoroutine(Fight(p));
                     break;
                 case "car":
                     var car = FindFirstObjectByType<CarController>();
@@ -205,6 +216,77 @@ namespace StreetEmpire.Game
                     case 9: v = Facade("apt-02", 14f, 4f, 5f); break;
                 }
                 if (view != 6) { cam.transform.position = v.pos; cam.transform.LookAt(v.at); }
+                yield return null;
+            }
+        }
+
+        /// <summary>Lands a hit on the nearest standing mugger every 0.8 s (alternating light and heavy, never the
+        /// knockout until the last), turning the player to face him, so every fight effect shows for the capture.</summary>
+        IEnumerator Fight(PlayerMotor p)
+        {
+            float wait = 0; while (Brawler.All.Count == 0 && wait < 30f) { wait += Time.deltaTime; yield return null; }
+            int n = 0;
+            while (true)
+            {
+                yield return new WaitForSeconds(0.8f);
+                Brawler best = null; float bd = float.MaxValue;
+                foreach (var b in Brawler.All)
+                {
+                    if (b == null) continue; var h = b.GetComponent<Health>(); if (h == null || h.Down) continue;
+                    float d = (b.transform.position - p.transform.position).sqrMagnitude; if (d < bd) { bd = d; best = b; }
+                }
+                if (best == null) continue;
+                var to = best.transform.position - p.transform.position; to.y = 0;
+                if (to.sqrMagnitude > 0.01f) p.transform.rotation = Quaternion.LookRotation(to);
+                var hp = best.GetComponent<Health>();
+                float dmg = n++ % 2 == 0 ? 9f : 16f; if (hp.hp - dmg <= 0 && Brawler.All.Count > 1 && n < 12) dmg = Mathf.Max(1f, hp.hp - 5f);
+                hp.Damage(dmg, p.gameObject);
+                Debug.Log($"[ShotDirector] fight hit {dmg} on {best.name} hp {hp.hp}");
+            }
+        }
+
+        IEnumerator Close2(PlayerMotor p, MissionRunner job)
+        {
+            var cam = Camera.main;
+            var brain = cam.GetComponent<Unity.Cinemachine.CinemachineBrain>();
+            Vector3 Block(int id) { foreach (var m in FindObjectsByType<StreetEmpire.City.BlockMarker>(FindObjectsSortMode.None)) if (m.blockId == id) return m.transform.position; return Vector3.zero; }
+            var b10 = Block(10); var b0 = Block(0); var b20 = Block(20);
+            Transform Prop(string model, Vector3 near)
+            {
+                Transform best = null; float bd = float.MaxValue;
+                foreach (var m in FindObjectsByType<StreetEmpire.City.PropMarker>(FindObjectsSortMode.None))
+                    if (m.model == model) { float d = (m.transform.position - near).sqrMagnitude; if (d < bd) { bd = d; best = m.transform; } }
+                return best;
+            }
+            var arm = FindFirstObjectByType<ArmGuards>();
+            int view = 0; int shown = -1;
+            while (true)
+            {
+                var kb = UnityEngine.InputSystem.Keyboard.current;
+                if (kb != null)
+                {
+                    var keys = new[] { kb.digit1Key, kb.digit2Key, kb.digit3Key, kb.digit4Key, kb.digit5Key, kb.digit6Key };
+                    for (int i = 0; i < keys.Length; i++) if (keys[i].isPressed) view = i;
+                }
+                if (view != shown)
+                {
+                    shown = view; GameClock.FrozenHour = view == 3 || view == 4 ? 21f : GameClock.StartHour;
+                    bool game = view <= 2;
+                    if (brain) brain.enabled = game;
+                    var g = job.giver;
+                    if (view == 0) p.Teleport(g.position + g.forward * 2.2f + g.right * 0.6f, g.eulerAngles.y + 180f);
+                    else if (view == 1) p.Teleport(b10 + new Vector3(28f, 0.4f, -24f), 0f);
+                    else if (view == 2 && arm != null && arm.ownedBlocks.Length > 0) p.Teleport(arm.ownedBlocks[0] + new Vector3(arm.blockHalf - 4f, 0.4f, 0f), -90f);
+                    Debug.Log($"[ShotDirector] close2 view {view + 1}" + (arm != null ? $" arm prompt {arm.Showing}" : ""));
+                }
+                if (view >= 3)
+                {
+                    (Vector3 pos, Vector3 at) v;
+                    if (view == 3) { var l = Prop("street-lamp-1", b10 + new Vector3(0, 0, -27f)); var a = l ? l.position : b10; v = (a + new Vector3(7f, 7f, -7f), a + new Vector3(0, 0.2f, 0)); }
+                    else if (view == 4) v = (b10 + new Vector3(28f, 1.7f, -24f), b10 + new Vector3(27f, 1.5f, 30f));
+                    else { var c = (b0 + b20) / 2; v = (c + new Vector3(60f, 38f, -110f), c + new Vector3(-40f, 0f, 120f)); cam.farClipPlane = 800f; }
+                    cam.transform.position = v.pos; cam.transform.LookAt(v.at);
+                }
                 yield return null;
             }
         }
