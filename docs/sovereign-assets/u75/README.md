@@ -41,3 +41,23 @@ Size set to the real height; props, the edge, signs and the fight dust use "Unit
 | police | u75c rebake (WELD 2e-5, MARGIN 0.0015) | unity-static | READY | 30530 | 924 px/m in file |
 | police LOD1 | u75c rebake, decimate 0.25 | unity-static | READY | 7645 | 908 px/m in file |
 | edge-tower-a to d | u75c: base color 40% toward the day haze (186,196,212), gltf-tools/haze_tex.mjs | unity-static | READY | 10 each | 24 px/m |
+
+## v75d: Matthew's v2 finished files (Sovereign Assets upgraded)
+
+house-01-bungalow (Material_0, windows_lit, windows_dark, door, walls), apt-01-stucco (same five) and store-pawn
+(Material_0, sign_lit, windows_lit, walls) replace the earlier versions as they are, only scaled in Unity (4, 10 and
+4.5 m). Near: checked with Unity building at Size Height, the GLB in the game is Matthew's file. Far (0.22) and Low
+(0.06): Blender collapse decimate (house Low with RECALC=1, one shell came out inside out), then Unity prop with Fix
+normals. Verdicts in u75d/. No Meshy spend.
+
+| Asset | Group | Preset | Verdict | Triangles | Notes |
+|---|---|---|---|---|---|
+| house-01-bungalow | u75d near | unity-building | READY | 58928 | 99 px/m, color PASS |
+| house-01-bungalow | u75d far | unity-static | READY | 12964 | |
+| house-01-bungalow | u75d low | unity-static | READY | 3535 | first pass NOT READY (inside out shell), fixed by RECALC |
+| apt-01-stucco | u75d near | unity-building | READY | 57999 | 22 px/m, color PASS |
+| apt-01-stucco | u75d far | unity-static | READY | 12759 | |
+| apt-01-stucco | u75d low | unity-static | READY | 3479 | |
+| store-pawn | u75d near | unity-building | READY | 58000 | 70 px/m, color PASS |
+| store-pawn | u75d far | unity-static | READY | 12760 | |
+| store-pawn | u75d low | unity-static | READY | 3480 | |
