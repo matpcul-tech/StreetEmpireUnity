@@ -17,6 +17,8 @@ namespace StreetEmpire.Game
         public int Swings { get; private set; }
         public int Hits { get; private set; }
         public float Reach => bat ? 2.55f : 1.85f;
+        /// <summary>Seconds left in the swing being wound up (CombatFx draws the warning ring), 0 when not swinging.</summary>
+        public float Windup => windup;
         public static readonly List<Brawler> All = new();
 
         NpcBody body; Health health; float windup, cd, downT, leaveT; bool flanked;

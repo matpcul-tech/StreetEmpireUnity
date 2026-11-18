@@ -18,6 +18,7 @@ namespace StreetEmpire.Game
             hp = Mathf.Max(0, hp - amount);
             Damaged?.Invoke(amount, source);
             if (hp <= 0) KnockedOut?.Invoke(source);
+            CombatFx.Report(this, amount, source);   // rings, numbers, sparks, dust
         }
 
         public void Restore(float to = -1) => hp = to < 0 ? max : Mathf.Min(max, to);

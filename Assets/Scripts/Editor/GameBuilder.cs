@@ -96,6 +96,36 @@ namespace StreetEmpire.EditorTools
             radar.blocks = s.blocks.Select(b => { var (bx2, bz2) = Simulation.BlockCenter(w, b); var (ux2, uz2) = WorldSpace.FromSource(bx2, bz2); return new Vector3(ux2, 0, uz2); }).ToArray();
             radar.yours = s.blocks.Select(b => b.owner == "player").ToArray();
             hud.turfOwned = s.blocks.Count(b => b.owner == "player"); hud.turfTotal = s.blocks.Count;
+            Fights(hud.transform);
+            var arm = new GameObject("Arm Guards").AddComponent<ArmGuards>();
+            arm.ownedBlocks = s.blocks.Where(b => b.owner == "player").Select(b => { var (bx3, bz3) = Simulation.BlockCenter(w, b); var (ux3, uz3) = WorldSpace.FromSource(bx3, bz3); return new Vector3(ux3, 0, uz3); }).ToArray();
+            arm.blockHalf = w.block / 2f + 2f; arm.job = runner;
+            var pr = PlayerBuilder.Rect("Context Prompt", hud.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0, 250), new Vector2(700, 40));
+            var pt = pr.gameObject.AddComponent<Text>(); pt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); pt.fontSize = 26; pt.fontStyle = FontStyle.Bold;
+            pt.alignment = TextAnchor.MiddleCenter; pt.color = new Color32(0xff, 0xf1, 0xc4, 255); pt.raycastTarget = false;
+            var ps = pt.gameObject.AddComponent<Shadow>(); ps.effectColor = new Color(0, 0, 0, 0.8f); ps.effectDistance = new Vector2(1.5f, -1.5f);
+            arm.prompt = pt;
+        }
+
+        /// <summary>Fight feedback (CombatFx): target and warning rings, hit numbers, sparks, dust, shockwaves.</summary>
+        static void Fights(Transform canvas)
+        {
+            Material Fx(string name, bool additive)
+            {
+                string path = $"Assets/Art/Materials/{name}.mat";
+                var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+                if (m == null) { m = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit")); AssetDatabase.CreateAsset(m, path); }
+                m.shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+                m.SetFloat("_Surface", 1f); m.SetFloat("_Blend", additive ? 2f : 0f);
+                m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                m.SetFloat("_DstBlend", (float)(additive ? UnityEngine.Rendering.BlendMode.One : UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha));
+                m.SetFloat("_ZWrite", 0f); m.SetFloat("_Cull", 0f); m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                m.SetColor("_BaseColor", Color.white); EditorUtility.SetDirty(m); return m;
+            }
+            var fx = new GameObject("Combat Fx").AddComponent<CombatFx>();
+            fx.canvas = (RectTransform)canvas; fx.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            fx.ringMat = Fx("FxRing", false); fx.particleMat = Fx("FxParticle", false);
         }
 
         /// <summary>The bat (Models/Props/bat.glb, through Sovereign Asset) in the right fist, barrel forward in the bind pose.</summary>
@@ -199,7 +229,7 @@ namespace StreetEmpire.EditorTools
             anim.runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(PlayerBuilder.ControllerPath);
             anim.applyRootMotion = false; anim.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
             var mat = LookMaterial(look);
-            foreach (var r in model.GetComponentsInChildren<SkinnedMeshRenderer>()) { r.sharedMaterial = mat; r.updateWhenOffscreen = true; }
+            foreach (var r in model.GetComponentsInChildren<SkinnedMeshRenderer>()) { r.sharedMaterial = mat; r.updateWhenOffscreen = true; r.renderingLayerMask |= 2u; }   // 2: the character fill light
             // the files are authored at their height; only rescale one that came out of the converter far off it
             float h = ModelHeight(model);
             if (h > 0.1f && Mathf.Abs(h - look.height) > 0.1f * look.height) model.transform.localScale *= look.height / h;
