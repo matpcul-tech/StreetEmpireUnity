@@ -239,13 +239,8 @@ namespace StreetEmpire.EditorTools
             Place("tyre", "junk", b.id, b.center + new Vector3(-1.4f, YardTop, -4.4f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.02f);
             Place("dry-shrub", "bush", b.id, b.center + new Vector3(-5.6f, YardTop, -5.4f), Quaternion.Euler(0, Jit(180), 0), parent, Col.None, 0.01f);
             Place("aircon", "aircon", b.id, b.center + new Vector3(5.8f, YardTop, 5.9f), Quaternion.Euler(0, 180, 0), parent, Col.Bounds, 0.015f);
-            var r = new System.Random(b.id * 31 + 7);
-            for (int i = 0; i < 14; i++)
-            {
-                var p = b.center + new Vector3(R(r, -6.4f, 6.4f), YardTop, R(r, -6.4f, 6.4f));
-                if (Mathf.Abs(p.x - b.center.x) < 0.5f) continue;   // not through the back fence
-                Clump(b.id, p, r, parent);
-            }
+            // v73: the dry grass clumps are cut (draw calls stayed above v67 with them); the yard keeps its color
+            // variation map. Clump() stays for a later pass.
         }
 
         /// <summary>A dry grass clump on a yard (own model, through Sovereign Asset), size and turn varied.</summary>
@@ -255,11 +250,15 @@ namespace StreetEmpire.EditorTools
             Place("grass-clump", "grass", blockId, p, Quaternion.Euler(0, R(r, 0, 360), 0), parent, Col.None, 0.006f, new Vector3(s, R(r, 0.8f, 1.25f) * s, s));
         }
 
+        /// <summary>Off in v73: the grass clumps were cut because draw calls stayed above v67 with them.</summary>
+        static readonly bool Clumps = false;
+
         static float R(System.Random r, float a, float b) => a + (float)r.NextDouble() * (b - a);
 
         /// <summary>Grass clumps across a lot that shows the yard (pocket park, side yard).</summary>
         static void LotClumps(BlockInfo b, int k, Transform parent, int n)
         {
+            if (!Clumps) return;   // v73: cut, see Backyard
             var r = new System.Random(b.id * 53 + k * 11 + 3);
             for (int i = 0; i < n; i++) Clump(b.id, At(b, k, R(r, 8f, 18f), R(r, -6f, 6f), YardTop), r, parent);
         }
