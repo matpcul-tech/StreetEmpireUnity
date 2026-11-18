@@ -206,6 +206,7 @@ namespace StreetEmpire.EditorTools
             cycle.signMaterials = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None)
                 .SelectMany(b => b.GetComponentsInChildren<Renderer>(true)).SelectMany(r => r.sharedMaterials)
                 .Where(m => m != null && (Part(m) == "Sign_Blank_CoreEmission" || Part(m) == "sign_lit" || m.name.Contains("liquor_sign") || m.name.Contains("pawn_sign"))).Distinct().ToArray();
+            cycle.nightLights = Object.FindObjectsByType<Light>(FindObjectsSortMode.None).Where(l => l.name == "Storefront Light").ToArray();
             LampLightsBuild(root.transform, cycle);
             PostAndQuality(root.transform);
 
@@ -256,9 +257,9 @@ namespace StreetEmpire.EditorTools
             var col = holder.AddComponent<BoxCollider>(); col.center = bounds.center; col.size = bounds.size;
             BindTextures(inst, name);
             SplitWindows(inst, name, bounds.size);
-            // v75d: Matthew's v2 white house is used as it is (its walls material carries the roof too), no wash
-            if (spot.kind == "house") { marker.wash = n % HouseTint.Length; if (name != "house-01-bungalow") Wash(inst, name, HouseTint[marker.wash], HouseWall[marker.wash % HouseWall.Length]); }
-            if (name == "store-pawn") PawnSign(inst, holder);
+            // v75e: the white house's roof has its own material now, so it is washed again, the walls only and lightly
+            if (spot.kind == "house") { marker.wash = n % HouseTint.Length; Wash(inst, name, HouseTint[marker.wash], HouseWall[marker.wash % HouseWall.Length]); }
+            if (name == "store-pawn") { PawnSign(inst, holder); StorefrontLight(inst, holder); }
             if (name == "store-liquor-blank") LiquorSign(inst, holder);
             var near = inst.GetComponentsInChildren<Renderer>();
             foreach (var r in near) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
@@ -316,12 +317,14 @@ namespace StreetEmpire.EditorTools
                     else { m.SetColor("_BaseColor", new Color(0.06f, 0.07f, 0.08f)); m.SetFloat("_Smoothness", 0.75f); }
                     EditorUtility.SetDirty(m); continue;
                 }
-                var bc = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{part}_basecolor.jpg");
-                var nm = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{part}_normal.jpg");
-                var ms = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{part}_metalsmooth.png");
+                // v75e: the white house's roof is its own material (tools/house01_v2_fix.py) on the walls textures
+                string tp = part == "roof" ? "walls" : part;
+                var bc = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{tp}_basecolor.jpg");
+                var nm = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{tp}_normal.jpg");
+                var ms = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{tp}_metalsmooth.png");
                 if (bc == null) Debug.LogWarning($"[SceneBuilder] no extracted {part} texture for {name}");
                 else m.SetTexture("_BaseMap", bc);
-                m.SetTexture("_BumpMap", nm); m.SetFloat("_BumpScale", part == "walls" ? 1f : 0.55f);
+                m.SetTexture("_BumpMap", nm); m.SetFloat("_BumpScale", tp == "walls" ? 1f : 0.55f);
                 if (nm != null) m.EnableKeyword("_NORMALMAP"); else m.DisableKeyword("_NORMALMAP");
                 // roughness from Sovereign Asset's surface maps, as URP smoothness in the alpha
                 if (ms != null) { m.SetTexture("_MetallicGlossMap", ms); m.EnableKeyword("_METALLICSPECGLOSSMAP"); m.SetFloat("_Smoothness", 1f); m.SetFloat("_SmoothnessTextureChannel", 0f); }
@@ -377,6 +380,7 @@ namespace StreetEmpire.EditorTools
                     var a = lo[g]; var b = hi[g]; var size = wb.size;
                     Vector3 N(Vector3 p) => new((p.x - wb.min.x) / Mathf.Max(size.x, 1e-3f) * refSize.x, (p.y - wb.min.y) / Mathf.Max(size.y, 1e-3f) * refSize.y, (p.z - wb.min.z) / Mathf.Max(size.z, 1e-3f) * refSize.z);
                     var na = N(a); var nb = N(b); var c = (na + nb) / 2;
+                    if (name == "store-pawn") return false;   // v75e: the pawn shop's storefront and door glass all lit at night
                     if (store && na.y < 1.3f && Mathf.Max(nb.x - na.x, nb.z - na.z) < 1.1f) return true;   // door glass
                     uint q = unchecked((uint)Mathf.FloorToInt(c.x) * 73856093u ^ (uint)Mathf.FloorToInt(c.y) * 19349663u ^ (uint)Mathf.FloorToInt(c.z) * 83492791u ^ (uint)seed);
                     q ^= q >> 13; q *= 1274126177u; q ^= q >> 16;
@@ -448,6 +452,18 @@ namespace StreetEmpire.EditorTools
             }
         }
 
+        /// <summary>v75e: a warm spill in front of the pawn shop's lit storefront (Matthew: the front read black at
+        /// 22:00). A small point light 1.3 m out from the glass, on the night ramp only (DayCycle.nightLights).</summary>
+        static void StorefrontLight(GameObject inst, GameObject holder)
+        {
+            var b = WorldBounds(inst);
+            var l = new GameObject("Storefront Light").AddComponent<Light>();
+            l.transform.SetParent(holder.transform, false);
+            l.transform.position = new Vector3(b.center.x, 2.1f, b.max.z + 1.3f);
+            l.type = LightType.Point; l.color = new Color(1f, 0.72f, 0.45f); l.range = 6.5f; l.intensity = 0f;
+            l.shadows = LightShadows.None; l.renderMode = LightRenderMode.ForcePixel; l.enabled = false;
+        }
+
         /// <summary>v75c: the liquor store's blank main sign gets a lettered board (liquor-sign: LIQUOR, BEER, WINE,
         /// through Sovereign Asset) on its face. The board's own print is its emission map, so only the letters and
         /// their halo glow warm; DayCycle.signMaterials keeps it low by day and full at night.</summary>
@@ -493,6 +509,8 @@ namespace StreetEmpire.EditorTools
                     bool wallPart = Part(mats[i]) == "walls";
                     if (painted && !wallPart) continue;
                     var mul = painted ? Paint(wp.mean, wall) : tint;
+                    // v75e: the white house (its roof now apart) gets only a slight share of the stucco wash per lot
+                    if (name == "house-01-bungalow") mul = Color.Lerp(Color.white, mul, 0.6f);
                     if (mul == Color.white) continue;
                     string path = $"{Mats}/Wash/{name}__{mats[i].name.Replace(" ", "_")}__{ColorUtility.ToHtmlStringRGB(mul * 0.5f)}.mat";
                     var m = AssetDatabase.LoadAssetAtPath<Material>(path);

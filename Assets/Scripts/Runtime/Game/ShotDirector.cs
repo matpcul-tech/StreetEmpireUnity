@@ -430,8 +430,28 @@ namespace StreetEmpire.Game
                             var aim = Vector3.Lerp(f.face, new Vector3(lp.x, f.face.y, lp.z), bl > 8f ? 0.4f : 0f) + Vector3.up * 3f;
                             Game(spot, aim - spot, 16f, bl > 8f ? 8.5f : 7f); break;
                         }
-                        case 3: case 21: { var f = Face("store-pawn", 7f); Game(f.face + f.n * 4.2f + f.t * 0.6f, -f.n, 6f, 5f); break; }
-                        case 4: case 22: { var f = Face("apt-01", 12f); Game(f.face + f.n * 6.5f + f.t * 1.5f, -f.n, 18f, 6f); break; }
+                        case 3: case 21:
+                        {
+                            // v75e: slide along the front to the spot where no pole, lamp, palm or signal stands
+                            // between the camera (about 9 m out) and the sign, then frame the shop from there
+                            var f = Face("store-pawn", 7f); float bestS = 0.6f, bestClear = -1f;
+                            for (float sl = -4f; sl <= 4.01f; sl += 0.5f)
+                            {
+                                var camAt = f.face + f.n * 9.2f + f.t * sl; var sign = f.face; float clear = 99f;
+                                foreach (var q in blockers)
+                                {
+                                    var qq = q; qq.y = 0; var a = camAt; a.y = 0; var b = sign; b.y = 0; var seg = b - a;
+                                    float u = Mathf.Clamp01(Vector3.Dot(qq - a, seg) / seg.sqrMagnitude);
+                                    clear = Mathf.Min(clear, (a + seg * u - qq).magnitude);
+                                }
+                                clear -= Mathf.Abs(sl) * 0.05f;
+                                if (clear > bestClear) { bestClear = clear; bestS = sl; }
+                            }
+                            Debug.Log($"[ShotDirector] v75 pawn view slide {bestS:0.0} m, clear {bestClear:0.0} m");
+                            Game(f.face + f.n * 4.2f + f.t * bestS, -f.n, 6f, 5f); break;
+                        }
+                        // v75e: the whole apartment with its roof: from farther out, a lower and longer camera
+                        case 4: case 22: { var f = Face("apt-01", 16f); Game(f.face + f.n * 10.5f + f.t * 1.5f, -f.n, 5f, 8.5f); break; }
                         case 5: case 23: { var f = Face("house-01", 9f); Game(f.face + f.n * 4.5f + f.t * 1.2f, -f.n, 8f, 5f); break; }
                         // v75b: the liquor store sign at 22:00, and the mixed use block (the v74 black tower) by day
                         case 10: { var f = Face("store-liquor", 8f); Game(f.face + f.n * 6f - f.t * 2.5f, -f.n + f.t * 0.25f, 10f, 5.5f); break; }   // v75c: off the utility pole

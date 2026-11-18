@@ -27,6 +27,9 @@ namespace StreetEmpire.City
         public float duskSunIntensity = 0.95f, reflection = 0.35f, fillIntensity = 0.55f;
         public Vector2 azimuth = new(0.8f, 0.45f);
         public Material[] windowMaterials = new Material[0], skylineMaterials = new Material[0], signMaterials = new Material[0];
+        /// <summary>v75e: small warm spills in front of lit storefronts (the pawn shop), on the window ramp only.</summary>
+        public Light[] nightLights = new Light[0];
+        public const float StorefrontIntensity = 2.6f;
         [Header("Horizon fog color of each sky cubemap (sRGB), so the fog matches the blended sky")]
         public Color dayFog = new(0.72f, 0.77f, 0.84f), nightFog = new(0.08f, 0.10f, 0.16f);
 
@@ -153,6 +156,7 @@ namespace StreetEmpire.City
             RenderSettings.reflectionIntensity = L(a.refl, b.refl);
             if (fill) fill.intensity = L(a.fill, b.fill);
             float glow = WindowRamp(h), sky2 = L(a.skyline, b.skyline);
+            foreach (var l in nightLights) if (l) { l.intensity = StorefrontIntensity * glow; l.enabled = glow > 0.01f; }
             if (Mathf.Abs(glow + sky2 * 2f - lastGlow) > 0.01f || (glow == 0f) != (lastGlow == 0f))
             {
                 lastGlow = glow + sky2 * 2f;
