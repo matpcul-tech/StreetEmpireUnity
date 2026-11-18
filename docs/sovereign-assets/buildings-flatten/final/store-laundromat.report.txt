@@ -1,0 +1,30 @@
+Sovereign Asset report
+Source: store-laundromat
+Finish: Street Empire building
+Output: house.glb
+
+READY
+Every check passed on the finished file.
+
+PASS  Valid glTF 2.0: The Khronos validator found no errors (1 warnings).
+PASS  Clean triangles: No empty or repeated triangles.
+PASS  No floating debris: No small pieces float free of the model.
+PASS  Faces point outward: No shell is inside out.
+PASS  Normals: Every part has normals that agree with its faces.
+NOTE  Open edges: The mesh is closed.
+NOTE  Triangles: 58000 triangles. No target was set.
+NOTE  Draw calls: 1 draw call, 1 material.
+PASS  Texture size: All 4 readable textures are 1024 px or under.
+NOTE  Size: 1.89 wide, 1.51 tall, 1.91 long (meters). No size was set.
+PASS  On the ground: Lowest point is at 0.0000 m.
+PASS  Centered: Center is at X 0.0000, Z 0.0000.
+PASS  Nothing lost: 1 material, 4 textures.
+NOTE  File size: 2.2 MB, was 2.3 MB.
+
+What was done
+- No empty or repeated triangles were found.
+- No floating debris was found.
+- No inside-out shells were found.
+- No holes were found.
+- Flat areas: 8 walls and other flat areas (7462 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.17 percent of the part's size.
+- The model was set on the ground, centered.

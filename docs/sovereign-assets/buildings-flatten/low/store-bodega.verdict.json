@@ -1,0 +1,19 @@
+{
+ "name": "store-bodega",
+ "banner": "READY",
+ "preset": "se-building",
+ "flatten": "light",
+ "tris_before": 3479,
+ "tris_after": 3477,
+ "maxTex": "512",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 7109 open edges. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Triangles 3477 triangles. No target was set.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.94 wide, 1.76 tall, 1.85 long (meters). No size was set.",
+  "NOTE File size 0.3 MB, was 0.3 MB."
+ ],
+ "found": "2 small pieces floating free of the model 7,115 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

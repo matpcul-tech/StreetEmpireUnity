@@ -1,0 +1,18 @@
+{
+ "name": "store-laundromat",
+ "banner": "READY",
+ "preset": "se-building",
+ "flatten": "strong",
+ "tris_before": 58000,
+ "tris_after": 25992,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 16 open edges and 10 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.89 wide, 1.51 tall, 1.91 long (meters). No size was set.",
+  "NOTE File size 1.4 MB, was 2.3 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

@@ -1,0 +1,19 @@
+{
+ "name": "apt-motel-style",
+ "banner": "READY",
+ "preset": "se-building",
+ "flatten": "light",
+ "tris_before": 29820,
+ "tris_after": 29820,
+ "maxTex": "512",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 26 open edges and 77 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Triangles 29820 triangles. No target was set.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.90 wide, 0.947 tall, 1.05 long (meters). No size was set.",
+  "NOTE File size 2.0 MB, was 2.1 MB."
+ ],
+ "found": "No broken geometry found. 26 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

@@ -193,10 +193,22 @@ namespace StreetEmpire.EditorTools
             // render as shiny metal (the original house-01 did).
             foreach (var m in mats) { m.SetFloat("_Metallic", 0f); m.SetFloat("_Smoothness", 0.12f); m.SetTexture("_MetallicGlossMap", null); m.DisableKeyword("_METALLICSPECGLOSSMAP"); EditorUtility.SetDirty(m); }
             if (bc == null) { Debug.LogWarning($"[SceneBuilder] no extracted texture for {name}"); return; }
+            var em = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}_emission.jpg");
+            var ms = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}_metalsmooth.png");
             foreach (var m in mats)
             {
                 m.SetTexture("_BaseMap", bc);
-                m.SetTexture("_BumpMap", nm); if (nm != null) m.EnableKeyword("_NORMALMAP"); else m.DisableKeyword("_NORMALMAP");
+                // the walls are pressed flat now (Sovereign Asset Flatten walls): a softer normal map keeps the
+                // Meshy crumple baked into it from reading as dents again
+                m.SetTexture("_BumpMap", nm); m.SetFloat("_BumpScale", 0.55f); if (nm != null) m.EnableKeyword("_NORMALMAP"); else m.DisableKeyword("_NORMALMAP");
+                // window glass (smooth, so it picks up the sunset sky) and dim warm lit rooms (tools/window_maps.mjs)
+                if (ms != null) { m.SetTexture("_MetallicGlossMap", ms); m.EnableKeyword("_METALLICSPECGLOSSMAP"); m.SetFloat("_Smoothness", 1f); m.SetFloat("_SmoothnessTextureChannel", 0f); }
+                if (em != null)
+                {
+                    m.SetTexture("_EmissionMap", em); m.SetColor("_EmissionColor", new Color(1.25f, 1.25f, 1.25f)); m.EnableKeyword("_EMISSION");
+                    m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                }
+                else { m.SetTexture("_EmissionMap", null); m.SetColor("_EmissionColor", Color.black); m.DisableKeyword("_EMISSION"); }
                 EditorUtility.SetDirty(m);
             }
         }

@@ -1,0 +1,18 @@
+{
+ "name": "store-barber",
+ "banner": "READY",
+ "preset": "se-building",
+ "flatten": "strong",
+ "tris_before": 57983,
+ "tris_after": 25991,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 45 open edges. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.67 wide, 1.48 tall, 1.91 long (meters). No size was set.",
+  "NOTE File size 2.0 MB, was 3.4 MB."
+ ],
+ "found": "No broken geometry found. 51 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

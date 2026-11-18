@@ -1,0 +1,19 @@
+{
+ "name": "store-takeout",
+ "banner": "READY",
+ "preset": "se-building",
+ "flatten": "light",
+ "tris_before": 12760,
+ "tris_after": 12864,
+ "maxTex": "512",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 12873 open edges and 1 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Triangles 12864 triangles. No target was set.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.68 wide, 1.90 tall, 1.72 long (meters). No size was set.",
+  "NOTE File size 0.6 MB, was 0.6 MB."
+ ],
+ "found": "No broken geometry found. 13,165 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

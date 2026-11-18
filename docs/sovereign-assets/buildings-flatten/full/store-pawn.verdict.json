@@ -1,0 +1,70 @@
+{
+  "name": "store-pawn-se-building-light",
+  "banner": "READY",
+  "preset": "se-building",
+  "label": "se-building-light",
+  "tris_before": 58000,
+  "tris_after": 58000,
+  "sum": "Every check passed on the finished file.",
+  "checks": [
+    "PASS Valid glTF 2.0 The Khronos validator found no errors (1 warnings).",
+    "PASS Clean triangles No empty or repeated triangles.",
+    "PASS No floating debris No small pieces float free of the model.",
+    "PASS Faces point outward No shell is inside out.",
+    "PASS Normals Every part has normals that agree with its faces.",
+    "PASS Triangle target 58000 triangles. Target 60000.",
+    "PASS Texture size All 3 readable textures are 1024 px or under.",
+    "PASS On the ground Lowest point is at 0.0000 m.",
+    "PASS Centered Center is at X 0.0000, Z 0.0000.",
+    "PASS Nothing lost 1 material, 3 textures.",
+    "NOTE Open edges The mesh is closed.",
+    "NOTE Draw calls 1 draw call, 1 material.",
+    "NOTE Size 1.90 wide, 1.50 tall, 1.60 long (meters). No size was set.",
+    "NOTE File size 3.1 MB, was 3.1 MB."
+  ],
+  "failed": [],
+  "found": "No broken geometry found.",
+  "errors": [],
+  "saved": "/workspace/sa-grayblock/flatten-light/store-pawn-se-building-light.glb",
+  "settings": {
+    "Game slot": {
+      "value": "house",
+      "label": "house"
+    },
+    "Triangle target": "60000",
+    "Largest texture": {
+      "value": "1024",
+      "label": "1024 px"
+    },
+    "Texture format": {
+      "value": "keep",
+      "label": "Keep PNG and JPEG"
+    },
+    "Size": {
+      "value": "",
+      "label": "Keep the size"
+    },
+    "Close holes": {
+      "value": "small",
+      "label": "Small holes only"
+    },
+    "Flatten walls": {
+      "value": "light",
+      "label": "Light (crumpled walls)"
+    },
+    "Compress geometry": {
+      "value": "",
+      "label": "Same as the source"
+    }
+  },
+  "checkboxes": {
+    "Similar colors only": true,
+    "Show areas": false,
+    "Remove floating debris": true,
+    "Fix inside-out faces": true,
+    "Fix normals": true,
+    "Set on the ground": true,
+    "Center it": true,
+    "Drop animations": false
+  }
+}

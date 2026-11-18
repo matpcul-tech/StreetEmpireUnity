@@ -17,4 +17,15 @@ for (const f of fs.readdirSync(dir).filter((f) => f.endsWith('.glb')).sort()) {
     await sharp(Buffer.from(tex.getImage())).resize(1024, 1024, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 85 }).toFile(path.join(texDir, `${name}_${slot}.jpg`));
     console.log(name, slot);
   }
+  // window glass and lit rooms (tools/window_maps.mjs): emissive as JPEG, glTF metallic-roughness rewritten as a
+  // URP metallic-smoothness map (R metal from B, A smoothness from 1 - G)
+  const em = m.getEmissiveTexture(), mr = m.getMetallicRoughnessTexture();
+  if (em) { await sharp(Buffer.from(em.getImage())).removeAlpha().resize(1024, 1024, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 90 }).toFile(path.join(texDir, `${name}_emission.jpg`)); console.log(name, 'emission'); }
+  if (mr) {
+    const { data, info } = await sharp(Buffer.from(mr.getImage())).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+    const o = Buffer.alloc(info.width * info.height * 4);
+    for (let i = 0; i < info.width * info.height; i++) { o[i * 4] = data[i * 3 + 2]; o[i * 4 + 1] = 0; o[i * 4 + 2] = 0; o[i * 4 + 3] = 255 - data[i * 3 + 1]; }
+    await sharp(o, { raw: { width: info.width, height: info.height, channels: 4 } }).resize(1024, 1024, { fit: 'inside', withoutEnlargement: true }).png().toFile(path.join(texDir, `${name}_metalsmooth.png`));
+    console.log(name, 'metalsmooth');
+  }
 }

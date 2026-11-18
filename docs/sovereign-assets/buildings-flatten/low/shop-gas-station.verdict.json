@@ -1,0 +1,19 @@
+{
+ "name": "shop-gas-station",
+ "banner": "READY",
+ "preset": "se-building",
+ "flatten": "light",
+ "tris_before": 3480,
+ "tris_after": 3367,
+ "maxTex": "512",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 6377 open edges. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Triangles 3367 triangles. No target was set.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.40 wide, 1.03 tall, 1.91 long (meters). No size was set.",
+  "NOTE File size 0.3 MB, was 0.3 MB."
+ ],
+ "found": "84 small pieces floating free of the model 6,670 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}

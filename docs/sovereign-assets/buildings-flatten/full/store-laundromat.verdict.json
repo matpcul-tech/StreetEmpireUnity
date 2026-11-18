@@ -1,0 +1,19 @@
+{
+ "name": "store-laundromat",
+ "banner": "READY",
+ "preset": "se-building",
+ "flatten": "strong",
+ "tris_before": 58000,
+ "tris_after": 58000,
+ "maxTex": "1024",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges The mesh is closed.",
+  "NOTE Triangles 58000 triangles. No target was set.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.89 wide, 1.51 tall, 1.91 long (meters). No size was set.",
+  "NOTE File size 2.3 MB, was 2.2 MB."
+ ],
+ "found": "No broken geometry found.",
+ "errors": []
+}

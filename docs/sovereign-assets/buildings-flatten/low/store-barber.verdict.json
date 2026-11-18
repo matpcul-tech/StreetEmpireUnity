@@ -1,0 +1,19 @@
+{
+ "name": "store-barber",
+ "banner": "READY",
+ "preset": "se-building",
+ "flatten": "strong",
+ "tris_before": 3478,
+ "tris_after": 3460,
+ "maxTex": "512",
+ "sum": "Every check passed on the finished file.",
+ "failed": [
+  "NOTE Open edges 7320 open edges. Fine for games and rendering. A 3D print needs none.",
+  "NOTE Triangles 3460 triangles. No target was set.",
+  "NOTE Draw calls 1 draw call, 1 material.",
+  "NOTE Size 1.69 wide, 1.50 tall, 1.92 long (meters). No size was set.",
+  "NOTE File size 0.3 MB, was 0.3 MB."
+ ],
+ "found": "14 small pieces floating free of the model 7,376 open edges. Small holes get closed. Fine for games, not for 3D printing.",
+ "errors": []
+}
