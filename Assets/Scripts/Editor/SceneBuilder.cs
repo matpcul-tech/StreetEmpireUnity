@@ -206,6 +206,11 @@ namespace StreetEmpire.EditorTools
             cycle.signMaterials = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None)
                 .SelectMany(b => b.GetComponentsInChildren<Renderer>(true)).SelectMany(r => r.sharedMaterials)
                 .Where(m => m != null && (Part(m) == "Sign_Blank_CoreEmission" || Part(m) == "sign_lit" || m.name.Contains("liquor_sign") || m.name.Contains("pawn_sign"))).Distinct().ToArray();
+            // v75e: the white house's near white stucco (sRGB about 235) stood out at dusk and night against the
+            // darker street; its walls dim with the night (DayCycle.nightDimMaterials)
+            cycle.nightDimMaterials = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None).Where(b => b.model == "house-01-bungalow")
+                .SelectMany(b => b.GetComponentsInChildren<Renderer>(true)).SelectMany(r => r.sharedMaterials)
+                .Where(m => m != null && Part(m) == "walls").Distinct().ToArray();
             cycle.nightLights = Object.FindObjectsByType<Light>(FindObjectsSortMode.None).Where(l => l.name == "Storefront Light").ToArray();
             LampLightsBuild(root.transform, cycle);
             PostAndQuality(root.transform);
@@ -380,7 +385,8 @@ namespace StreetEmpire.EditorTools
                     var a = lo[g]; var b = hi[g]; var size = wb.size;
                     Vector3 N(Vector3 p) => new((p.x - wb.min.x) / Mathf.Max(size.x, 1e-3f) * refSize.x, (p.y - wb.min.y) / Mathf.Max(size.y, 1e-3f) * refSize.y, (p.z - wb.min.z) / Mathf.Max(size.z, 1e-3f) * refSize.z);
                     var na = N(a); var nb = N(b); var c = (na + nb) / 2;
-                    if (name == "store-pawn") return false;   // v75e: the pawn shop's storefront and door glass all lit at night
+                    if (name == "store-pawn") return false;
+                    if (name == "house-01-bungalow" && c.z > refSize.z * 0.75f) return false;   // v75e: the two street front panes added by house01_v2_fix.py stay lit   // v75e: the pawn shop's storefront and door glass all lit at night
                     if (store && na.y < 1.3f && Mathf.Max(nb.x - na.x, nb.z - na.z) < 1.1f) return true;   // door glass
                     uint q = unchecked((uint)Mathf.FloorToInt(c.x) * 73856093u ^ (uint)Mathf.FloorToInt(c.y) * 19349663u ^ (uint)Mathf.FloorToInt(c.z) * 83492791u ^ (uint)seed);
                     q ^= q >> 13; q *= 1274126177u; q ^= q >> 16;

@@ -30,6 +30,11 @@ namespace StreetEmpire.City
         /// <summary>v75e: small warm spills in front of lit storefronts (the pawn shop), on the window ramp only.</summary>
         public Light[] nightLights = new Light[0];
         public const float StorefrontIntensity = 2.6f;
+        /// <summary>v75e: wall materials whose base color goes down with the night (the white house's stucco), to
+        /// NightDim of the day color at full night.</summary>
+        public Material[] nightDimMaterials = new Material[0];
+        public const float NightDim = 0.55f;
+        Color[] dimBase; float lastDim = -1f;
         [Header("Horizon fog color of each sky cubemap (sRGB), so the fog matches the blended sky")]
         public Color dayFog = new(0.72f, 0.77f, 0.84f), nightFog = new(0.08f, 0.10f, 0.16f);
 
@@ -114,6 +119,14 @@ namespace StreetEmpire.City
 
         public static float Smooth(float a, float b, float x) { float t = Mathf.Clamp01((x - a) / (b - a)); return t * t * (3f - 2f * t); }
 
+        // the dimmed walls are shared material assets: put their day color back (play mode in the editor and tests)
+        void OnDisable()
+        {
+            if (dimBase == null) return;
+            for (int k = 0; k < nightDimMaterials.Length && k < dimBase.Length; k++) if (nightDimMaterials[k]) nightDimMaterials[k].SetColor("_BaseColor", dimBase[k]);
+            dimBase = null; lastDim = -1f;
+        }
+
         void Update()
         {
             if (keys == null) keys = BuildKeys();
@@ -156,6 +169,9 @@ namespace StreetEmpire.City
             RenderSettings.reflectionIntensity = L(a.refl, b.refl);
             if (fill) fill.intensity = L(a.fill, b.fill);
             float glow = WindowRamp(h), sky2 = L(a.skyline, b.skyline);
+            if (dimBase == null || dimBase.Length != nightDimMaterials.Length) { dimBase = new Color[nightDimMaterials.Length]; for (int k = 0; k < dimBase.Length; k++) dimBase[k] = nightDimMaterials[k] ? nightDimMaterials[k].GetColor("_BaseColor") : Color.white; }
+            float dim = Mathf.Lerp(1f, NightDim, Mathf.Max(Night, glow * 0.8f));
+            if (Mathf.Abs(dim - lastDim) > 0.005f) { lastDim = dim; for (int k = 0; k < nightDimMaterials.Length; k++) if (nightDimMaterials[k]) { var c = dimBase[k] * dim; c.a = dimBase[k].a; nightDimMaterials[k].SetColor("_BaseColor", c); } }
             foreach (var l in nightLights) if (l) { l.intensity = StorefrontIntensity * glow; l.enabled = glow > 0.01f; }
             if (Mathf.Abs(glow + sky2 * 2f - lastGlow) > 0.01f || (glow == 0f) != (lastGlow == 0f))
             {

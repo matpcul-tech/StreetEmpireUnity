@@ -379,7 +379,7 @@ namespace StreetEmpire.Game
                         kb.numpad1Key, kb.numpad2Key, kb.numpad3Key, kb.numpad4Key, kb.numpad5Key, kb.numpad6Key, kb.numpad7Key, kb.numpad8Key, kb.numpad9Key, kb.numpad0Key, kb.numpadPeriodKey, kb.numpadMultiplyKey, kb.numpadPlusKey };
                     for (int i = 0; i < keys.Length; i++) if (keys[i].isPressed) view = i;
                 }
-                bool free = view == 6 || view == 7;
+                bool free = view == 6 || view == 7 || view == 25;   // v75e: 26, the pedestrian close up, is a free camera that follows them
                 if (view != shown)
                 {
                     shown = view; GameClock.FrozenHour = hours[view]; drawLog = Time.time + 1.5f;
@@ -487,7 +487,14 @@ namespace StreetEmpire.Game
                 if (free)
                 {
                     (Vector3 pos, Vector3 at) v;
-                    if (view == 6) { var palm = Prop("palm-short", b10 + new Vector3(0, 0, -27f)); var a = palm ? palm.position : b10; v = (a + new Vector3(3.5f, 4.6f, -3.5f), a + new Vector3(0, 7.2f, 0)); }
+                    if (view == 25)
+                    {
+                        StreetEmpire.Game.Ped pd = null; float pdd = float.MaxValue;
+                        foreach (var q in FindObjectsByType<StreetEmpire.Game.Ped>(FindObjectsSortMode.None)) { float d = (q.transform.position - b10).sqrMagnitude; if (d < pdd) { pdd = d; pd = q; } }
+                        var a = pd ? pd.transform.position : b10; var fw = pd ? pd.transform.forward : Vector3.forward; fw.y = 0; fw.Normalize();
+                        v = (a + fw * 2.4f + Vector3.Cross(Vector3.up, fw) * 0.5f + Vector3.up * 1.35f, a + Vector3.up * 1.05f);
+                    }
+                    else if (view == 6) { var palm = Prop("palm-short", b10 + new Vector3(0, 0, -27f)); var a = palm ? palm.position : b10; v = (a + new Vector3(3.5f, 4.6f, -3.5f), a + new Vector3(0, 7.2f, 0)); }
                     else { var c = (b0 + b20) / 2; v = (c + new Vector3(60f, 38f, -110f), c + new Vector3(-40f, 0f, 120f)); cam.farClipPlane = 800f; }
                     cam.transform.position = v.pos; cam.transform.LookAt(v.at);
                 }
