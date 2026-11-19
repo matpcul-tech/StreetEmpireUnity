@@ -717,10 +717,9 @@ namespace StreetEmpire.EditorTools
             var emap = Tx(e.emission);
             if (emap != null)
             {
-                // v75 far towers: a lit window map, driven by DayCycle (skylineMaterials) with the night
-                m.SetTexture("_EmissionMap", emap); m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.black);
-                m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
-                if (!EmissiveMaterials.Contains(m)) EmissiveMaterials.Add(m);
+                // v75j: the far towers (our own Blender boxes, tools/model_edge.py, not Sovereign Asset) no longer
+                // glow: their lit window map is not wired (Matthew: only his finished files' windows light)
+                m.SetTexture("_EmissionMap", null); m.DisableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.black);
             }
             else if (e.material.StartsWith("lens_"))
             {

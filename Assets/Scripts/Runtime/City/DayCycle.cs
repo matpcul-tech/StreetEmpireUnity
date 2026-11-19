@@ -3,8 +3,8 @@
 // fades to zero at the horizon, never lighting anything after; 19:00 is the blue hour (deep blue sky, city glow,
 // windows and lamps on); 22:00 is full night (dark sky, a dim blue moon, the lamps carry the street). Between keys
 // every value is blended. The sky mixes three cubemaps (StreetEmpire/SkyBlend) and the fog color always follows the
-// sky's horizon, so the far edge stays seamless. Windows: warm and dim, by the clock (WindowRamp), only the glass
-// (the windows_lit parts; about a third of each model's panes were moved to the dark glass when the scene was built).
+// sky's horizon, so the far edge stays seamless. Windows: by the clock (WindowRamp), only the windows_lit glass of
+// Matthew's finished files (v75j), each at the emission its own material assigns; raw models' windows never glow.
 // The far skyline towers' lit windows (skylineMaterials) come up with the night.
 using StreetEmpire.Game;
 using UnityEngine;
@@ -43,6 +43,7 @@ namespace StreetEmpire.City
         static readonly Color MoonColor = new(0.55f, 0.64f, 0.86f);
         public const float SunriseHour = 6.5f, SunsetHour = 18.67f;
         float lastGlow = -1, lastSky = -1;
+        Color[] windowBase = new Color[0], signBase = new Color[0];
 
         struct Key
         {
@@ -56,6 +57,9 @@ namespace StreetEmpire.City
             // would otherwise write the night values into them
             if (sky) { sky = new Material(sky); RenderSettings.skybox = sky; }
             windowMaterials = Copies(windowMaterials); signMaterials = Copies(signMaterials);
+            // v75j: the clock scales each material's own (Sovereign Asset) emission, never a color of ours
+            windowBase = System.Array.ConvertAll(windowMaterials, m => m ? m.GetColor("_EmissionColor") : Color.black);
+            signBase = System.Array.ConvertAll(signMaterials, m => m ? m.GetColor("_EmissionColor") : Color.black);
             // the far towers draw through the prop instancer (no renderers to point at copies), so they use the
             // asset materials directly
             keys = BuildKeys();
@@ -176,12 +180,11 @@ namespace StreetEmpire.City
             if (Mathf.Abs(glow + sky2 * 2f - lastGlow) > 0.01f || (glow == 0f) != (lastGlow == 0f))
             {
                 lastGlow = glow + sky2 * 2f;
-                var em = WindowLight * WindowIntensity * glow;
-                foreach (var m in windowMaterials) if (m) m.SetColor("_EmissionColor", em);
+                for (int k = 0; k < windowMaterials.Length && k < windowBase.Length; k++) if (windowMaterials[k]) windowMaterials[k].SetColor("_EmissionColor", windowBase[k] * glow);
                 // v75c: the far windows stay well under the town's own (Matthew: they outshone it at night)
                 foreach (var m in skylineMaterials) if (m) m.SetColor("_EmissionColor", new Color(1f, 0.85f, 0.65f) * SkylineGlow * sky2);
-                // the liquor store sign: a little by day, full from the blue hour on
-                foreach (var m in signMaterials) if (m) m.SetColor("_EmissionColor", Color.white * Mathf.Lerp(0.35f, 1.4f, Mathf.Max(glow, sky2)));
+                // a finished file's sign_lit: a little by day, its own full emission from the blue hour on
+                for (int k = 0; k < signMaterials.Length && k < signBase.Length; k++) if (signMaterials[k]) signMaterials[k].SetColor("_EmissionColor", signBase[k] * Mathf.Lerp(0.35f, 1f, Mathf.Max(glow, sky2)));
             }
         }
     }

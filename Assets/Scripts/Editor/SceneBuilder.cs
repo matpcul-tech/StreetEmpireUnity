@@ -34,10 +34,16 @@ namespace StreetEmpire.EditorTools
             // Midwest and are left out; their files stay in the repo. Each house gets a stucco wash (HouseTint).
             // v75: house-01-bungalow is back: only its roof is kept from the old file, the walls, porch, posts,
             // windows and door are rebuilt as clean geometry (tools/rebuild_house01.py), READY in Sovereign Asset.
-            ["house"] = new[] { "house-02-two-story", "house-01-bungalow", "house-03-duplex", "house-02-two-story", "house-01-bungalow", "house-03-duplex", "house-02-two-story" },
+            // v75j (Matthew): house-03-duplex is out of the rotation until a finished one arrives (its file stays in the repo)
+            ["house"] = new[] { "house-02-two-story", "house-01-bungalow", "house-02-two-story", "house-01-bungalow", "house-02-two-story", "house-01-bungalow", "house-02-two-story" },
             ["apt"] = new[] { "apt-01-stucco", "apt-mixed-use", "apt-02-brick", "apt-motel-style" },
         };
         static readonly Dictionary<string, int> dealt = new();
+
+        /// <summary>v75j: Matthew's finished Sovereign Asset files (byte for byte his v2 and v3 deliveries). Only these
+        /// get scaling and their maps wired, nothing else; only their windows_lit and sign_lit glow, as their materials
+        /// assign. Every other kit model is raw or an older Sovereign Asset run and glows nowhere.</summary>
+        public static readonly HashSet<string> Finished = new() { "house-01-bungalow", "house-02-two-story", "apt-01-stucco", "apt-mixed-use", "store-pawn", "store-barber" };
 
         /// <summary>Stucco washes dealt to the houses in turn (multiplied over the model's own colors): white, warm
         /// cream, peach, pale pink and sand, as along the web game's Eastside streets.</summary>
@@ -194,7 +200,7 @@ namespace StreetEmpire.EditorTools
             // v74: only the Sovereign Asset windows_lit materials glow (a flat color, no emission map); walls never do
             cycle.windowMaterials = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None)
                 .SelectMany(b => b.GetComponentsInChildren<Renderer>(true)).SelectMany(r => r.sharedMaterials)
-                .Where(m => m != null && Part(m) == "windows_lit").Distinct().ToArray();
+                .Where(m => m != null && Part(m) == "windows_lit" && m.IsKeywordEnabled("_EMISSION")).Distinct().ToArray();   // v75j: finished files only (raw windows_lit is dark glass)
             var player = PlayerBuilder.Build(w, s.blocks[0]);
             VehicleBuilder.BuildSedan(data, s.blocks[0]);
             GameBuilder.Build(data, s, player);
@@ -205,12 +211,9 @@ namespace StreetEmpire.EditorTools
             cycle.skylineMaterials = PropBuilder.EmissiveMaterials.ToArray();
             cycle.signMaterials = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None)
                 .SelectMany(b => b.GetComponentsInChildren<Renderer>(true)).SelectMany(r => r.sharedMaterials)
-                .Where(m => m != null && (Part(m) == "Sign_Blank_CoreEmission" || Part(m) == "sign_lit" || m.name.Contains("liquor_sign") || m.name.Contains("pawn_sign"))).Distinct().ToArray();
-            // v75e: the white house's near white stucco (sRGB about 235) stood out at dusk and night against the
-            // darker street; its walls dim with the night (DayCycle.nightDimMaterials)
-            cycle.nightDimMaterials = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None).Where(b => b.model == "house-01-bungalow")
-                .SelectMany(b => b.GetComponentsInChildren<Renderer>(true)).SelectMany(r => r.sharedMaterials)
-                .Where(m => m != null && Part(m) == "walls").Distinct().ToArray();
+                .Where(m => m != null && Part(m) == "sign_lit" && m.IsKeywordEnabled("_EMISSION")).Distinct().ToArray();   // v75j: a finished file's sign_lit only
+            // v75j: no night dimming of the white house walls any more (its finished materials as delivered)
+            cycle.nightDimMaterials = new Material[0];
             cycle.nightLights = Object.FindObjectsByType<Light>(FindObjectsSortMode.None).Where(l => l.name == "Storefront Light").ToArray();
             LampLightsBuild(root.transform, cycle);
             PostAndQuality(root.transform);
@@ -261,10 +264,12 @@ namespace StreetEmpire.EditorTools
             bounds = WorldBounds(inst);
             var col = holder.AddComponent<BoxCollider>(); col.center = bounds.center; col.size = bounds.size;
             BindTextures(inst, name);
-            SplitWindows(inst, name, bounds.size);
+            // v75j: no SplitWindows (the per pane lit and dark scatter, door glass rules and warm room UVs): it changed
+            // Matthew's meshes and UVs, and lit raw models' window triangles
             // v75e: the white house's roof has its own material now, so it is washed again, the walls only and lightly
-            if (spot.kind == "house") { marker.wash = n % HouseTint.Length; Wash(inst, name, HouseTint[marker.wash], HouseWall[marker.wash % HouseWall.Length]); }
-            if (name == "store-pawn") { PawnSign(inst, holder); StorefrontLight(inst, holder); }
+            if (spot.kind == "house") { marker.wash = n % HouseTint.Length; if (!Finished.Contains(name)) Wash(inst, name, HouseTint[marker.wash], HouseWall[marker.wash % HouseWall.Length]); }
+            // v75j: no lettered board over the pawn shop's own sign_lit (it covered it and glowed itself)
+            if (name == "store-pawn") StorefrontLight(inst, holder);
             if (name == "store-liquor-blank") LiquorSign(inst, holder);
             var near = inst.GetComponentsInChildren<Renderer>();
             foreach (var r in near) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
@@ -305,9 +310,19 @@ namespace StreetEmpire.EditorTools
         static void BindTextures(GameObject inst, string name)
         {
             var mats = inst.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials).Where(m => m != null).Distinct().ToArray();
+            bool finished = Finished.Contains(name);
             foreach (var m in mats)
             {
                 string part = Part(m);
+                // v75j: a finished file's windows_lit and sign_lit keep the emission its material assigns (UrpMaterials
+                // carried the glTF emissiveFactor and emissive map over); its glass keeps its own maps too
+                if (finished && (part == "windows_lit" || part == "windows_dark"))
+                {
+                    m.SetFloat("_Metallic", 0f);
+                    EditorUtility.SetDirty(m); continue;
+                }
+                bool keepGlow = finished && part == "sign_lit";
+                var ke = m.GetTexture("_EmissionMap"); var kc = m.GetColor("_EmissionColor");
                 // buildings are never metal
                 m.SetFloat("_Metallic", 0f); m.SetTexture("_MetallicGlossMap", null); m.DisableKeyword("_METALLICSPECGLOSSMAP");
                 m.SetTexture("_EmissionMap", null); m.SetColor("_EmissionColor", Color.black); m.DisableKeyword("_EMISSION");
@@ -316,12 +331,8 @@ namespace StreetEmpire.EditorTools
                 {
                     // flat glass: no base texture, so no triangle lines show in a pane
                     m.SetTexture("_BaseMap", null); m.SetTexture("_BumpMap", null); m.DisableKeyword("_NORMALMAP");
-                    if (part == "windows_lit")
-                    {
-                        m.SetColor("_BaseColor", new Color(0.16f, 0.12f, 0.09f)); m.SetFloat("_Smoothness", 0.6f);
-                        m.EnableKeyword("_EMISSION");   // DayCycle sets a warm (1.0, 0.58, 0.28) x 1.6 by the clock
-                    }
-                    else { m.SetColor("_BaseColor", new Color(0.06f, 0.07f, 0.08f)); m.SetFloat("_Smoothness", 0.75f); }
+                    // v75j: a raw model's windows_lit is dark glass like windows_dark, no emission
+                    m.SetColor("_BaseColor", new Color(0.06f, 0.07f, 0.08f)); m.SetFloat("_Smoothness", 0.75f);
                     EditorUtility.SetDirty(m); continue;
                 }
                 // v75e: the white house's roof is its own material (tools/house01_v2_fix.py) on the walls textures
@@ -331,171 +342,23 @@ namespace StreetEmpire.EditorTools
                 var ms = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{tp}_metalsmooth.png");
                 if (bc == null) Debug.LogWarning($"[SceneBuilder] no extracted {part} texture for {name}");
                 else m.SetTexture("_BaseMap", bc);
-                m.SetTexture("_BumpMap", nm); m.SetFloat("_BumpScale", tp == "walls" ? 1f : 0.55f);
+                m.SetTexture("_BumpMap", nm); m.SetFloat("_BumpScale", tp == "walls" || finished ? 1f : 0.55f);
                 if (nm != null) m.EnableKeyword("_NORMALMAP"); else m.DisableKeyword("_NORMALMAP");
                 // roughness from Sovereign Asset's surface maps, as URP smoothness in the alpha
                 if (ms != null) { m.SetTexture("_MetallicGlossMap", ms); m.EnableKeyword("_METALLICSPECGLOSSMAP"); m.SetFloat("_Smoothness", 1f); m.SetFloat("_SmoothnessTextureChannel", 0f); }
                 else m.SetFloat("_Smoothness", 0.12f);
                 // v75 wall paint for the stores and apartments (the houses are painted per placement in Wash)
-                if (part == "walls" && WallPaint.TryGetValue(name, out var wp) && !name.StartsWith("house")) m.SetColor("_BaseColor", Paint(wp.mean, wp.target));
+                if (part == "walls" && !finished && WallPaint.TryGetValue(name, out var wp) && !name.StartsWith("house")) m.SetColor("_BaseColor", Paint(wp.mean, wp.target));
                 // v75: the liquor store sign glows again, the sign face only, its own print as the emission map
                 // (DayCycle.signMaterials: low by day, full at night)
                 // v75d: the pawn shop's sign_lit (Matthew's v2 file) glows the same way
-                if ((part == "Sign_Blank_CoreEmission" || part == "sign_lit") && bc != null)
+                // v75j: only a finished file's sign_lit, with its own emissive map and factor; raw signs do not glow
+                if (keepGlow && kc.maxColorComponent > 0.01f)
                 {
-                    m.SetTexture("_EmissionMap", bc); m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.white * 0.6f);
+                    m.SetTexture("_EmissionMap", ke); m.SetColor("_EmissionColor", kc); m.EnableKeyword("_EMISSION");
                     m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
                 }
                 EditorUtility.SetDirty(m);
-            }
-        }
-
-        /// <summary>v75 windows (Matthew: pure white cards, all lit). Each model's lit glass is split pane by pane
-        /// (connected pieces of the windows_lit part): about a third, picked by a hash of where the pane sits on the
-        /// model (1 m cells over the near model's size, so the far levels pick about the same panes), move to the dark
-        /// glass; on the stores, the narrow low panes (door glass, the pawn shop's blank white rectangle) are always
-        /// dark. Only glass ever glows.</summary>
-        static void SplitWindows(GameObject go, string name, Vector3 refSize)
-        {
-            var wb = WorldBounds(go);
-            int seed = name.GetHashCode();
-            bool store = name.StartsWith("store-") || name.StartsWith("shop-");
-            foreach (var r in go.GetComponentsInChildren<MeshRenderer>())
-            {
-                var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
-                var mats = r.sharedMaterials.ToList(); var mesh = mf.sharedMesh;
-                int li = mats.FindIndex(m => m != null && Part(m) == "windows_lit");
-                if (li < 0 || li >= mesh.subMeshCount) continue;
-                int di = mats.FindIndex(m => m != null && Part(m) == "windows_dark");
-                var m2 = Object.Instantiate(mesh); m2.name = mesh.name;
-                var v = m2.vertices; var tri = m2.GetTriangles(li);
-                // union the triangles of a pane by shared corner positions
-                var key = new Dictionary<Vector3Int, int>(); var parent = new List<int>();
-                int Find(int a) { while (parent[a] != a) { parent[a] = parent[parent[a]]; a = parent[a]; } return a; }
-                int Id(Vector3 p) { var k = Vector3Int.RoundToInt(p * 1000f); if (!key.TryGetValue(k, out int id)) { id = parent.Count; key[k] = id; parent.Add(id); } return id; }
-                var corner = new int[tri.Length];
-                for (int t = 0; t < tri.Length; t++) corner[t] = Id(v[tri[t]]);
-                for (int t = 0; t < tri.Length; t += 3) { int a = Find(corner[t]), b = Find(corner[t + 1]), c = Find(corner[t + 2]); parent[b] = a; parent[Find(c)] = a; }
-                var lo = new Dictionary<int, Vector3>(); var hi = new Dictionary<int, Vector3>();
-                for (int t = 0; t < tri.Length; t++)
-                {
-                    int g = Find(corner[t]); var w = r.transform.TransformPoint(v[tri[t]]);
-                    lo[g] = lo.TryGetValue(g, out var l) ? Vector3.Min(l, w) : w; hi[g] = hi.TryGetValue(g, out var h) ? Vector3.Max(h, w) : w;
-                }
-                bool Dark(int g)
-                {
-                    var a = lo[g]; var b = hi[g]; var size = wb.size;
-                    Vector3 N(Vector3 p) => new((p.x - wb.min.x) / Mathf.Max(size.x, 1e-3f) * refSize.x, (p.y - wb.min.y) / Mathf.Max(size.y, 1e-3f) * refSize.y, (p.z - wb.min.z) / Mathf.Max(size.z, 1e-3f) * refSize.z);
-                    var na = N(a); var nb = N(b); var c = (na + nb) / 2;
-                    if (name == "store-pawn") return false;
-                    // v75g: the apartment's entry door glass always lit (Matthew), its windows keep the scatter
-                    if (name == "apt-01-stucco" && na.y < 1.3f && Mathf.Max(nb.x - na.x, nb.z - na.z) < 1.1f) return false;
-                    if (store && na.y < 1.3f && Mathf.Max(nb.x - na.x, nb.z - na.z) < 1.1f) return true;   // door glass
-                    uint q = unchecked((uint)Mathf.FloorToInt(c.x) * 73856093u ^ (uint)Mathf.FloorToInt(c.y) * 19349663u ^ (uint)Mathf.FloorToInt(c.z) * 83492791u ^ (uint)seed);
-                    q ^= q >> 13; q *= 1274126177u; q ^= q >> 16;
-                    return q % 3 == 0;
-                }
-                var lit = new List<int>(); var dark = new List<int>();
-                var cache = new Dictionary<int, bool>();
-                for (int t = 0; t < tri.Length; t += 3)
-                {
-                    int g = Find(corner[t]); if (!cache.TryGetValue(g, out bool d)) cache[g] = d = Dark(g);
-                    (d ? dark : lit).AddRange(new[] { tri[t], tri[t + 1], tri[t + 2] });
-                }
-                if (di < 0 || di >= m2.subMeshCount)
-                {
-                    di = m2.subMeshCount; m2.subMeshCount = di + 1;
-                    while (mats.Count < di) mats.Add(mats[li]);
-                    if (mats.Count == di) mats.Add(DarkGlass()); else mats[di] = DarkGlass();
-                }
-                else dark.InsertRange(0, m2.GetTriangles(di));
-                m2.SetTriangles(lit, li); m2.SetTriangles(dark, di);
-                // v75f (Matthew: the white house and pawn shop panes were flat near white squares): their lit panes
-                // get pane local UVs into one of four warm rooms (blinds, curtains, a corner lamp, a half drawn
-                // blind; tools/make_window_warm.py) and a material that glows through that map
-                if (name == "house-01-bungalow" || name == "store-pawn" || name == "apt-01-stucco" || name == "house-02-two-story" || name == "apt-mixed-use" || name == "store-barber")   // v75g: the apartment too; v75h: Matthew's v3 files
-                {
-                    var uv = m2.uv; if (uv == null || uv.Length != v.Length) uv = new Vector2[v.Length];
-                    var groups = new Dictionary<int, List<int>>();
-                    for (int t = 0; t < tri.Length; t++) { int g = Find(corner[t]); if (cache.TryGetValue(g, out bool pd) && pd) continue; if (!groups.TryGetValue(g, out var gl)) groups[g] = gl = new List<int>(); gl.Add(tri[t]); }
-                    foreach (var kv in groups)
-                    {
-                        var pa = lo[kv.Key]; var pb = hi[kv.Key]; var sz = pb - pa;
-                        bool alongX = sz.x >= sz.z;   // the pane faces z if it is wider in x
-                        var pc = (pa + pb) / 2; int variant = Mathf.Abs(Mathf.FloorToInt(pc.x * 3.7f) * 7 + Mathf.FloorToInt(pc.z * 2.9f) * 3 + Mathf.FloorToInt(pc.y * 1.3f)) % 4;
-                        var off = new Vector2((variant % 2) * 0.5f, (variant / 2) * 0.5f);
-                        foreach (int vi in kv.Value)
-                        {
-                            var pw = r.transform.TransformPoint(v[vi]);
-                            float pu = alongX ? Mathf.InverseLerp(pa.x, pb.x, pw.x) : Mathf.InverseLerp(pa.z, pb.z, pw.z);
-                            float pv = Mathf.InverseLerp(pa.y, pb.y, pw.y);
-                            uv[vi] = off + new Vector2(0.01f + pu * 0.48f, 0.01f + pv * 0.48f);
-                        }
-                    }
-                    m2.uv = uv;
-                    if (li < mats.Count) mats[li] = WarmGlass(mats[li]);
-                }
-                mf.sharedMesh = m2; r.sharedMaterials = mats.ToArray();
-            }
-        }
-
-        static Material WarmGlass(Material src)
-        {
-            if (src == null || src.name.EndsWith("_warm")) return src;
-            string p = $"{Mats}/{src.name.Replace(" ", "_")}_warm.mat";
-            var m = AssetDatabase.LoadAssetAtPath<Material>(p);
-            if (m == null) { m = new Material(src); AssetDatabase.CreateAsset(m, p); } else m.CopyPropertiesFromMaterial(src);
-            m.name = System.IO.Path.GetFileNameWithoutExtension(p);
-            m.SetTexture("_BaseMap", null); m.SetColor("_BaseColor", new Color(0.12f, 0.09f, 0.07f)); m.SetFloat("_Smoothness", 0.65f);
-            m.SetTexture("_EmissionMap", AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/window-warm_emission.png"));
-            m.EnableKeyword("_EMISSION"); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
-            EditorUtility.SetDirty(m); return m;
-        }
-
-        static Material DarkGlass()
-        {
-            var m = Mat("glass_windows_dark", new Color(0.06f, 0.07f, 0.08f), 0.75f);
-            return m;
-        }
-
-        /// <summary>v75: the pawn shop's blank sign band gets its board (pawn-sign: PAWN, LOANS, GOLD, through
-        /// Sovereign Asset). v75d: Matthew's v2 file has its own sign_lit band, so the board sits on that band's
-        /// front (its bounds, from the sign_lit triangles), 2 cm proud, and glows from its own print like the liquor board.</summary>
-        static void PawnSign(GameObject inst, GameObject holder)
-        {
-            var sb = new Bounds(); bool any = false;
-            foreach (var r in inst.GetComponentsInChildren<MeshRenderer>())
-            {
-                var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
-                var mats = r.sharedMaterials; var v = mf.sharedMesh.vertices;
-                for (int i = 0; i < mats.Length && i < mf.sharedMesh.subMeshCount; i++)
-                {
-                    if (mats[i] == null || Part(mats[i]) != "sign_lit") continue;
-                    foreach (int t in mf.sharedMesh.GetTriangles(i)) { var w = r.transform.TransformPoint(v[t]); if (!any) { sb = new Bounds(w, Vector3.zero); any = true; } else sb.Encapsulate(w); }
-                }
-            }
-            if (!any) { Debug.LogWarning("[SceneBuilder] pawn shop has no sign_lit"); return; }
-            var sign = PropBuilder.Loose("pawn-sign");
-            if (sign == null) return;
-            sign.name = "Pawn Sign"; sign.transform.SetParent(holder.transform, false);
-            sign.transform.rotation = holder.transform.rotation;
-            var b = WorldBounds(sign);
-            if (b.size.x > 1e-3f) sign.transform.localScale = new Vector3(sb.size.x * 0.94f / b.size.x, sb.size.y * 0.8f / Mathf.Max(b.size.y, 1e-3f), 1f);
-            b = WorldBounds(sign);
-            sign.transform.position += new Vector3(sb.center.x - b.center.x, sb.center.y - b.center.y, sb.max.z + 0.02f - b.center.z);
-            Debug.Log($"[SceneBuilder] pawn sign on sign_lit {sb.size.x:F2} x {sb.size.y:F2} m at {sb.center}");
-            foreach (var r in sign.GetComponentsInChildren<Renderer>())
-            {
-                r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = true;
-                foreach (var m in r.sharedMaterials)
-                {
-                    if (m == null) continue;
-                    // a painted board: buildings are never metal (the prop material takes metal from the map's red)
-                    m.SetFloat("_Metallic", 0f);
-                    m.SetTexture("_EmissionMap", m.GetTexture("_BaseMap")); m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.white * 0.6f);
-                    m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
-                    EditorUtility.SetDirty(m);
-                }
             }
         }
 
@@ -534,8 +397,8 @@ namespace StreetEmpire.EditorTools
                 {
                     if (m == null) continue;
                     m.SetFloat("_Metallic", 0f);
-                    m.SetTexture("_EmissionMap", m.GetTexture("_BaseMap")); m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.white * 0.6f);
-                    m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                    // v75j: the board does not glow (the liquor store is a raw model; only finished sign_lit glows)
+                    m.SetTexture("_EmissionMap", null); m.DisableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.black);
                     EditorUtility.SetDirty(m);
                 }
             }

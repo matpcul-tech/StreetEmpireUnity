@@ -13,7 +13,7 @@ import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import sharp from 'sharp';
 const [dir, texDir, only] = process.argv.slice(2);   // v75g: optional third argument, one model name
 fs.mkdirSync(texDir, { recursive: true });
-if (!only) for (const f of fs.readdirSync(texDir)) if (f !== 'window-warm_emission.png' && /^[a-z0-9-]+_(basecolor|normal|emission|metalsmooth)\.(jpg|png)$/.test(f)) fs.rmSync(path.join(texDir, f));
+if (!only) for (const f of fs.readdirSync(texDir)) if (/^[a-z0-9-]+_(basecolor|normal|emission|metalsmooth)\.(jpg|png)$/.test(f)) fs.rmSync(path.join(texDir, f));
 const FULL = ['house-01-bungalow', 'house-02-two-story', 'apt-mixed-use', 'store-barber'];
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
 const part = (m) => { const n = m.getName(); return n.includes('windows_lit') ? 'windows_lit' : n.includes('windows_dark') ? 'windows_dark' : n.includes('walls') ? 'walls' : (n.includes('Material_0') || !n) ? 'Material_0' : n; };
