@@ -494,9 +494,9 @@ namespace StreetEmpire.Game
                             // so a curb palm right in front of the middle still stood in the shot. Now every apartment
                             // in the district and a grid of spots in front of each (12 to 24 m out, up to 16 m to either
                             // side, looking at the middle of the front) is tried; a spot counts only when no palm, tree,
-                            // pole, lamp or signal stands inside its view of the facade (corner to corner, 1.2 m wider
+                            // pole, lamp or signal stands inside its view of the facade (corner to corner, 0.6 m wider
                             // each side). The straightest clear spot about 19 m out wins.
-                            var best = (cam: b10, look: Vector3.forward, n: -1, cost: float.MaxValue);
+                            var best = (cam: b10, look: Vector3.forward, n: -1, cost: float.MaxValue); string near = "";
                             foreach (var m in FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None))
                             {
                                 if (m.model == null || !m.model.StartsWith("apt-01")) continue;
@@ -507,27 +507,31 @@ namespace StreetEmpire.Game
                                 var face = bb.center + fn * Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(fn.x), 0, Mathf.Abs(fn.z)))); face.y = 0;
                                 float half = Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(ft.x), 0, Mathf.Abs(ft.z))));
                                 var L = face + ft * half; var R = face - ft * half;
-                                for (float back = 12f; back <= 24.01f; back += 1f)
-                                    for (float slide = -16f; slide <= 16.01f; slide += 1f)
+                                for (float back = 9f; back <= 26.01f; back += 1f)
+                                    for (float slide = -26f; slide <= 26.01f; slide += 1f)
                                     {
                                         var cp = face + fn * back + ft * slide;
                                         var dl = (L - cp).normalized; var dr = (R - cp).normalized;
                                         float aL = Vector3.SignedAngle(-fn, dl, Vector3.up), aR = Vector3.SignedAngle(-fn, dr, Vector3.up);
                                         float lo = Mathf.Min(aL, aR), hi = Mathf.Max(aL, aR);
-                                        if (hi - lo > 70f || hi - lo < 18f) continue;   // too close to fit, or too far off to the side
+                                        if (hi - lo > 75f || hi - lo < 15f) continue;   // too close to fit, or too far off to the side
                                         int nIn = 0;
                                         foreach (var q in blockers)
                                         {
                                             var qq = q; qq.y = 0; var d = qq - cp; float dist = d.magnitude; if (dist < 0.5f) { nIn++; continue; }
                                             if (Vector3.Dot(qq - face, fn) < 0.2f) continue;   // at or behind the wall
-                                            float ang = Vector3.SignedAngle(-fn, d, Vector3.up), pad = Mathf.Rad2Deg * Mathf.Atan2(1.2f, dist);
+                                            float ang = Vector3.SignedAngle(-fn, d, Vector3.up), pad = Mathf.Rad2Deg * Mathf.Atan2(0.6f, dist);
                                             if (ang > lo - pad && ang < hi + pad) nIn++;
                                         }
-                                        float cost = nIn * 1000f + Mathf.Abs(slide) * 0.6f + Mathf.Abs(back - 19f) * 0.4f + (bb.center - b10).magnitude * 0.002f;
-                                        if (cost < best.cost) best = (cp, (face - cp).normalized, nIn, cost);
+                                        float cost = nIn * 1000f + Mathf.Abs((lo + hi) / 2f) * 0.5f + Mathf.Abs(back - 18f) * 0.3f + (bb.center - b10).magnitude * 0.002f;
+                                        if (cost < best.cost)
+                                        {
+                                            best = (cp, (face - cp).normalized, nIn, cost); near = "";
+                                            foreach (var q in blockers) { var r0 = q - face; r0.y = 0; float fo = Vector3.Dot(r0, fn), si = Vector3.Dot(r0, ft); if (fo > -1f && fo < 26f && Mathf.Abs(si) < 28f) near += $" ({si:0.0} along, {fo:0.0} out)"; }
+                                        }
                                     }
                             }
-                            Debug.Log($"[ShotDirector] v75 apartment camera at {best.cam}, {best.n} obstacles in view");
+                            Debug.Log($"[ShotDirector] v75 apartment camera at {best.cam}, {best.n} obstacles in view; obstacles in front of that apartment:{near}");
                             var lk = best.look; lk.y = 0; lk.Normalize();
                             Game(best.cam + lk * 8.5f, lk, 5f, 8.5f); break;
                         }
