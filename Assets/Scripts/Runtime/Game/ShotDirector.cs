@@ -325,7 +325,13 @@ namespace StreetEmpire.Game
             // with the fewest palms, poles and lamps between the camera spot (back m out) and the wall
             var blockers = new System.Collections.Generic.List<Vector3>();
             foreach (var m in FindObjectsByType<StreetEmpire.City.PropMarker>(FindObjectsSortMode.None))
-                if (m.model != null && (m.model.StartsWith("palm") || m.model.StartsWith("tree") || m.model.Contains("pole") || m.model.Contains("lamp") || m.model.Contains("signal"))) blockers.Add(m.transform.position);
+                if ((m.model != null && (m.model.StartsWith("palm") || m.model.StartsWith("tree") || m.model.Contains("pole") || m.model.Contains("lamp") || m.model.Contains("signal"))) || m.kind == "tree" || m.kind == "streetlight" || m.kind == "traffic signal") blockers.Add(m.transform.position);
+            // v75g: and any other tall thin thing with a renderer (trunks, poles and posts not tagged as props)
+            foreach (var r in FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
+            {
+                var bb = r.bounds; if (bb.size.y < 3f || Mathf.Max(bb.size.x, bb.size.z) > 1.2f) continue;
+                var n = r.name.ToLowerInvariant(); if (n.Contains("palm") || n.Contains("tree") || n.Contains("trunk") || n.Contains("pole") || n.Contains("post") || n.Contains("lamp")) blockers.Add(new Vector3(bb.center.x, 0f, bb.center.z));
+            }
             (Vector3 face, Vector3 n, Vector3 t, float h) Face(string model, float back = 9f)
             {
                 (Vector3, Vector3, Vector3, float) best = (b10, Vector3.back, Vector3.right, 8f); float bestScore = float.MaxValue;
@@ -398,6 +404,12 @@ namespace StreetEmpire.Game
                 if (view != shown)
                 {
                     shown = view; GameClock.FrozenHour = hours[view]; drawLog = Time.time + 1.5f;
+                    // v75g: the pedestrian close ups (26, 27) show only the gray tee man: the other pedestrians are hidden
+                    {
+                        bool solo = view == 25 || view == 26; var keep = solo ? HoodiePed() : null;
+                        foreach (var q in FindObjectsByType<StreetEmpire.Game.Ped>(FindObjectsSortMode.None))
+                            foreach (var r in q.GetComponentsInChildren<Renderer>(true)) r.enabled = !solo || q == keep;
+                    }
                     if (brain) brain.enabled = !free;
                     switch (view)
                     {
@@ -478,27 +490,33 @@ namespace StreetEmpire.Game
                         // v75e: the whole apartment with its roof: from farther out, a lower and longer camera
                         case 4: case 22:
                         {
-                            // v75f: slid along the front like the pawn view, so no pole fills the edge: the camera
-                            // (about 19 m out) and both front corners must be clear of poles, lamps, palms and signals
-                            var f = Face("apt-01", 16f); float bestS = 1.5f, bestClear = -1f; float half = 5.5f;
-                            for (float sl = -5f; sl <= 5.01f; sl += 0.5f)
-                            {
-                                var camAt = f.face + f.n * 19f + f.t * sl; camAt.y = 0; float clear = 99f;
-                                foreach (var corner in new[] { f.face + f.t * half, f.face - f.t * half, f.face })
-                                {
-                                    var b = corner; b.y = 0; var seg = b - camAt;
-                                    foreach (var q in blockers)
+                            // v75g: a set spot straight across from the apartment's front: the camera about 19 m out
+                            // on the middle of the facade. Its view wedge (camera to both front corners, 1 m wider
+                            // each side) must hold no palm, tree, pole, lamp or signal; if the middle is blocked it
+                            // steps out along the front, then farther back, the nearest clear spot wins.
+                            var f = Face("apt-01", 16f); const float half = 6.5f;
+                            float bestS = 0f, bestBack = 19f; int bestN = int.MaxValue; float bestCost = float.MaxValue;
+                            foreach (float back in new[] { 19f, 17f, 21.5f })
+                                for (float sl = 0f; sl <= 6.01f; sl += 0.5f)
+                                    foreach (float sg in new[] { 1f, -1f })
                                     {
-                                        var qq = q; qq.y = 0; float u = Mathf.Clamp01(Vector3.Dot(qq - camAt, seg) / seg.sqrMagnitude);
-                                        if (u < 0.08f) continue;   // right at the camera it is behind the lens
-                                        clear = Mathf.Min(clear, (camAt + seg * u - qq).magnitude);
+                                        float slide = sl * sg; var camAt = f.face + f.n * back + f.t * slide; camAt.y = 0;
+                                        var L = f.face + f.t * half; var R = f.face - f.t * half; L.y = R.y = 0;
+                                        int nIn = 0;
+                                        foreach (var q in blockers)
+                                        {
+                                            var qq = q; qq.y = 0;
+                                            float along = Vector3.Dot(qq - camAt, -f.n); if (along < 0.5f || along > back + 0.3f) continue;   // behind the lens or behind the wall
+                                            float k = along / back; var lft = Vector3.Lerp(camAt, L, k); var rgt = Vector3.Lerp(camAt, R, k);
+                                            float tq = Vector3.Dot(qq - camAt, f.t), tl = Vector3.Dot(lft - camAt, f.t), tr = Vector3.Dot(rgt - camAt, f.t);
+                                            if (tq < Mathf.Max(tl, tr) + 1f && tq > Mathf.Min(tl, tr) - 1f) nIn++;
+                                        }
+                                        float cost = nIn * 100f + Mathf.Abs(slide) + Mathf.Abs(back - 19f) * 0.5f;
+                                        if (cost < bestCost) { bestCost = cost; bestN = nIn; bestS = slide; bestBack = back; }
+                                        if (sl == 0f) break;
                                     }
-                                }
-                                clear -= Mathf.Abs(sl) * 0.05f;
-                                if (clear > bestClear) { bestClear = clear; bestS = sl; }
-                            }
-                            Debug.Log($"[ShotDirector] v75 apartment view slide {bestS:0.0} m, clear {bestClear:0.0} m");
-                            Game(f.face + f.n * 10.5f + f.t * bestS, -f.n, 5f, 8.5f); break;
+                            Debug.Log($"[ShotDirector] v75 apartment camera {bestBack:0.0} m out, {bestS:0.0} m along, {bestN} obstacles in view");
+                            Game(f.face + f.n * (bestBack - 8.5f) + f.t * bestS, -f.n, 5f, 8.5f); break;
                         }
                         case 5: case 23: case 24: { var f = Face("house-01", 9f); Game(f.face + f.n * 4.5f + f.t * 1.2f, -f.n, 8f, 5f); break; }
                         // v75b: the liquor store sign at 22:00, and the mixed use block (the v74 black tower) by day
