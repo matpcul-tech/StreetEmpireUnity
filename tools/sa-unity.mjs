@@ -1,4 +1,4 @@
-// Sovereign-draft main f8ba6bb (served at SA_URL, default 4176): one model through Sovereign Asset /asset.html with the
+// Sovereign-draft main d9dcc22 (local build of /workspace/sa-grayblock/sa-main in /tmp/sa-main-dist, served at SA_URL, default 4176; checks only, its output is not used for Matthew's finished files): one model through Sovereign Asset /asset.html with the
 // "Unity building or prop" (unity-static) or "Unity character" (unity-character) preset as it stands, geometry
 // compression off. Optional env: FLAT=light|strong|off (Flatten walls), FIXNORMALS=1, TRIS=<target>, TEX=<px>.
 // Writes the finished GLB, the app's report, a verdict screenshot and <name>.verdict.json with every check line,
