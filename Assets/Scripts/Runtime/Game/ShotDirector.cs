@@ -527,7 +527,7 @@ namespace StreetEmpire.Game
                                         if (cost < best.cost) best = (cp, (face - cp).normalized, nIn, cost);
                                     }
                             }
-                            Debug.Log($"[ShotDirector] v75 apartment camera at {best.cp}, {best.n} obstacles in view");
+                            Debug.Log($"[ShotDirector] v75 apartment camera at {best.cam}, {best.n} obstacles in view");
                             var lk = best.look; lk.y = 0; lk.Normalize();
                             Game(best.cam + lk * 8.5f, lk, 5f, 8.5f); break;
                         }
