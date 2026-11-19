@@ -490,33 +490,46 @@ namespace StreetEmpire.Game
                         // v75e: the whole apartment with its roof: from farther out, a lower and longer camera
                         case 4: case 22:
                         {
-                            // v75g: a set spot straight across from the apartment's front: the camera about 19 m out
-                            // on the middle of the facade. Its view wedge (camera to both front corners, 1 m wider
-                            // each side) must hold no palm, tree, pole, lamp or signal; if the middle is blocked it
-                            // steps out along the front, then farther back, the nearest clear spot wins.
-                            var f = Face("apt-01", 16f); const float half = 6.5f;
-                            float bestS = 0f, bestBack = 19f; int bestN = int.MaxValue; float bestCost = float.MaxValue;
-                            foreach (float back in new[] { 19f, 17f, 21.5f })
-                                for (float sl = 0f; sl <= 6.01f; sl += 0.5f)
-                                    foreach (float sg in new[] { 1f, -1f })
+                            // v75g: the apartment camera spot. v75f slid along the front only and checked three lines,
+                            // so a curb palm right in front of the middle still stood in the shot. Now every apartment
+                            // in the district and a grid of spots in front of each (12 to 24 m out, up to 16 m to either
+                            // side, looking at the middle of the front) is tried; a spot counts only when no palm, tree,
+                            // pole, lamp or signal stands inside its view of the facade (corner to corner, 1.2 m wider
+                            // each side). The straightest clear spot about 19 m out wins.
+                            var best = (cam: b10, look: Vector3.forward, n: -1, cost: float.MaxValue);
+                            foreach (var m in FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None))
+                            {
+                                if (m.model == null || !m.model.StartsWith("apt-01")) continue;
+                                var c = m.GetComponent<BoxCollider>(); if (c == null) continue; var bb = c.bounds;
+                                var o = bb.center - Block(m.blockId); o.y = 0;
+                                var fn = m.transform.forward; fn.y = 0; fn.Normalize(); if (Vector3.Dot(fn, o) < 0) fn = -fn;
+                                var ft = Vector3.Cross(Vector3.up, fn);
+                                var face = bb.center + fn * Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(fn.x), 0, Mathf.Abs(fn.z)))); face.y = 0;
+                                float half = Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(ft.x), 0, Mathf.Abs(ft.z))));
+                                var L = face + ft * half; var R = face - ft * half;
+                                for (float back = 12f; back <= 24.01f; back += 1f)
+                                    for (float slide = -16f; slide <= 16.01f; slide += 1f)
                                     {
-                                        float slide = sl * sg; var camAt = f.face + f.n * back + f.t * slide; camAt.y = 0;
-                                        var L = f.face + f.t * half; var R = f.face - f.t * half; L.y = R.y = 0;
+                                        var cp = face + fn * back + ft * slide;
+                                        var dl = (L - cp).normalized; var dr = (R - cp).normalized;
+                                        float aL = Vector3.SignedAngle(-fn, dl, Vector3.up), aR = Vector3.SignedAngle(-fn, dr, Vector3.up);
+                                        float lo = Mathf.Min(aL, aR), hi = Mathf.Max(aL, aR);
+                                        if (hi - lo > 70f || hi - lo < 18f) continue;   // too close to fit, or too far off to the side
                                         int nIn = 0;
                                         foreach (var q in blockers)
                                         {
-                                            var qq = q; qq.y = 0;
-                                            float along = Vector3.Dot(qq - camAt, -f.n); if (along < 0.5f || along > back + 0.3f) continue;   // behind the lens or behind the wall
-                                            float k = along / back; var lft = Vector3.Lerp(camAt, L, k); var rgt = Vector3.Lerp(camAt, R, k);
-                                            float tq = Vector3.Dot(qq - camAt, f.t), tl = Vector3.Dot(lft - camAt, f.t), tr = Vector3.Dot(rgt - camAt, f.t);
-                                            if (tq < Mathf.Max(tl, tr) + 1f && tq > Mathf.Min(tl, tr) - 1f) nIn++;
+                                            var qq = q; qq.y = 0; var d = qq - cp; float dist = d.magnitude; if (dist < 0.5f) { nIn++; continue; }
+                                            if (Vector3.Dot(qq - face, fn) < 0.2f) continue;   // at or behind the wall
+                                            float ang = Vector3.SignedAngle(-fn, d, Vector3.up), pad = Mathf.Rad2Deg * Mathf.Atan2(1.2f, dist);
+                                            if (ang > lo - pad && ang < hi + pad) nIn++;
                                         }
-                                        float cost = nIn * 100f + Mathf.Abs(slide) + Mathf.Abs(back - 19f) * 0.5f;
-                                        if (cost < bestCost) { bestCost = cost; bestN = nIn; bestS = slide; bestBack = back; }
-                                        if (sl == 0f) break;
+                                        float cost = nIn * 1000f + Mathf.Abs(slide) * 0.6f + Mathf.Abs(back - 19f) * 0.4f + (bb.center - b10).magnitude * 0.002f;
+                                        if (cost < best.cost) best = (cp, (face - cp).normalized, nIn, cost);
                                     }
-                            Debug.Log($"[ShotDirector] v75 apartment camera {bestBack:0.0} m out, {bestS:0.0} m along, {bestN} obstacles in view");
-                            Game(f.face + f.n * (bestBack - 8.5f) + f.t * bestS, -f.n, 5f, 8.5f); break;
+                            }
+                            Debug.Log($"[ShotDirector] v75 apartment camera at {best.cp}, {best.n} obstacles in view");
+                            var lk = best.look; lk.y = 0; lk.Normalize();
+                            Game(best.cam + lk * 8.5f, lk, 5f, 8.5f); break;
                         }
                         case 5: case 23: case 24: { var f = Face("house-01", 9f); Game(f.face + f.n * 4.5f + f.t * 1.2f, -f.n, 8f, 5f); break; }
                         // v75b: the liquor store sign at 22:00, and the mixed use block (the v74 black tower) by day
