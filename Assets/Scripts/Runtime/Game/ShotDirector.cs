@@ -365,6 +365,7 @@ namespace StreetEmpire.Game
                 14f, 22f, 14f, 22f, 14f, 22f, 14f,
                 14f, 22f, 14f, 22f, 14f, 22f };   // v75i: views 34 to 39 the two story, barber and white house from about 75 m, by day and at 22:00   // v75h: views 27 to 32 Matthew's v3 files by day and at 22:00, 33 the white house front wall close
             int view = 0; int shown = -1;
+            (Vector3 pos, Vector3 at) farV = (Vector3.zero, Vector3.forward);   // v75i: the far views
             // v75c: draw calls per view, a second and a half after each switch
             var draws = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "Draw Calls Count");
             var batches = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "Batches Count");
@@ -404,7 +405,7 @@ namespace StreetEmpire.Game
                         kb.backquoteKey, kb.insertKey, kb.homeKey, kb.pageUpKey, kb.deleteKey, kb.endKey };   // v75i: ` Insert Home PageUp Delete End   // v75h: [ ] ; ' , . /
                     for (int i = 0; i < keys.Length; i++) if (keys[i].isPressed) view = i;
                 }
-                bool free = view == 6 || view == 7 || view == 25 || view == 26;   // v75e: 26, the pedestrian close up, is a free camera that follows them
+                bool free = view == 6 || view == 7 || view == 25 || view == 26 || view >= 34;   // v75e: 26, the pedestrian close up, is a free camera that follows them
                 if (view != shown)
                 {
                     shown = view; GameClock.FrozenHour = hours[view]; drawLog = Time.time + 1.5f;
@@ -509,10 +510,14 @@ namespace StreetEmpire.Game
                         case 27: case 28: { var f = Face("house-02", 14f); Game(f.face + f.n * 6.5f, -f.n, 7f, 7.5f); break; }
                         case 29: case 30: { var f = Face("apt-mixed-use", 18f); Game(f.face + f.n * 9.5f, -f.n, 5f, 8.5f); break; }
                         case 31: case 32: { var f = Face("store-barber", 11f); Game(f.face + f.n * 4.5f, -f.n, 6f, 6.5f); break; }
-                        // v75i: the same three from about 75 m (no LODs any more: the finished mesh at every distance)
-                        case 34: case 35: { var f = Face("house-02", 75f); Game(f.face + f.n * 66.5f, -f.n, 4f, 8.5f); break; }
-                        case 36: case 37: { var f = Face("store-barber", 75f); Game(f.face + f.n * 66.5f, -f.n, 4f, 8.5f); break; }
-                        case 38: case 39: { var f = Face("house-01", 75f); Game(f.face + f.n * 66.5f, -f.n, 4f, 8.5f); break; }
+                        // v75i: the same three from about 50 m (no LODs any more: the finished mesh at every distance)
+                        // (free cameras 45 m out in front and 20 m up, over the buildings across the street, about 50 m away)
+                        case 34: case 35: case 36: case 37: case 38: case 39:
+                        {
+                            var f = Face(view < 36 ? "house-02" : view < 38 ? "store-barber" : "house-01", 12f);
+                            var mid = f.face - f.n * 3f + Vector3.up * (f.h * 0.45f);
+                            farV = (f.face + f.n * 45f + Vector3.up * 20f, mid); break;
+                        }
                         case 33: { var f = Face("house-01", 9f); Game(f.face + f.n * 2.2f + f.t * 2.4f, -f.n, 3f, 3.2f); break; }
                         case 11: { var f = Face("apt-mixed-use", 12f); Game(f.face + f.n * 8f + f.t * 2f, -f.n, 14f, 6.5f); break; }
                         case 9: case 15:
@@ -545,6 +550,7 @@ namespace StreetEmpire.Game
                         var off = view == 25 ? fw * 2.3f + side * 0.3f : side * 2.3f + fw * 0.2f;
                         v = (a + off + Vector3.up * 1.3f, a + Vector3.up * 1.05f);
                     }
+                    else if (view >= 34) v = farV;
                     else if (view == 6) { var palm = Prop("palm-short", b10 + new Vector3(0, 0, -27f)); var a = palm ? palm.position : b10; v = (a + new Vector3(3.5f, 4.6f, -3.5f), a + new Vector3(0, 7.2f, 0)); }
                     else { var c = (b0 + b20) / 2; v = (c + new Vector3(60f, 38f, -110f), c + new Vector3(-40f, 0f, 120f)); cam.farClipPlane = 800f; }
                     cam.transform.position = v.pos; cam.transform.LookAt(v.at);
