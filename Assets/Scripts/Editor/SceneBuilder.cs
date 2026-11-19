@@ -269,7 +269,9 @@ namespace StreetEmpire.EditorTools
             var near = inst.GetComponentsInChildren<Renderer>();
             foreach (var r in near) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
             Compress(inst, name, "Near");
-            AddFar(holder, inst, name, bounds, near);
+            // v75i (Matthew): no Far or Low levels and no LODGroup for any building: the finished GLB draws at every
+            // distance and casts its own shadow. RuntimeLod stays as the list of the near renderers (graffiti uses it).
+            holder.AddComponent<StreetEmpire.City.RuntimeLod>().near = near;
             // not batching static: with 20 models of about 58k triangles, static batching would copy every placed
             // mesh (36 of them) into combined buffers, roughly doubling mesh memory on phones and WebGL. The SRP
             // batcher keeps the draw calls cheap without it.
@@ -386,7 +388,6 @@ namespace StreetEmpire.EditorTools
                     Vector3 N(Vector3 p) => new((p.x - wb.min.x) / Mathf.Max(size.x, 1e-3f) * refSize.x, (p.y - wb.min.y) / Mathf.Max(size.y, 1e-3f) * refSize.y, (p.z - wb.min.z) / Mathf.Max(size.z, 1e-3f) * refSize.z);
                     var na = N(a); var nb = N(b); var c = (na + nb) / 2;
                     if (name == "store-pawn") return false;
-                    if (name == "house-01-bungalow" && c.z > refSize.z * 0.75f) return false;   // v75e: the two street front panes added by house01_v2_fix.py stay lit   // v75e: the pawn shop's storefront and door glass all lit at night
                     // v75g: the apartment's entry door glass always lit (Matthew), its windows keep the scatter
                     if (name == "apt-01-stucco" && na.y < 1.3f && Mathf.Max(nb.x - na.x, nb.z - na.z) < 1.1f) return false;
                     if (store && na.y < 1.3f && Mathf.Max(nb.x - na.x, nb.z - na.z) < 1.1f) return true;   // door glass
@@ -572,47 +573,8 @@ namespace StreetEmpire.EditorTools
             }
         }
 
-        /// <summary>The lower detail levels, both with the near model's material and fitted to the near bounds:
-        /// LOD1 Far (Blender decimate to 22%, about 12.8k triangles, then a Sovereign Asset check) and LOD2 Low
-        /// (6%, about 3.5k). Sovereign Asset itself will not cut these Meshy meshes below about 25k ("going lower
-        /// would visibly change the shape"), so the near model is its 26k cut and the two far levels are Blender's.</summary>
-        static void AddFar(GameObject holder, GameObject inst, string name, Bounds nearBounds, Renderer[] near)
-        {
-            var far = Level(holder, "Far", name, nearBounds, near);
-            if (far == null) return;
-            var low = Level(holder, "Low", name, nearBounds, near);
-            // shadows come from one always-on copy of the low mesh (about 3.5k triangles) instead of whichever level
-            // is drawn: the near models are about 26k and the three Ultra cascades each draw the casters again
-            var shadow = Level(holder, low != null ? "Low" : "Far", name, nearBounds, near, "Shadow");
-            foreach (var r in shadow) r.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
-            foreach (var r in near.Concat(far).Concat(low ?? new Renderer[0])) r.shadowCastingMode = ShadowCastingMode.Off;
-            // the LODGroup itself is added at load time (RuntimeLod): a saved one made the phone reject the scene file.
-            // A 13 m building leaves the near model at about 40 m and the far one at about 190 m.
-            var lod = holder.AddComponent<StreetEmpire.City.RuntimeLod>();
-            lod.near = near; lod.far = far; lod.low = low ?? new Renderer[0];
-            lod.nearHeight = 0.28f; lod.farHeight = low != null ? 0.06f : 0.005f; lod.lowHeight = 0.003f;
-        }
-
-        static Renderer[] Level(GameObject holder, string level, string name, Bounds nearBounds, Renderer[] near, string goName = null)
-        {
-            // the far levels keep the near model's four materials, slot by slot, matched by part name
-            var byPart = new Dictionary<string, Material>();
-            foreach (var m in near.SelectMany(r => r.sharedMaterials)) if (m != null && !byPart.ContainsKey(Part(m))) byPart[Part(m)] = m;
-            Material For(Material src) => src != null && byPart.TryGetValue(Part(src), out var m) ? m : byPart.Values.FirstOrDefault();
-            var asset = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/{level}/{name}.glb");
-            if (asset == null) return null;
-            var go = (GameObject)PrefabUtility.InstantiatePrefab(asset);
-            go.name = goName ?? level; go.transform.SetParent(holder.transform, false);
-            var rs = go.GetComponentsInChildren<Renderer>();
-            foreach (var r in rs) { r.sharedMaterials = r.sharedMaterials.Select(For).ToArray(); r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
-            SplitWindows(go, name, nearBounds.size);
-            Compress(go, name, level);
-            var b = WorldBounds(go);
-            go.transform.localScale *= Mathf.Max(nearBounds.size.x, nearBounds.size.z) / Mathf.Max(b.size.x, b.size.z, 1e-4f);
-            b = WorldBounds(go);
-            go.transform.localPosition += new Vector3(nearBounds.center.x - b.center.x, nearBounds.min.y - b.min.y, nearBounds.center.z - b.center.z);
-            return rs;
-        }
+        // v75i: AddFar and Level (the Blender decimated Far and Low levels, a Low shadow copy and the LODGroup) are
+        // gone at Matthew's request: decimating his finished files broke the walls atlas UVs and the normals.
 
         /// <summary>Points the building's mesh filters at compressed copies of the imported meshes (glTFast meshes
         /// go into the build uncompressed and were the bulk of the APK's mesh data). Made once per model and level.</summary>
@@ -623,7 +585,8 @@ namespace StreetEmpire.EditorTools
             {
                 if (mf.sharedMesh == null) continue;
                 string path = $"Assets/Art/Meshes/Buildings/{name}-{level.ToLowerInvariant()}-{i++}.asset";
-                if (!compressed.TryGetValue(path, out var m)) compressed[path] = m = MeshMerge.Save(mf.sharedMesh, path, copy: true);
+                // v75i: saved uncompressed, so the finished file's UVs and normals are not quantized
+                if (!compressed.TryGetValue(path, out var m)) compressed[path] = m = MeshMerge.Save(mf.sharedMesh, path, copy: true, compress: false);
                 mf.sharedMesh = m;
             }
         }

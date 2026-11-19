@@ -117,7 +117,8 @@ namespace StreetEmpire.Tests
             foreach (var b in bs)
                 foreach (var m in b.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials))
                     Assert.AreEqual(0f, m.GetFloat("_Metallic"), 1e-4f, $"{b.model} is not metallic");
-            Assert.IsTrue(bs.Where(b => b.model != "store-liquor-blank").All(b => b.GetComponent<LODGroup>() != null), "buildings have a far LOD");
+            // v75i (Matthew): no LODs or simplified meshes for the Sovereign Asset buildings, the finished file at every distance
+            Assert.IsTrue(bs.All(b => b.GetComponent<LODGroup>() == null && b.transform.Find("Far") == null && b.transform.Find("Low") == null && b.transform.Find("Shadow") == null), "buildings draw their finished mesh at every distance");
             var label = GameObject.Find("BuildLabel"); Assert.IsNotNull(label, "build label on the HUD");
             StringAssert.StartsWith("v0.5", label.GetComponent<UnityEngine.UI.Text>().text);
             var sedan = Object.FindObjectsByType<CarController>(FindObjectsSortMode.None).First(c => c.name == "Sedan");

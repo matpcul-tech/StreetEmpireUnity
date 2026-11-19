@@ -362,7 +362,8 @@ namespace StreetEmpire.Game
             // apartment by day, 24 the white house at 22:00 (Numpad9, Numpad0, NumpadPeriod). v75e: 25 the white
             // house and its sedan at 19:24 (Matthew's phone dusk), 26 a pedestrian close up (NumpadMultiply, NumpadPlus)
             float[] hours = { 14f, 19f, 22f, 22f, 22f, 14f, 14f, 14f, 14f, 14f, 22f, 14f, 22f, 7.333f, 9.6f, 8.383f, 2.133f, 5.917f, 5.917f, 14f, 14f, 14f, 14f, 22f, 19.4f, 14f, 14f,
-                14f, 22f, 14f, 22f, 14f, 22f, 14f };   // v75h: views 27 to 32 Matthew's v3 files by day and at 22:00, 33 the white house front wall close
+                14f, 22f, 14f, 22f, 14f, 22f, 14f,
+                14f, 22f, 14f, 22f, 14f, 22f };   // v75i: views 34 to 39 the two story, barber and white house from about 75 m, by day and at 22:00   // v75h: views 27 to 32 Matthew's v3 files by day and at 22:00, 33 the white house front wall close
             int view = 0; int shown = -1;
             // v75c: draw calls per view, a second and a half after each switch
             var draws = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, "Draw Calls Count");
@@ -399,7 +400,8 @@ namespace StreetEmpire.Game
                 {
                     var keys = new[] { kb.digit1Key, kb.digit2Key, kb.digit3Key, kb.digit4Key, kb.digit5Key, kb.digit6Key, kb.digit7Key, kb.digit8Key, kb.digit9Key, kb.digit0Key, kb.minusKey, kb.equalsKey, kb.backspaceKey,
                         kb.numpad1Key, kb.numpad2Key, kb.numpad3Key, kb.numpad4Key, kb.numpad5Key, kb.numpad6Key, kb.numpad7Key, kb.numpad8Key, kb.numpad9Key, kb.numpad0Key, kb.numpadPeriodKey, kb.numpadMultiplyKey, kb.numpadPlusKey, kb.numpadMinusKey,
-                        kb.leftBracketKey, kb.rightBracketKey, kb.semicolonKey, kb.quoteKey, kb.commaKey, kb.periodKey, kb.slashKey };   // v75h: [ ] ; ' , . /
+                        kb.leftBracketKey, kb.rightBracketKey, kb.semicolonKey, kb.quoteKey, kb.commaKey, kb.periodKey, kb.slashKey,
+                        kb.backquoteKey, kb.insertKey, kb.homeKey, kb.pageUpKey, kb.deleteKey, kb.endKey };   // v75i: ` Insert Home PageUp Delete End   // v75h: [ ] ; ' , . /
                     for (int i = 0; i < keys.Length; i++) if (keys[i].isPressed) view = i;
                 }
                 bool free = view == 6 || view == 7 || view == 25 || view == 26;   // v75e: 26, the pedestrian close up, is a free camera that follows them
@@ -507,6 +509,10 @@ namespace StreetEmpire.Game
                         case 27: case 28: { var f = Face("house-02", 14f); Game(f.face + f.n * 6.5f, -f.n, 7f, 7.5f); break; }
                         case 29: case 30: { var f = Face("apt-mixed-use", 18f); Game(f.face + f.n * 9.5f, -f.n, 5f, 8.5f); break; }
                         case 31: case 32: { var f = Face("store-barber", 11f); Game(f.face + f.n * 4.5f, -f.n, 6f, 6.5f); break; }
+                        // v75i: the same three from about 75 m (no LODs any more: the finished mesh at every distance)
+                        case 34: case 35: { var f = Face("house-02", 75f); Game(f.face + f.n * 66.5f, -f.n, 4f, 8.5f); break; }
+                        case 36: case 37: { var f = Face("store-barber", 75f); Game(f.face + f.n * 66.5f, -f.n, 4f, 8.5f); break; }
+                        case 38: case 39: { var f = Face("house-01", 75f); Game(f.face + f.n * 66.5f, -f.n, 4f, 8.5f); break; }
                         case 33: { var f = Face("house-01", 9f); Game(f.face + f.n * 2.2f + f.t * 2.4f, -f.n, 3f, 3.2f); break; }
                         case 11: { var f = Face("apt-mixed-use", 12f); Game(f.face + f.n * 8f + f.t * 2f, -f.n, 14f, 6.5f); break; }
                         case 9: case 15:

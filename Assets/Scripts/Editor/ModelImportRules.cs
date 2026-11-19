@@ -10,7 +10,7 @@ namespace StreetEmpire.EditorTools
     {
         // bump when the rules change: the CI Library cache otherwise keeps textures imported under the old rules
         // (2: cutout coverage, 4x4 ASTC alpha maps, anisotropic building walls)
-        public override uint GetVersion() => 2;
+        public override uint GetVersion() => 3;   // 3: v75g/h 2048 wall normal and roughness maps for Matthew's files
         static bool IsCharacter(string p) => p.StartsWith("Assets/Art/Models/Characters/") && p.EndsWith(".fbx");
         static bool IsClips(string p) => p.StartsWith("Assets/Art/Animations/") && p.EndsWith(".fbx");
 

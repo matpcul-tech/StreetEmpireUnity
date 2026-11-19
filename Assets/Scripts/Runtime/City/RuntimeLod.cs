@@ -17,6 +17,7 @@ namespace StreetEmpire.City
         void Awake()
         {
             if (GetComponent<LODGroup>() != null) return;
+            if (far == null || far.Length == 0) return;   // v75i: buildings have no far levels, the finished mesh draws at every distance
             var g = gameObject.AddComponent<LODGroup>(); g.fadeMode = LODFadeMode.None; g.animateCrossFading = false;
             if (low != null && low.Length > 0) g.SetLODs(new[] { new LOD(nearHeight, near), new LOD(farHeight, far), new LOD(lowHeight, low) });
             else g.SetLODs(new[] { new LOD(nearHeight, near), new LOD(farHeight, far) });
