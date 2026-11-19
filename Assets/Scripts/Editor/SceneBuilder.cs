@@ -43,8 +43,13 @@ namespace StreetEmpire.EditorTools
         /// <summary>v75j: Matthew's finished Sovereign Asset files (byte for byte his v2 and v3 deliveries). Only these
         /// get scaling and their maps wired, nothing else; only their windows_lit and sign_lit glow, as their materials
         /// assign. Every other kit model is raw or an older Sovereign Asset run and glows nowhere.</summary>
-        // store-pawn is Matthew's v4 finish (5,226,384 bytes, SHA-256 338071cf5b0983bf...): Material_0, walls, windows_lit, sign_lit
-        // house-01-bungalow is Matthew's v4 finish (9,237,420 bytes, SHA-256 802f6984745d74b4...): Material_0, walls, windows_lit, windows_dark, door
+        // v75k: all six are Matthew's finished-buildings-v4 delivery (Sovereign Assets branch awnings, b7a6717), byte for byte:
+        // house-01-bungalow (9,220,316 bytes, SHA-256 d0d588d0d97ad2e9...): Material_0, windows_lit, windows_dark, door, walls
+        // store-pawn (6,047,520 bytes, SHA-256 a3aeaf92e96f3066...): Material_0, sign_lit, windows_lit, walls
+        // apt-01-stucco (6,080,956 bytes, SHA-256 c5ead5063c464902...): Material_0, windows_lit, windows_dark, door, walls
+        // house-02-two-story (5,351,672 bytes, SHA-256 8638ea2519c66e6f...): Material_0, windows_lit, door, walls
+        // apt-mixed-use (5,568,548 bytes, SHA-256 bc7c7dbc37b7da50...): Material_0, windows_lit, windows_dark, door, walls
+        // store-barber (8,774,092 bytes, SHA-256 59a1e8dc97f344c9...): Material_0, windows_lit, door, awning, walls
         public static readonly HashSet<string> Finished = new() { "house-01-bungalow", "house-02-two-story", "apt-01-stucco", "apt-mixed-use", "store-pawn", "store-barber" };
 
         /// <summary>Stucco washes dealt to the houses in turn (multiplied over the model's own colors): white, warm
@@ -230,11 +235,11 @@ namespace StreetEmpire.EditorTools
         /// barbershop about 4.5; the rest read from each model's storeys). Sovereign Asset Size: Height used the same.</summary>
         public static readonly Dictionary<string, float> RealHeight = new()
         {
-            ["apt-01-stucco"] = 10f, ["apt-02-brick"] = 10f, ["apt-mixed-use"] = 10f, ["apt-motel-style"] = 7f, ["civic-church"] = 10f,
-            ["house-01-bungalow"] = 4.2f /* v4 finish (Matthew, 9,237,420 bytes, 802f6984) */, ["house-02-two-story"] = 6.5f, ["house-03-duplex"] = 4f, ["house-boarded"] = 7f,
+            ["apt-01-stucco"] = 10f /* v75k finish (Matthew, 6,080,956 bytes, c5ead506) */, ["apt-02-brick"] = 10f, ["apt-mixed-use"] = 10f /* v75k finish (Matthew, 5,568,548 bytes, bc7c7dbc) */, ["apt-motel-style"] = 7f, ["civic-church"] = 10f,
+            ["house-01-bungalow"] = 4.2f /* v75k finish (Matthew, 9,220,316 bytes, d0d588d0) */, ["house-02-two-story"] = 6.5f /* v75k finish (Matthew, 5,351,672 bytes, 8638ea25) */, ["house-03-duplex"] = 4f, ["house-boarded"] = 7f,
             ["house-rowhouse-pair"] = 9f, ["house-shotgun"] = 4.5f, ["house-wood-duplex"] = 7.5f, ["shop-auto-garage"] = 5f,
-            ["shop-gas-station"] = 5f, ["store-barber"] = 4.5f, ["store-bodega"] = 7f, ["store-laundromat"] = 6f,
-            ["store-pawn"] = 4.5f /* v4 finish (Matthew, 5,226,384 bytes, 338071cf) */, ["store-takeout"] = 7.5f, ["store-liquor-blank"] = 4.9f,
+            ["shop-gas-station"] = 5f, ["store-barber"] = 4.5f /* v75k finish (Matthew, 8,774,092 bytes, 59a1e8dc) */, ["store-bodega"] = 7f, ["store-laundromat"] = 6f,
+            ["store-pawn"] = 4.5f /* v75k finish (Matthew, 6,047,520 bytes, a3aeaf92) */, ["store-takeout"] = 7.5f, ["store-liquor-blank"] = 4.9f,
         };
 
         static bool PlaceBuilding(BuildingSpot spot, Transform parent)
