@@ -62,7 +62,7 @@ namespace StreetEmpire.EditorTools
         static readonly Dictionary<string, (Color32 mean, Color32 target)> WallPaint = new()
         {
             ["apt-01-stucco"] = (new(200, 183, 165, 255), new(200, 183, 165, 255)),   // v75d: Matthew's v2 file, as it is
-            ["apt-mixed-use"] = (new(53, 41, 36, 255), new(132, 98, 80, 255)),
+            ["apt-mixed-use"] = (new(128, 128, 128, 255), new(128, 128, 128, 255)),   // v75h: Matthew's v3 file, as it is
             ["apt-02-brick"] = (new(62, 46, 38, 255), new(128, 86, 66, 255)),
             ["apt-motel-style"] = (new(99, 89, 78, 255), new(178, 172, 154, 255)),
             ["civic-church"] = (new(53, 41, 37, 255), new(168, 152, 130, 255)),
@@ -226,7 +226,7 @@ namespace StreetEmpire.EditorTools
         public static readonly Dictionary<string, float> RealHeight = new()
         {
             ["apt-01-stucco"] = 10f, ["apt-02-brick"] = 10f, ["apt-mixed-use"] = 10f, ["apt-motel-style"] = 7f, ["civic-church"] = 10f,
-            ["house-01-bungalow"] = 4.2f, ["house-02-two-story"] = 7f, ["house-03-duplex"] = 4f, ["house-boarded"] = 7f,
+            ["house-01-bungalow"] = 4.2f, ["house-02-two-story"] = 6.5f, ["house-03-duplex"] = 4f, ["house-boarded"] = 7f,
             ["house-rowhouse-pair"] = 9f, ["house-shotgun"] = 4.5f, ["house-wood-duplex"] = 7.5f, ["shop-auto-garage"] = 5f,
             ["shop-gas-station"] = 5f, ["store-barber"] = 4.5f, ["store-bodega"] = 7f, ["store-laundromat"] = 6f,
             ["store-pawn"] = 4.5f, ["store-takeout"] = 7.5f, ["store-liquor-blank"] = 4.9f,
@@ -412,7 +412,7 @@ namespace StreetEmpire.EditorTools
                 // v75f (Matthew: the white house and pawn shop panes were flat near white squares): their lit panes
                 // get pane local UVs into one of four warm rooms (blinds, curtains, a corner lamp, a half drawn
                 // blind; tools/make_window_warm.py) and a material that glows through that map
-                if (name == "house-01-bungalow" || name == "store-pawn" || name == "apt-01-stucco")   // v75g: the apartment too
+                if (name == "house-01-bungalow" || name == "store-pawn" || name == "apt-01-stucco" || name == "house-02-two-story" || name == "apt-mixed-use" || name == "store-barber")   // v75g: the apartment too; v75h: Matthew's v3 files
                 {
                     var uv = m2.uv; if (uv == null || uv.Length != v.Length) uv = new Vector2[v.Length];
                     var groups = new Dictionary<int, List<int>>();
@@ -559,7 +559,7 @@ namespace StreetEmpire.EditorTools
                     if (name == "house-01-bungalow") mul = Color.Lerp(Color.white, mul, 0.6f);
                     // v75g: no paint on the white house at all, Matthew's walls as they are (the blue gray lot paint made
                     // them read flat gray)
-                    if (name == "house-01-bungalow") mul = Color.white;
+                    if (name == "house-01-bungalow" || name == "house-02-two-story") mul = Color.white;   // v75h: Matthew's v3 two story too
                     if (mul == Color.white) continue;
                     string path = $"{Mats}/Wash/{name}__{mats[i].name.Replace(" ", "_")}__{ColorUtility.ToHtmlStringRGB(mul * 0.5f)}.mat";
                     var m = AssetDatabase.LoadAssetAtPath<Material>(path);

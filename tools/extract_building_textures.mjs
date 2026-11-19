@@ -14,6 +14,7 @@ import sharp from 'sharp';
 const [dir, texDir, only] = process.argv.slice(2);   // v75g: optional third argument, one model name
 fs.mkdirSync(texDir, { recursive: true });
 if (!only) for (const f of fs.readdirSync(texDir)) if (f !== 'window-warm_emission.png' && /^[a-z0-9-]+_(basecolor|normal|emission|metalsmooth)\.(jpg|png)$/.test(f)) fs.rmSync(path.join(texDir, f));
+const FULL = ['house-01-bungalow', 'house-02-two-story', 'apt-mixed-use', 'store-barber'];
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
 const part = (m) => { const n = m.getName(); return n.includes('windows_lit') ? 'windows_lit' : n.includes('windows_dark') ? 'windows_dark' : n.includes('walls') ? 'walls' : (n.includes('Material_0') || !n) ? 'Material_0' : n; };
 for (const f of fs.readdirSync(dir).filter((f) => f.endsWith('.glb')).sort()) {
@@ -22,8 +23,9 @@ for (const f of fs.readdirSync(dir).filter((f) => f.endsWith('.glb')).sort()) {
   for (const m of doc.getRoot().listMaterials()) {
     const p = part(m); if (p.startsWith('windows') || p === 'roof') continue;   // the roof shares the walls maps
     // the walls carry the clean wall color at 2048; normals, roughness, trim, roof, frames and doors at 1024
-    // v75g: the white house's walls keep their normal and roughness at 2048 too (the stucco is in its normal map)
-    const max = p === 'walls' ? 2048 : 1024, nmax = p === 'walls' && name === 'house-01-bungalow' ? 2048 : 1024, base = path.join(texDir, `${name}__${p}`);
+    // v75g: the white house's walls keep their normal and roughness at 2048 too (the stucco is in its normal map);
+    // v75h: so do Matthew's v3 house-02-two-story, apt-mixed-use and store-barber
+    const max = p === 'walls' ? 2048 : 1024, nmax = p === 'walls' && FULL.includes(name) ? 2048 : 1024, base = path.join(texDir, `${name}__${p}`);
     const img = (t, sz) => sharp(Buffer.from(t.getImage())).resize(sz, sz, { fit: 'inside', withoutEnlargement: true });
     const bc = m.getBaseColorTexture(); if (bc) { await img(bc, max).jpeg({ quality: 90 }).toFile(`${base}_basecolor.jpg`); console.log(name, p, 'basecolor'); }
     const nm = m.getNormalTexture(); if (nm) { await img(nm, nmax).jpeg({ quality: 92 }).toFile(`${base}_normal.jpg`); console.log(name, p, 'normal'); }
