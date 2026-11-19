@@ -43,6 +43,7 @@ namespace StreetEmpire.EditorTools
         /// <summary>v75j: Matthew's finished Sovereign Asset files (byte for byte his v2 and v3 deliveries). Only these
         /// get scaling and their maps wired, nothing else; only their windows_lit and sign_lit glow, as their materials
         /// assign. Every other kit model is raw or an older Sovereign Asset run and glows nowhere.</summary>
+        // store-pawn is Matthew's v4 finish (5,226,384 bytes, SHA-256 338071cf5b0983bf...): Material_0, walls, windows_lit, sign_lit
         // house-01-bungalow is Matthew's v4 finish (9,237,420 bytes, SHA-256 802f6984745d74b4...): Material_0, walls, windows_lit, windows_dark, door
         public static readonly HashSet<string> Finished = new() { "house-01-bungalow", "house-02-two-story", "apt-01-stucco", "apt-mixed-use", "store-pawn", "store-barber" };
 
@@ -233,7 +234,7 @@ namespace StreetEmpire.EditorTools
             ["house-01-bungalow"] = 4.2f /* v4 finish (Matthew, 9,237,420 bytes, 802f6984) */, ["house-02-two-story"] = 6.5f, ["house-03-duplex"] = 4f, ["house-boarded"] = 7f,
             ["house-rowhouse-pair"] = 9f, ["house-shotgun"] = 4.5f, ["house-wood-duplex"] = 7.5f, ["shop-auto-garage"] = 5f,
             ["shop-gas-station"] = 5f, ["store-barber"] = 4.5f, ["store-bodega"] = 7f, ["store-laundromat"] = 6f,
-            ["store-pawn"] = 4.5f, ["store-takeout"] = 7.5f, ["store-liquor-blank"] = 4.9f,
+            ["store-pawn"] = 4.5f /* v4 finish (Matthew, 5,226,384 bytes, 338071cf) */, ["store-takeout"] = 7.5f, ["store-liquor-blank"] = 4.9f,
         };
 
         static bool PlaceBuilding(BuildingSpot spot, Transform parent)
