@@ -492,50 +492,12 @@ namespace StreetEmpire.Game
                         // v75e: the whole apartment with its roof: from farther out, a lower and longer camera
                         case 4: case 22:
                         {
-                            // v75g: the apartment camera spot. v75f slid along the front only and checked three lines,
-                            // so a curb palm right in front of the middle still stood in the shot. Now every apartment
-                            // in the district and a grid of spots in front of each (12 to 24 m out, up to 16 m to either
-                            // side, looking at the middle of the front) is tried; a spot counts only when no palm, tree,
-                            // pole, lamp or signal stands inside its view of the facade (corner to corner, 0.6 m wider
-                            // each side). The straightest clear spot about 19 m out wins.
-                            var best = (cam: b10, look: Vector3.forward, n: -1, cost: float.MaxValue); string near = "";
-                            foreach (var m in FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None))
-                            {
-                                if (m.model == null || !m.model.StartsWith("apt-01")) continue;
-                                var c = m.GetComponent<BoxCollider>(); if (c == null) continue; var bb = c.bounds;
-                                var o = bb.center - Block(m.blockId); o.y = 0;
-                                var fn = m.transform.forward; fn.y = 0; fn.Normalize(); if (Vector3.Dot(fn, o) < 0) fn = -fn;
-                                var ft = Vector3.Cross(Vector3.up, fn);
-                                var face = bb.center + fn * Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(fn.x), 0, Mathf.Abs(fn.z)))); face.y = 0;
-                                float half = Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(ft.x), 0, Mathf.Abs(ft.z))));
-                                var L = face + ft * half; var R = face - ft * half;
-                                for (float back = 9f; back <= 26.01f; back += 1f)
-                                    for (float slide = -26f; slide <= 26.01f; slide += 1f)
-                                    {
-                                        var cp = face + fn * back + ft * slide;
-                                        var dl = (L - cp).normalized; var dr = (R - cp).normalized;
-                                        float aL = Vector3.SignedAngle(-fn, dl, Vector3.up), aR = Vector3.SignedAngle(-fn, dr, Vector3.up);
-                                        float lo = Mathf.Min(aL, aR), hi = Mathf.Max(aL, aR);
-                                        if (hi - lo > 75f || hi - lo < 15f) continue;   // too close to fit, or too far off to the side
-                                        int nIn = 0;
-                                        foreach (var q in blockers)
-                                        {
-                                            var qq = q; qq.y = 0; var d = qq - cp; float dist = d.magnitude; if (dist < 0.5f) { nIn++; continue; }
-                                            if (Vector3.Dot(qq - face, fn) < 0.2f) continue;   // at or behind the wall
-                                            float ang = Vector3.SignedAngle(-fn, d, Vector3.up), pad = Mathf.Rad2Deg * Mathf.Atan2(0.6f, dist);
-                                            if (ang > lo - pad && ang < hi + pad) nIn++;
-                                        }
-                                        float cost = nIn * 1000f + Mathf.Abs((lo + hi) / 2f) * 0.5f + Mathf.Abs(back - 18f) * 0.3f + (bb.center - b10).magnitude * 0.002f;
-                                        if (cost < best.cost)
-                                        {
-                                            best = (cp, (face - cp).normalized, nIn, cost); near = "";
-                                            foreach (var q in blockers) { var r0 = q - face; r0.y = 0; float fo = Vector3.Dot(r0, fn), si = Vector3.Dot(r0, ft); if (fo > -1f && fo < 26f && Mathf.Abs(si) < 28f) near += $" ({si:0.0} along, {fo:0.0} out)"; }
-                                        }
-                                    }
-                            }
-                            Debug.Log($"[ShotDirector] v75 apartment camera at {best.cam}, {best.n} obstacles in view; obstacles in front of that apartment:{near}");
-                            var lk = best.look; lk.y = 0; lk.Normalize();
-                            Game(best.cam + lk * 8.5f, lk, 5f, 8.5f); break;
+                            // v75g: the apartment by hand, straight across the street, 19 m out and 3.5 m to one side.
+                            // There is no clear spot: a curb palm stands 3.5 m in front of the middle of the facade (the
+                            // v75g grid search over every apartment found its only clear view at a corner, close and
+                            // steep, with the signal mast in front). From here that trunk falls on the stair bay.
+                            var f = Face("apt-01", 16f);
+                            Game(f.face + f.n * (19f - 8.5f) - f.t * 3.5f, -f.n, 5f, 8.5f); break;
                         }
                         case 5: case 23: case 24: { var f = Face("house-01", 9f); Game(f.face + f.n * 4.5f + f.t * 1.2f, -f.n, 8f, 5f); break; }
                         // v75b: the liquor store sign at 22:00, and the mixed use block (the v74 black tower) by day
