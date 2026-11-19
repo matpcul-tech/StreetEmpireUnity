@@ -410,7 +410,7 @@ namespace StreetEmpire.EditorTools
                 // v75f (Matthew: the white house and pawn shop panes were flat near white squares): their lit panes
                 // get pane local UVs into one of four warm rooms (blinds, curtains, a corner lamp, a half drawn
                 // blind; tools/make_window_warm.py) and a material that glows through that map
-                if (name == "house-01-bungalow" || name == "store-pawn")
+                if (name == "house-01-bungalow" || name == "store-pawn" || name == "apt-01-stucco")   // v75g: the apartment too
                 {
                     var uv = m2.uv; if (uv == null || uv.Length != v.Length) uv = new Vector2[v.Length];
                     var groups = new Dictionary<int, List<int>>();
