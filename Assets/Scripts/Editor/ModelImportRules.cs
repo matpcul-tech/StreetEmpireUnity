@@ -59,8 +59,9 @@ namespace StreetEmpire.EditorTools
             bool hero = assetPath.Contains("_2k_");
             // v74 buildings: the clean wall color at 2048 (spec A.5 caps every building map at 2048), its normal
             // and the roughness maps at 1024, the Meshy trim atlas (Material_0) at its own 1024
+            // v75g: the white house walls keep their normal and roughness at 2048 too (its stucco lives in the normal map)
             bool building = assetPath.StartsWith("Assets/Art/Textures/Buildings/");
-            int max = prop ? Size(assetPath, normal, data, hero) : building ? (assetPath.Contains("__walls_basecolor") ? 2048 : 1024) : hero ? 2048 : 1024;
+            int max = prop ? Size(assetPath, normal, data, hero) : building ? (assetPath.Contains("__walls_basecolor") || assetPath.Contains("house-01-bungalow__walls_") ? 2048 : 1024) : hero ? 2048 : 1024;
             t.mipmapEnabled = true; t.maxTextureSize = max;
             // ground textures tile across big boxes and are seen at grazing angles
             if (assetPath.StartsWith("Assets/Art/Textures/Ground/")) { t.wrapMode = UnityEngine.TextureWrapMode.Repeat; t.anisoLevel = 8; }

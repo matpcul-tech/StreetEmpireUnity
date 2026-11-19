@@ -226,7 +226,7 @@ namespace StreetEmpire.EditorTools
         public static readonly Dictionary<string, float> RealHeight = new()
         {
             ["apt-01-stucco"] = 10f, ["apt-02-brick"] = 10f, ["apt-mixed-use"] = 10f, ["apt-motel-style"] = 7f, ["civic-church"] = 10f,
-            ["house-01-bungalow"] = 4f, ["house-02-two-story"] = 7f, ["house-03-duplex"] = 4f, ["house-boarded"] = 7f,
+            ["house-01-bungalow"] = 4.2f, ["house-02-two-story"] = 7f, ["house-03-duplex"] = 4f, ["house-boarded"] = 7f,
             ["house-rowhouse-pair"] = 9f, ["house-shotgun"] = 4.5f, ["house-wood-duplex"] = 7.5f, ["shop-auto-garage"] = 5f,
             ["shop-gas-station"] = 5f, ["store-barber"] = 4.5f, ["store-bodega"] = 7f, ["store-laundromat"] = 6f,
             ["store-pawn"] = 4.5f, ["store-takeout"] = 7.5f, ["store-liquor-blank"] = 4.9f,
@@ -387,6 +387,8 @@ namespace StreetEmpire.EditorTools
                     var na = N(a); var nb = N(b); var c = (na + nb) / 2;
                     if (name == "store-pawn") return false;
                     if (name == "house-01-bungalow" && c.z > refSize.z * 0.75f) return false;   // v75e: the two street front panes added by house01_v2_fix.py stay lit   // v75e: the pawn shop's storefront and door glass all lit at night
+                    // v75g: the apartment's entry door glass always lit (Matthew), its windows keep the scatter
+                    if (name == "apt-01-stucco" && na.y < 1.3f && Mathf.Max(nb.x - na.x, nb.z - na.z) < 1.1f) return false;
                     if (store && na.y < 1.3f && Mathf.Max(nb.x - na.x, nb.z - na.z) < 1.1f) return true;   // door glass
                     uint q = unchecked((uint)Mathf.FloorToInt(c.x) * 73856093u ^ (uint)Mathf.FloorToInt(c.y) * 19349663u ^ (uint)Mathf.FloorToInt(c.z) * 83492791u ^ (uint)seed);
                     q ^= q >> 13; q *= 1274126177u; q ^= q >> 16;
@@ -555,6 +557,9 @@ namespace StreetEmpire.EditorTools
                     var mul = painted ? Paint(wp.mean, wall) : tint;
                     // v75e: the white house (its roof now apart) gets only a slight share of the stucco wash per lot
                     if (name == "house-01-bungalow") mul = Color.Lerp(Color.white, mul, 0.6f);
+                    // v75g: no paint on the white house at all, Matthew's walls as they are (the blue gray lot paint made
+                    // them read flat gray)
+                    if (name == "house-01-bungalow") mul = Color.white;
                     if (mul == Color.white) continue;
                     string path = $"{Mats}/Wash/{name}__{mats[i].name.Replace(" ", "_")}__{ColorUtility.ToHtmlStringRGB(mul * 0.5f)}.mat";
                     var m = AssetDatabase.LoadAssetAtPath<Material>(path);

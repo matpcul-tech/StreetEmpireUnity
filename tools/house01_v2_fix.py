@@ -5,7 +5,7 @@
 # 2. the roof's faces (up-facing, normal z over 0.45, in the walls material) move to a material named "roof" (the
 #    same textures), so each placed house can get a slight wall tint without tinting the roof.
 # 3. the two front windows are only painted in the texture (the file's glass is on the sides and back), so they get a
-#    pane each in windows_lit, 1 cm proud of the wall and 6 cm inside the painted frame, so they can light at night like the rest (SplitWindows turns
+#    pane per sash in windows_lit, 1 cm proud of the wall and 6 cm inside the painted frame, so they can light at night like the rest (SplitWindows turns
 #    about a third of the panes off). Rects measured on a 1 cm per pixel orthographic render of the front.
 # Usage: blender -b -P house01_v2_fix.py -- in.glb out.glb
 import sys, math, bpy, mathutils
@@ -25,7 +25,11 @@ for o in [o for o in bpy.context.scene.objects if o.type == 'MESH']:
     if me.has_custom_normals: bpy.ops.mesh.customdata_custom_splitnormals_clear()   # the glTF normals win over smoothing otherwise
     bpy.ops.object.shade_smooth_by_angle(angle=math.radians(30))
 import bmesh
-FRONT = [(-2.28, -1.37, 1.08, 1.85), (2.09, 2.93, 1.08, 1.85)]   # glTF x0, x1, height y0, y1 (front is glTF +Z, Blender -Y)
+# v75g: one pane per painted sash, inside the painted frame and either side of the painted mullion (Matthew: the
+# v75e squares covered the whole window, frame and bar too). Measured 1 cm per pixel on a flat lit front render of the
+# v2 file (dark glass x 192 to 288 and 627 to 721, mullions 233 to 247 and 669 to 676, rows 447 to 533), 2 cm inset.
+FRONT = [(-2.305, -1.915, 1.035, 1.855), (-1.765, -1.375, 1.035, 1.855),
+         (2.045, 2.435, 1.035, 1.855), (2.525, 2.945, 1.035, 1.855)]   # glTF x0, x1, height y0, y1 (front is glTF +Z, Blender -Y)
 o = next(o for o in bpy.context.scene.objects if o.type == 'MESH'); me = o.data
 li = next(i for i, m in enumerate(me.materials) if m and m.name.startswith('windows_lit'))
 dg = bpy.context.evaluated_depsgraph_get()
