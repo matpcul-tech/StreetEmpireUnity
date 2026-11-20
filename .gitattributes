@@ -67,3 +67,8 @@ Assets/Art/Textures/Buildings/house-flat-roof__* -filter -diff -merge binary
 Assets/Art/Textures/Buildings/apt-dingbat__* -filter -diff -merge binary
 Assets/Art/Textures/Buildings/store-check-cashing__* -filter -diff -merge binary
 docs/sovereign-assets/u75l/*.jpg -filter -diff -merge binary
+
+# v75m: the two reworked buildings and the u75m sheet, plain git files for the same reason as the v75l block above
+Assets/Art/Models/Buildings/store-pawn.glb -filter -diff -merge binary
+Assets/Art/Models/Buildings/house-01-bungalow.glb -filter -diff -merge binary
+docs/sovereign-assets/u75m/*.jpg -filter -diff -merge binary

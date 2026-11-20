@@ -1,0 +1,253 @@
+{
+ "file": "/home/claude/work/out/store-pawn.glb",
+ "plan": {
+  "openings": [
+   {
+    "kind": "sign",
+    "face": "+z",
+    "at": 2.249,
+    "span": [
+     -2.23,
+     2.13
+    ],
+    "y": [
+     3.22,
+     3.86
+    ],
+    "text": "PAWN * LOANS * GOLD"
+   }
+  ]
+ },
+ "done": {
+  "window": 0,
+  "door": 0,
+  "sign": 1,
+  "wall": 0,
+  "cut": 0,
+  "clear": 0
+ },
+ "log": [
+  "The sign found before (31 triangles, material sign_lit) went back to plain paint: the redrawn sign is the sign now.",
+  "Sign: \"PAWN · LOANS · GOLD\" lettered on a 4.36 by 0.64 m board, capitals 27 cm tall, material sign_lit, glowing with its own paint."
+ ],
+ "ready": true,
+ "summary": "Every check passed on the finished file.",
+ "checks": [
+  {
+   "id": "valid",
+   "status": "pass",
+   "label": "Valid glTF 2.0",
+   "detail": "The Khronos validator found no errors (5 warnings).",
+   "fix": ""
+  },
+  {
+   "id": "triangles-clean",
+   "status": "pass",
+   "label": "Clean triangles",
+   "detail": "No empty or repeated triangles.",
+   "fix": ""
+  },
+  {
+   "id": "facing",
+   "status": "pass",
+   "label": "Faces point outward",
+   "detail": "No shell is inside out.",
+   "fix": ""
+  },
+  {
+   "id": "normals",
+   "status": "pass",
+   "label": "Normals",
+   "detail": "Every part has normals that agree with its faces.",
+   "fix": ""
+  },
+  {
+   "id": "closed",
+   "status": "note",
+   "label": "Open edges",
+   "detail": "5172 open edges. Fine for games and rendering. A 3D print needs none.",
+   "fix": ""
+  },
+  {
+   "id": "budget",
+   "status": "note",
+   "label": "Triangles",
+   "detail": "57952 triangles. No target was set.",
+   "fix": ""
+  },
+  {
+   "id": "drawcalls",
+   "status": "note",
+   "label": "Draw calls",
+   "detail": "6 draw calls, 4 materials.",
+   "fix": ""
+  },
+  {
+   "id": "color",
+   "status": "note",
+   "label": "Color range",
+   "detail": "Brightness runs from 1 to 65 percent, middle 32. Peak vividness 94. The shared range is 2 to 82, vividness up to 90. This asset is outside it. Turn on Hold color to the shared standard so it matches the others.",
+   "fix": ""
+  },
+  {
+   "id": "detail",
+   "status": "note",
+   "label": "Texture detail",
+   "detail": "70 texture pixels per meter across most of the surface. 26 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.",
+   "fix": ""
+  },
+  {
+   "id": "size",
+   "status": "note",
+   "label": "Size",
+   "detail": "5.69 wide, 4.50 tall, 4.80 long (meters). No size was set.",
+   "fix": ""
+  },
+  {
+   "id": "kept",
+   "status": "pass",
+   "label": "Nothing lost",
+   "detail": "4 materials, 8 textures.",
+   "fix": ""
+  },
+  {
+   "id": "bytes",
+   "status": "note",
+   "label": "File size",
+   "detail": "6.1 MB, was 6.1 MB.",
+   "fix": ""
+  },
+  {
+   "id": "parts",
+   "status": "note",
+   "label": "Windows, signs and doors",
+   "detail": "679 lit and 0 dark window triangles, 2 sign triangles, 0 door triangles.",
+   "fix": ""
+  }
+ ],
+ "after": {
+  "bytes": 6423252,
+  "nodes": 1,
+  "meshes": 1,
+  "drawCalls": 6,
+  "triangles": 57952,
+  "vertices": 70454,
+  "materials": 4,
+  "textures": [
+   {
+    "name": "Image_2",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 40907
+   },
+   {
+    "name": "Image_0",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 276113
+   },
+   {
+    "name": "Image_1",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 130514
+   },
+   {
+    "name": "walls_color",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 512918
+   },
+   {
+    "name": "walls_normal",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 1551953
+   },
+   {
+    "name": "walls_roughness",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 588999
+   },
+   {
+    "name": "windows_lit_normal",
+    "mime": "image/png",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 349851
+   },
+   {
+    "name": "sign_color",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 304,
+    "bytes": 123449
+   }
+  ],
+  "maxTexture": 2048,
+  "skins": 0,
+  "joints": 0,
+  "animations": 0,
+  "morphs": 0,
+  "otherPrimitives": 0,
+  "size": [
+   5.689058303833008,
+   4.5,
+   4.79963493347168
+  ],
+  "min": [
+   -2.844529151916504,
+   0,
+   -2.39981746673584
+  ],
+  "max": [
+   2.844529151916504,
+   4.5,
+   2.39981746673584
+  ],
+  "extensions": [],
+  "defects": {
+   "degenerate": 0,
+   "duplicate": 0,
+   "debrisPieces": 0,
+   "debrisTriangles": 0,
+   "debrisHeld": 0,
+   "inverted": 0,
+   "missingNormals": 0,
+   "wrongNormals": 0,
+   "openEdges": 5172,
+   "nonManifold": 0,
+   "missingUV": 0,
+   "pieces": 124
+  },
+  "detail": {
+   "median": 70.00846311224328,
+   "stretched": 0.25818532849108156,
+   "area": 165.7988184471237
+  },
+  "color": {
+   "low": 0.008056640625,
+   "mid": 0.322265625,
+   "high": 0.646240234375,
+   "vivid": 0.943603515625
+  },
+  "parts": {
+   "litTris": 679,
+   "darkTris": 0,
+   "signTris": 2,
+   "doorTris": 0,
+   "glow": [
+    1,
+    0.74,
+    0.45
+   ]
+  }
+ }
+}

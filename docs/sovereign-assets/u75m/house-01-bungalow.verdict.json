@@ -1,0 +1,338 @@
+{
+ "file": "/home/claude/work/out/house-01-bungalow.glb",
+ "plan": {
+  "openings": [
+   {
+    "kind": "clear",
+    "face": "+z",
+    "at": 3.815,
+    "span": [
+     -3.97,
+     0.16
+    ],
+    "y": [
+     0,
+     2.35
+    ]
+   },
+   {
+    "kind": "cut",
+    "face": "+z",
+    "at": 3.815,
+    "span": [
+     0.13,
+     1.32
+    ],
+    "y": [
+     0.13,
+     2.14
+    ]
+   },
+   {
+    "kind": "wall",
+    "face": "+z",
+    "at": 3.815,
+    "span": [
+     -2.62,
+     -1.06
+    ],
+    "y": [
+     0.03,
+     0.99
+    ]
+   },
+   {
+    "kind": "window",
+    "face": "+z",
+    "at": 3.815,
+    "span": [
+     -2.45,
+     -1.23
+    ],
+    "y": [
+     0.97,
+     2.03
+    ],
+    "lit": true
+   },
+   {
+    "kind": "door",
+    "face": "+z",
+    "at": 2.46,
+    "span": [
+     0.17,
+     1.31
+    ],
+    "y": [
+     0.12,
+     2.13
+    ]
+   },
+   {
+    "kind": "window",
+    "face": "+z",
+    "at": 2.46,
+    "span": [
+     1.93,
+     3.03
+    ],
+    "y": [
+     0.98,
+     1.99
+    ],
+    "lit": true
+   }
+  ]
+ },
+ "done": {
+  "window": 2,
+  "door": 1,
+  "sign": 0,
+  "wall": 1,
+  "cut": 1,
+  "clear": 1
+ },
+ "log": [
+  "The door found before (32 triangles, material door) went back to plain paint: the redrawn door is the door now.",
+  "Cleared: 9 loose triangles lying flat on the +z wall in old paint were taken off it, so no streak of old paint crosses the wall.",
+  "Cut: the wall inside 1.19 by 2.01 m on the +z wall was taken away (9 triangles trimmed to its edge).",
+  "Wall patch 1.56 by 0.96 m on the +z wall: clean paint copied from the cleanest 0.84 by 0.63 m of that wall, faded into the wall over 10 cm at its edge, painted into a free corner of the wall's own texture at 117 pixels per meter, color and 2 surface maps.",
+  "Frames, sills and sash bars are real pieces standing off the wall, material trim, painted one color here.",
+  "Doors: 1 door redrawn, a paneled leaf painted here (material door) in a frame.",
+  "Windows: 2 windows redrawn, each one whole pane the size of its opening (windows_lit) behind a frame and sash bars."
+ ],
+ "ready": true,
+ "summary": "Every check passed on the finished file.",
+ "checks": [
+  {
+   "id": "valid",
+   "status": "pass",
+   "label": "Valid glTF 2.0",
+   "detail": "The Khronos validator found no errors (9 warnings).",
+   "fix": ""
+  },
+  {
+   "id": "triangles-clean",
+   "status": "pass",
+   "label": "Clean triangles",
+   "detail": "No empty or repeated triangles.",
+   "fix": ""
+  },
+  {
+   "id": "facing",
+   "status": "pass",
+   "label": "Faces point outward",
+   "detail": "No shell is inside out.",
+   "fix": ""
+  },
+  {
+   "id": "normals",
+   "status": "pass",
+   "label": "Normals",
+   "detail": "Every part has normals that agree with its faces.",
+   "fix": ""
+  },
+  {
+   "id": "closed",
+   "status": "note",
+   "label": "Open edges",
+   "detail": "23241 open edges and 34 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+   "fix": ""
+  },
+  {
+   "id": "budget",
+   "status": "note",
+   "label": "Triangles",
+   "detail": "59107 triangles. No target was set.",
+   "fix": ""
+  },
+  {
+   "id": "drawcalls",
+   "status": "note",
+   "label": "Draw calls",
+   "detail": "11 draw calls, 6 materials.",
+   "fix": ""
+  },
+  {
+   "id": "color",
+   "status": "note",
+   "label": "Color range",
+   "detail": "Brightness runs from 3 to 71 percent, middle 24. Peak vividness 90. The shared range is 2 to 82, vividness up to 90.",
+   "fix": ""
+  },
+  {
+   "id": "detail",
+   "status": "note",
+   "label": "Texture detail",
+   "detail": "104 texture pixels per meter across most of the surface. 34 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.",
+   "fix": ""
+  },
+  {
+   "id": "size",
+   "status": "note",
+   "label": "Size",
+   "detail": "8.09 wide, 4.20 tall, 8.22 long (meters). No size was set.",
+   "fix": ""
+  },
+  {
+   "id": "kept",
+   "status": "pass",
+   "label": "Nothing lost",
+   "detail": "6 materials, 10 textures.",
+   "fix": ""
+  },
+  {
+   "id": "bytes",
+   "status": "note",
+   "label": "File size",
+   "detail": "9.2 MB, was 9.2 MB.",
+   "fix": ""
+  },
+  {
+   "id": "parts",
+   "status": "note",
+   "label": "Windows, signs and doors",
+   "detail": "47 lit and 38 dark window triangles, 0 sign triangles, 2 door triangles.",
+   "fix": ""
+  }
+ ],
+ "after": {
+  "bytes": 9671508,
+  "nodes": 1,
+  "meshes": 1,
+  "drawCalls": 11,
+  "triangles": 59107,
+  "vertices": 77257,
+  "materials": 6,
+  "textures": [
+   {
+    "name": "normal",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 384387
+   },
+   {
+    "name": "Image_0",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 289531
+   },
+   {
+    "name": "walls_color",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 1026586
+   },
+   {
+    "name": "walls_normal",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 1069803
+   },
+   {
+    "name": "walls_roughness",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 1189984
+   },
+   {
+    "name": "Material_0_roughness",
+    "mime": "image/png",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 659424
+   },
+   {
+    "name": "windows_lit_normal",
+    "mime": "image/png",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 1106934
+   },
+   {
+    "name": "windows_lit_roughness",
+    "mime": "image/png",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 665191
+   },
+   {
+    "name": "trim_color",
+    "mime": "image/jpeg",
+    "width": 128,
+    "height": 128,
+    "bytes": 2157
+   },
+   {
+    "name": "door_color",
+    "mime": "image/jpeg",
+    "width": 512,
+    "height": 1024,
+    "bytes": 86764
+   }
+  ],
+  "maxTexture": 2048,
+  "skins": 0,
+  "joints": 0,
+  "animations": 0,
+  "morphs": 0,
+  "otherPrimitives": 0,
+  "size": [
+   8.089970588684082,
+   4.199999809265137,
+   8.215330123901367
+  ],
+  "min": [
+   -4.044985294342041,
+   0,
+   -4.107665061950684
+  ],
+  "max": [
+   4.044985294342041,
+   4.199999809265137,
+   4.107665061950684
+  ],
+  "extensions": [],
+  "defects": {
+   "degenerate": 0,
+   "duplicate": 0,
+   "debrisPieces": 0,
+   "debrisTriangles": 0,
+   "debrisHeld": 0,
+   "inverted": 0,
+   "missingNormals": 0,
+   "wrongNormals": 0,
+   "openEdges": 23241,
+   "nonManifold": 34,
+   "missingUV": 0,
+   "pieces": 100
+  },
+  "detail": {
+   "median": 103.97348893744952,
+   "stretched": 0.34111163695583024,
+   "area": 363.2348722317615
+  },
+  "color": {
+   "low": 0.028076171875,
+   "mid": 0.240478515625,
+   "high": 0.708251953125,
+   "vivid": 0.897216796875
+  },
+  "parts": {
+   "litTris": 47,
+   "darkTris": 38,
+   "signTris": 0,
+   "doorTris": 2,
+   "glow": [
+    1,
+    0.74,
+    0.45
+   ]
+  }
+ }
+}
