@@ -72,3 +72,10 @@ docs/sovereign-assets/u75l/*.jpg -filter -diff -merge binary
 Assets/Art/Models/Buildings/store-pawn.glb -filter -diff -merge binary
 Assets/Art/Models/Buildings/house-01-bungalow.glb -filter -diff -merge binary
 docs/sovereign-assets/u75m/*.jpg -filter -diff -merge binary
+
+# v75n: four more reworked buildings and the u75n sheets, plain git files for the same reason as the v75l block above
+Assets/Art/Models/Buildings/apt-01-stucco.glb -filter -diff -merge binary
+Assets/Art/Models/Buildings/house-02-two-story.glb -filter -diff -merge binary
+Assets/Art/Models/Buildings/apt-mixed-use.glb -filter -diff -merge binary
+Assets/Art/Models/Buildings/store-barber.glb -filter -diff -merge binary
+docs/sovereign-assets/u75n/*.jpg -filter -diff -merge binary
