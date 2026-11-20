@@ -1,0 +1,232 @@
+{
+ "file": "/home/claude/work/rooms/house-stucco-duplex-2story.glb",
+ "plan": {
+  "rooms": true
+ },
+ "done": {
+  "panes": 4
+ },
+ "log": [
+  "Rooms: 4 panes (2 lit, 2 dark), each made one clean rectangle where its glass was and painted with what hangs in it: 4 house windows. By day a pane is dark glass with the sky in it; windows_lit glows at night with the room behind (its emission map, at full strength for the game's clock to scale). 1030 triangles of generated glass became 8."
+ ],
+ "ready": true,
+ "summary": "Every check passed on the finished file.",
+ "checks": [
+  {
+   "id": "valid",
+   "status": "pass",
+   "label": "Valid glTF 2.0",
+   "detail": "The Khronos validator found no errors (3 warnings).",
+   "fix": ""
+  },
+  {
+   "id": "triangles-clean",
+   "status": "pass",
+   "label": "Clean triangles",
+   "detail": "No empty or repeated triangles.",
+   "fix": ""
+  },
+  {
+   "id": "facing",
+   "status": "pass",
+   "label": "Faces point outward",
+   "detail": "No shell is inside out.",
+   "fix": ""
+  },
+  {
+   "id": "normals",
+   "status": "pass",
+   "label": "Normals",
+   "detail": "Every part has normals that agree with its faces.",
+   "fix": ""
+  },
+  {
+   "id": "closed",
+   "status": "note",
+   "label": "Open edges",
+   "detail": "11126 open edges and 456 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+   "fix": ""
+  },
+  {
+   "id": "budget",
+   "status": "note",
+   "label": "Triangles",
+   "detail": "69207 triangles. No target was set.",
+   "fix": ""
+  },
+  {
+   "id": "drawcalls",
+   "status": "note",
+   "label": "Draw calls",
+   "detail": "5 draw calls, 5 materials.",
+   "fix": ""
+  },
+  {
+   "id": "color",
+   "status": "note",
+   "label": "Color range",
+   "detail": "Brightness runs from 1 to 39 percent, middle 16. Peak vividness 50. The shared range is 2 to 82, vividness up to 90. This asset is outside it. Turn on Hold color to the shared standard so it matches the others.",
+   "fix": ""
+  },
+  {
+   "id": "detail",
+   "status": "note",
+   "label": "Texture detail",
+   "detail": "133 texture pixels per meter across most of the surface. 17 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.",
+   "fix": ""
+  },
+  {
+   "id": "size",
+   "status": "note",
+   "label": "Size",
+   "detail": "6.23 wide, 6.50 tall, 4.64 long (meters). No size was set.",
+   "fix": ""
+  },
+  {
+   "id": "kept",
+   "status": "pass",
+   "label": "Nothing lost",
+   "detail": "5 materials, 8 textures.",
+   "fix": ""
+  },
+  {
+   "id": "bytes",
+   "status": "note",
+   "label": "File size",
+   "detail": "8.1 MB, was 8.1 MB.",
+   "fix": ""
+  },
+  {
+   "id": "parts",
+   "status": "note",
+   "label": "Windows, signs and doors",
+   "detail": "4 lit and 4 dark window triangles, 0 sign triangles, 1160 door triangles.",
+   "fix": ""
+  }
+ ],
+ "after": {
+  "bytes": 8509276,
+  "nodes": 1,
+  "meshes": 1,
+  "drawCalls": 5,
+  "triangles": 69207,
+  "vertices": 84876,
+  "materials": 5,
+  "textures": [
+   {
+    "name": "",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 1116799
+   },
+   {
+    "name": "",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 2338617
+   },
+   {
+    "name": "",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 533417
+   },
+   {
+    "name": "walls_color",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 374602
+   },
+   {
+    "name": "walls_normal",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 359333
+   },
+   {
+    "name": "walls_roughness",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 447958
+   },
+   {
+    "name": "windows_day",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 512,
+    "bytes": 66767
+   },
+   {
+    "name": "windows_night",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 512,
+    "bytes": 134930
+   }
+  ],
+  "maxTexture": 2048,
+  "skins": 0,
+  "joints": 0,
+  "animations": 0,
+  "morphs": 0,
+  "otherPrimitives": 0,
+  "size": [
+   6.230862617492676,
+   6.5,
+   4.6398515701293945
+  ],
+  "min": [
+   -3.115431308746338,
+   0,
+   -2.3199257850646973
+  ],
+  "max": [
+   3.115431308746338,
+   6.5,
+   2.3199257850646973
+  ],
+  "extensions": [],
+  "defects": {
+   "degenerate": 0,
+   "duplicate": 0,
+   "debrisPieces": 0,
+   "debrisTriangles": 0,
+   "debrisHeld": 0,
+   "inverted": 0,
+   "missingNormals": 0,
+   "wrongNormals": 0,
+   "openEdges": 11126,
+   "nonManifold": 456,
+   "missingUV": 0,
+   "pieces": 74
+  },
+  "detail": {
+   "median": 132.81673550152672,
+   "stretched": 0.1731930169807428,
+   "area": 192.7192618918898
+  },
+  "color": {
+   "low": 0.012451171875,
+   "mid": 0.158447265625,
+   "high": 0.394287109375,
+   "vivid": 0.498779296875
+  },
+  "parts": {
+   "litTris": 4,
+   "darkTris": 4,
+   "signTris": 0,
+   "doorTris": 1160,
+   "glow": [
+    1,
+    1,
+    1
+   ]
+  }
+ }
+}
