@@ -48,22 +48,24 @@ namespace StreetEmpire.EditorTools
         /// get scaling and their maps wired, nothing else; only their windows_lit and sign_lit glow, as their materials
         /// assign. Every other kit model is raw or an older Sovereign Asset run and glows nowhere.</summary>
         // v75k: all six are Matthew's finished-buildings-v4 delivery (Sovereign Assets branch awnings, b7a6717), byte for byte:
+        // v75n: eleven files replaced by the u75n delivery (Sovereign Asset claude/asset-rooms, docs/sovereign-assets/u75n),
+        // as delivered: windows_lit glows from its own emission map (windows_night), the white house redrawn on all sides.
         // v75m: house-01-bungalow and store-pawn replaced by the u75m files (Sovereign Asset claude/asset-openings,
         // docs/sovereign-assets/u75m), as delivered: lettered pawn sign_lit, redrawn bungalow front with a trim material:
-        // house-01-bungalow (9,671,508 bytes, SHA-256 31ede8437ad8d2a9...): Material_0, windows_lit, windows_dark, door, trim, walls
-        // store-pawn (6,423,252 bytes, SHA-256 2669bd6991e9c4c8...): Material_0, sign_lit, windows_lit, walls
-        // apt-01-stucco (6,080,956 bytes, SHA-256 c5ead5063c464902...): Material_0, windows_lit, windows_dark, door, walls
-        // house-02-two-story (5,351,672 bytes, SHA-256 8638ea2519c66e6f...): Material_0, windows_lit, door, walls
-        // apt-mixed-use (5,568,548 bytes, SHA-256 bc7c7dbc37b7da50...): Material_0, windows_lit, windows_dark, door, walls
-        // store-barber (8,774,092 bytes, SHA-256 59a1e8dc97f344c9...): Material_0, windows_lit, door, awning, walls
+        // house-01-bungalow (7,984,464 bytes, SHA-256 a7991f266152283d...): Material_0, walls, trim, door, bars, windows_lit, windows_dark
+        // store-pawn (6,221,616 bytes, SHA-256 08c2603b95b1d8f5...): Material_0, walls, sign_lit, windows_lit
+        // apt-01-stucco (5,718,764 bytes, SHA-256 5972b40481486552...): Material_0, door, walls, windows_lit, windows_dark
+        // house-02-two-story (5,231,296 bytes, SHA-256 5f53253f1d6eb071...): Material_0, door, walls, windows_lit
+        // apt-mixed-use (5,612,804 bytes, SHA-256 b75e17aaacc19d57...): Material_0, door, walls, windows_lit, windows_dark
+        // store-barber (8,799,264 bytes, SHA-256 df9fd2071d4a7e9e...): Material_0, door, awning, walls, windows_lit
         // v75l: seven more, from the untouched Meshy files in release meshy-new-buildings-2026-11-19, finished with Sovereign
         // Asset main a642bef (Unity building, Size Height, about 58k triangles; docs/sovereign-assets/u75l):
-        // house-spanish-tile (9,786,532 bytes, SHA-256 6ed308a235169b43...): Material_0, windows_lit, windows_dark, door, walls
-        // house-craftsman-porch (9,248,400 bytes, SHA-256 ce80f915f4b18de0...): Material_0, windows_lit, windows_dark, walls
-        // house-stucco-duplex-2story (9,179,232 bytes, SHA-256 a5545cb263f0e336...): Material_0, windows_lit, windows_dark, door, walls
+        // house-spanish-tile (8,600,696 bytes, SHA-256 2a5626663236a176...): Material_0, door, walls, windows_lit, windows_dark
+        // house-craftsman-porch (8,164,820 bytes, SHA-256 9dead538c2ecf2f0...): Material_0, walls, windows_lit, windows_dark
+        // house-stucco-duplex-2story (8,509,276 bytes, SHA-256 bbea5573368c2111...): Material_0, door, walls, windows_lit, windows_dark
         // house-boarded-stucco (7,133,304 bytes, SHA-256 173cc622956a4af7...): Material_0, door, walls
-        // house-flat-roof (10,107,980 bytes, SHA-256 ddd9d56ac9d12006...): Material_0, windows_lit, windows_dark, walls
-        // apt-dingbat (8,913,860 bytes, SHA-256 be5042ca2104df9e...): Material_0, sign_lit (emission off), windows_lit, windows_dark, walls
+        // house-flat-roof (7,800,828 bytes, SHA-256 9bb7bfb43bd23365...): Material_0, walls, windows_lit, windows_dark
+        // apt-dingbat (7,066,688 bytes, SHA-256 6027c60d81addc3d...): Material_0, sign_lit, walls, windows_lit, windows_dark (sign_lit emission off)
         // store-check-cashing (5,966,416 bytes, SHA-256 75b476a53e0a9b59...): Material_0, door, walls
         public static readonly HashSet<string> Finished = new()
         {
@@ -254,11 +256,11 @@ namespace StreetEmpire.EditorTools
         /// barbershop about 4.5; the rest read from each model's storeys). Sovereign Asset Size: Height used the same.</summary>
         public static readonly Dictionary<string, float> RealHeight = new()
         {
-            ["apt-01-stucco"] = 10f /* v75k finish (Matthew, 6,080,956 bytes, c5ead506) */, ["apt-02-brick"] = 10f, ["apt-mixed-use"] = 10f /* v75k finish (Matthew, 5,568,548 bytes, bc7c7dbc) */, ["apt-motel-style"] = 7f, ["civic-church"] = 10f,
-            ["house-01-bungalow"] = 4.2f /* v75m finish (u75m, 9,671,508 bytes, 31ede843) */, ["house-02-two-story"] = 6.5f /* v75k finish (Matthew, 5,351,672 bytes, 8638ea25) */, ["house-03-duplex"] = 4f, ["house-boarded"] = 7f,
+            ["apt-01-stucco"] = 10f /* v75n finish (u75n, 5,718,764 bytes, 5972b404) */, ["apt-02-brick"] = 10f, ["apt-mixed-use"] = 10f /* v75n finish (u75n, 5,612,804 bytes, b75e17aa) */, ["apt-motel-style"] = 7f, ["civic-church"] = 10f,
+            ["house-01-bungalow"] = 4.2f /* v75n finish (u75n, 7,984,464 bytes, a7991f26) */, ["house-02-two-story"] = 6.5f /* v75n finish (u75n, 5,231,296 bytes, 5f53253f) */, ["house-03-duplex"] = 4f, ["house-boarded"] = 7f,
             ["house-rowhouse-pair"] = 9f, ["house-shotgun"] = 4.5f, ["house-wood-duplex"] = 7.5f, ["shop-auto-garage"] = 5f,
-            ["shop-gas-station"] = 5f, ["store-barber"] = 4.5f /* v75k finish (Matthew, 8,774,092 bytes, 59a1e8dc) */, ["store-bodega"] = 7f, ["store-laundromat"] = 6f,
-            ["store-pawn"] = 4.5f /* v75m finish (u75m, 6,423,252 bytes, 2669bd69) */, ["store-takeout"] = 7.5f, ["store-liquor-blank"] = 4.9f,
+            ["shop-gas-station"] = 5f, ["store-barber"] = 4.5f /* v75n finish (u75n, 8,799,264 bytes, df9fd207) */, ["store-bodega"] = 7f, ["store-laundromat"] = 6f,
+            ["store-pawn"] = 4.5f /* v75n finish (u75n, 6,221,616 bytes, 08c2603b) */, ["store-takeout"] = 7.5f, ["store-liquor-blank"] = 4.9f,
             // v75l: the files are 4.5, 4.8, 6.5, 4.2, 3.6, 6.5 and 4.5 m; the flat roof house is drawn at 4 m so its 4.2 m front
             // clears the 4.5 m footprint floor
             ["house-spanish-tile"] = 4.5f, ["house-craftsman-porch"] = 4.8f, ["house-stucco-duplex-2story"] = 6.5f, ["house-boarded-stucco"] = 4.2f,
