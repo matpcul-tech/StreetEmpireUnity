@@ -28,15 +28,19 @@ namespace StreetEmpire.EditorTools
         // face the middle of the block (store-barber's back wall is the rough one).
         static readonly Dictionary<string, string[]> Kit = new()
         {
-            ["store"] = new[] { "store-liquor-blank", "store-bodega", "store-laundromat", "store-barber", "store-pawn", "store-takeout", "shop-auto-garage", "shop-gas-station", "civic-church" },
+            // v75l: store-check-cashing takes store-bodega's place (Eastside has 9 store lots; the bodega file stays in the repo)
+            ["store"] = new[] { "store-liquor-blank", "store-check-cashing", "store-laundromat", "store-barber", "store-pawn", "store-takeout", "shop-auto-garage", "shop-gas-station", "civic-church" },
             // Eastside houses read like the web game's: stucco walls, tile roofs, bars on the windows. The clapboard
             // and brick ones (house-wood-duplex, house-shotgun, house-boarded, house-rowhouse-pair) read as the
             // Midwest and are left out; their files stay in the repo. Each house gets a stucco wash (HouseTint).
             // v75: house-01-bungalow is back: only its roof is kept from the old file, the walls, porch, posts,
             // windows and door are rebuilt as clean geometry (tools/rebuild_house01.py), READY in Sovereign Asset.
             // v75j (Matthew): house-03-duplex is out of the rotation until a finished one arrives (its file stays in the repo)
-            ["house"] = new[] { "house-02-two-story", "house-01-bungalow", "house-02-two-story", "house-01-bungalow", "house-02-two-story", "house-01-bungalow", "house-02-two-story" },
-            ["apt"] = new[] { "apt-01-stucco", "apt-mixed-use", "apt-02-brick", "apt-motel-style" },
+            // v75l: the five new Eastside houses (release meshy-new-buildings-2026-11-19, finished in Sovereign Asset) join the
+            // two finished ones, so the seven house slots are seven different models
+            ["house"] = new[] { "house-02-two-story", "house-spanish-tile", "house-01-bungalow", "house-craftsman-porch", "house-stucco-duplex-2story", "house-boarded-stucco", "house-flat-roof" },
+            // v75l: apt-dingbat takes apt-motel-style's place (Eastside has 4 apartment lots; the motel file stays in the repo)
+            ["apt"] = new[] { "apt-01-stucco", "apt-mixed-use", "apt-02-brick", "apt-dingbat" },
         };
         static readonly Dictionary<string, int> dealt = new();
 
@@ -50,7 +54,20 @@ namespace StreetEmpire.EditorTools
         // house-02-two-story (5,351,672 bytes, SHA-256 8638ea2519c66e6f...): Material_0, windows_lit, door, walls
         // apt-mixed-use (5,568,548 bytes, SHA-256 bc7c7dbc37b7da50...): Material_0, windows_lit, windows_dark, door, walls
         // store-barber (8,774,092 bytes, SHA-256 59a1e8dc97f344c9...): Material_0, windows_lit, door, awning, walls
-        public static readonly HashSet<string> Finished = new() { "house-01-bungalow", "house-02-two-story", "apt-01-stucco", "apt-mixed-use", "store-pawn", "store-barber" };
+        // v75l: seven more, from the untouched Meshy files in release meshy-new-buildings-2026-11-19, finished with Sovereign
+        // Asset main a642bef (Unity building, Size Height, about 58k triangles; docs/sovereign-assets/u75l):
+        // house-spanish-tile (9,786,532 bytes, SHA-256 6ed308a235169b43...): Material_0, windows_lit, windows_dark, door, walls
+        // house-craftsman-porch (9,248,400 bytes, SHA-256 ce80f915f4b18de0...): Material_0, windows_lit, windows_dark, walls
+        // house-stucco-duplex-2story (9,179,232 bytes, SHA-256 a5545cb263f0e336...): Material_0, windows_lit, windows_dark, door, walls
+        // house-boarded-stucco (7,133,304 bytes, SHA-256 173cc622956a4af7...): Material_0, door, walls
+        // house-flat-roof (10,107,980 bytes, SHA-256 ddd9d56ac9d12006...): Material_0, windows_lit, windows_dark, walls
+        // apt-dingbat (8,913,860 bytes, SHA-256 be5042ca2104df9e...): Material_0, sign_lit (emission off), windows_lit, windows_dark, walls
+        // store-check-cashing (5,966,416 bytes, SHA-256 75b476a53e0a9b59...): Material_0, door, walls
+        public static readonly HashSet<string> Finished = new()
+        {
+            "house-01-bungalow", "house-02-two-story", "apt-01-stucco", "apt-mixed-use", "store-pawn", "store-barber",
+            "house-spanish-tile", "house-craftsman-porch", "house-stucco-duplex-2story", "house-boarded-stucco", "house-flat-roof", "apt-dingbat", "store-check-cashing",
+        };
 
         /// <summary>Stucco washes dealt to the houses in turn (multiplied over the model's own colors): white, warm
         /// cream, peach, pale pink and sand, as along the web game's Eastside streets.</summary>
@@ -240,6 +257,10 @@ namespace StreetEmpire.EditorTools
             ["house-rowhouse-pair"] = 9f, ["house-shotgun"] = 4.5f, ["house-wood-duplex"] = 7.5f, ["shop-auto-garage"] = 5f,
             ["shop-gas-station"] = 5f, ["store-barber"] = 4.5f /* v75k finish (Matthew, 8,774,092 bytes, 59a1e8dc) */, ["store-bodega"] = 7f, ["store-laundromat"] = 6f,
             ["store-pawn"] = 4.5f /* v75k finish (Matthew, 6,047,520 bytes, a3aeaf92) */, ["store-takeout"] = 7.5f, ["store-liquor-blank"] = 4.9f,
+            // v75l: the files are 4.5, 4.8, 6.5, 4.2, 3.6, 6.5 and 4.5 m; the flat roof house is drawn at 4 m so its 4.2 m front
+            // clears the 4.5 m footprint floor
+            ["house-spanish-tile"] = 4.5f, ["house-craftsman-porch"] = 4.8f, ["house-stucco-duplex-2story"] = 6.5f, ["house-boarded-stucco"] = 4.2f,
+            ["house-flat-roof"] = 4f, ["apt-dingbat"] = 6.5f, ["store-check-cashing"] = 4.5f,
         };
 
         static bool PlaceBuilding(BuildingSpot spot, Transform parent)

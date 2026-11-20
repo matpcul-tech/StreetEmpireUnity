@@ -48,3 +48,22 @@
 
 # Small doc screenshots stay in plain git so they render anywhere without LFS
 docs/shots/*.jpg !filter !diff !merge binary
+
+# v75l: these seven finished buildings, their extracted textures and the u75l render sheets are plain git files, not
+# LFS: the session that added them could push to git but not to LFS storage. To move them into LFS from a machine
+# that can, delete this block and run: git add --renormalize . && git commit
+Assets/Art/Models/Buildings/house-spanish-tile.glb -filter -diff -merge binary
+Assets/Art/Models/Buildings/house-craftsman-porch.glb -filter -diff -merge binary
+Assets/Art/Models/Buildings/house-stucco-duplex-2story.glb -filter -diff -merge binary
+Assets/Art/Models/Buildings/house-boarded-stucco.glb -filter -diff -merge binary
+Assets/Art/Models/Buildings/house-flat-roof.glb -filter -diff -merge binary
+Assets/Art/Models/Buildings/apt-dingbat.glb -filter -diff -merge binary
+Assets/Art/Models/Buildings/store-check-cashing.glb -filter -diff -merge binary
+Assets/Art/Textures/Buildings/house-spanish-tile__* -filter -diff -merge binary
+Assets/Art/Textures/Buildings/house-craftsman-porch__* -filter -diff -merge binary
+Assets/Art/Textures/Buildings/house-stucco-duplex-2story__* -filter -diff -merge binary
+Assets/Art/Textures/Buildings/house-boarded-stucco__* -filter -diff -merge binary
+Assets/Art/Textures/Buildings/house-flat-roof__* -filter -diff -merge binary
+Assets/Art/Textures/Buildings/apt-dingbat__* -filter -diff -merge binary
+Assets/Art/Textures/Buildings/store-check-cashing__* -filter -diff -merge binary
+docs/sovereign-assets/u75l/*.jpg -filter -diff -merge binary
