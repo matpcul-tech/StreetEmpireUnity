@@ -1,0 +1,224 @@
+{
+ "name": "house-spanish-tile",
+ "ready": true,
+ "checks": [
+  {
+   "id": "valid",
+   "status": "pass",
+   "label": "Valid glTF 2.0",
+   "detail": "The Khronos validator found no errors (5 warnings).",
+   "fix": ""
+  },
+  {
+   "id": "triangles-clean",
+   "status": "pass",
+   "label": "Clean triangles",
+   "detail": "No empty or repeated triangles.",
+   "fix": ""
+  },
+  {
+   "id": "facing",
+   "status": "pass",
+   "label": "Faces point outward",
+   "detail": "No shell is inside out.",
+   "fix": ""
+  },
+  {
+   "id": "normals",
+   "status": "pass",
+   "label": "Normals",
+   "detail": "Every part has normals that agree with its faces.",
+   "fix": ""
+  },
+  {
+   "id": "closed",
+   "status": "note",
+   "label": "Open edges",
+   "detail": "25076 open edges and 151 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+   "fix": ""
+  },
+  {
+   "id": "budget",
+   "status": "note",
+   "label": "Triangles",
+   "detail": "58483 triangles. No target was set.",
+   "fix": ""
+  },
+  {
+   "id": "drawcalls",
+   "status": "note",
+   "label": "Draw calls",
+   "detail": "5 draw calls, 5 materials.",
+   "fix": ""
+  },
+  {
+   "id": "textures",
+   "status": "pass",
+   "label": "Texture size",
+   "detail": "All 7 readable textures are 2048 px or under.",
+   "fix": ""
+  },
+  {
+   "id": "color",
+   "status": "note",
+   "label": "Color range",
+   "detail": "Brightness runs from 2 to 64 percent, middle 21. Peak vividness 85. The shared range is 2 to 82, vividness up to 90.",
+   "fix": ""
+  },
+  {
+   "id": "detail",
+   "status": "note",
+   "label": "Texture detail",
+   "detail": "139 texture pixels per meter across most of the surface. 21 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.",
+   "fix": ""
+  },
+  {
+   "id": "size",
+   "status": "note",
+   "label": "Size",
+   "detail": "6.50 wide, 4.50 tall, 5.81 long (meters). No size was set.",
+   "fix": ""
+  },
+  {
+   "id": "ground",
+   "status": "pass",
+   "label": "On the ground",
+   "detail": "Lowest point is at 0.0000 m.",
+   "fix": ""
+  },
+  {
+   "id": "center",
+   "status": "pass",
+   "label": "Centered",
+   "detail": "Center is at X 0.0000, Z 0.0000.",
+   "fix": ""
+  },
+  {
+   "id": "kept",
+   "status": "pass",
+   "label": "Nothing lost",
+   "detail": "5 materials, 7 textures.",
+   "fix": ""
+  },
+  {
+   "id": "bytes",
+   "status": "note",
+   "label": "File size",
+   "detail": "9.3 MB, was 9.5 MB.",
+   "fix": ""
+  }
+ ],
+ "log": [
+  "No empty or repeated triangles were found.",
+  "No inside-out shells were found.",
+  "Normals: 1955 faces lit from behind got corners of their own. Every other normal is the model's own.",
+  "Size and position were already right."
+ ],
+ "after": {
+  "bytes": 9786512,
+  "nodes": 1,
+  "meshes": 1,
+  "drawCalls": 5,
+  "triangles": 58483,
+  "vertices": 68306,
+  "materials": 5,
+  "textures": [
+   {
+    "name": "",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 1289546
+   },
+   {
+    "name": "",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 2468783
+   },
+   {
+    "name": "",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 603544
+   },
+   {
+    "name": "walls_color",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 556456
+   },
+   {
+    "name": "walls_normal",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 468722
+   },
+   {
+    "name": "walls_roughness",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 567058
+   },
+   {
+    "name": "windows_lit_normal",
+    "mime": "image/png",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 1290300
+   }
+  ],
+  "maxTexture": 2048,
+  "skins": 0,
+  "joints": 0,
+  "animations": 0,
+  "morphs": 0,
+  "otherPrimitives": 0,
+  "size": [
+   6.500235557556152,
+   4.5,
+   5.807048797607422
+  ],
+  "min": [
+   -3.250117778778076,
+   0,
+   -2.903524398803711
+  ],
+  "max": [
+   3.250117778778076,
+   4.5,
+   2.903524398803711
+  ],
+  "extensions": [],
+  "defects": {
+   "degenerate": 0,
+   "duplicate": 0,
+   "debrisPieces": 0,
+   "debrisTriangles": 0,
+   "debrisHeld": 0,
+   "inverted": 0,
+   "missingNormals": 0,
+   "wrongNormals": 0,
+   "openEdges": 25076,
+   "nonManifold": 151,
+   "missingUV": 0,
+   "pieces": 161
+  },
+  "detail": {
+   "median": 139.27513736109952,
+   "stretched": 0.21143330147877235,
+   "area": 164.09338123466944
+  },
+  "color": {
+   "low": 0.022216796875,
+   "mid": 0.206298828125,
+   "high": 0.637451171875,
+   "vivid": 0.847900390625
+  }
+ }
+}

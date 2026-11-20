@@ -1,0 +1,365 @@
+{
+ "name": "store-check-cashing",
+ "engine": "Sovereign-draft main a642bef, engine.js in Node",
+ "preset": "unity-building",
+ "options": {
+  "triangles": 58000,
+  "maxTexture": 2048,
+  "textureFormat": "keep",
+  "size": {
+   "axis": "height",
+   "meters": 4.5
+  },
+  "flatten": "light",
+  "walls": "auto",
+  "surfaceMaps": "light",
+  "colorStandard": true,
+  "windowLights": true
+ },
+ "ready": false,
+ "before": {
+  "bytes": 23693760,
+  "nodes": 1,
+  "meshes": 1,
+  "drawCalls": 1,
+  "triangles": 141644,
+  "vertices": 99164,
+  "materials": 1,
+  "textures": [
+   {
+    "name": "",
+    "mime": "image/jpeg",
+    "width": 4096,
+    "height": 4096,
+    "bytes": 9320606
+   },
+   {
+    "name": "",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 2325149
+   },
+   {
+    "name": "",
+    "mime": "image/jpeg",
+    "width": 4096,
+    "height": 4096,
+    "bytes": 7172779
+   }
+  ],
+  "maxTexture": 4096,
+  "skins": 0,
+  "joints": 0,
+  "animations": 0,
+  "morphs": 0,
+  "otherPrimitives": 0,
+  "size": [
+   1.8792929649353027,
+   0.9460540115833282,
+   1.0767920017242432
+  ],
+  "min": [
+   -0.9522119760513306,
+   -0.4740149974822998,
+   -0.5338550209999084
+  ],
+  "max": [
+   0.9270809888839722,
+   0.47203901410102844,
+   0.5429369807243347
+  ],
+  "extensions": [],
+  "defects": {
+   "degenerate": 0,
+   "duplicate": 0,
+   "debrisPieces": 0,
+   "debrisTriangles": 0,
+   "debrisHeld": 0,
+   "inverted": 0,
+   "missingNormals": 0,
+   "wrongNormals": 0,
+   "openEdges": 0,
+   "nonManifold": 0,
+   "missingUV": 0,
+   "pieces": 1
+  }
+ },
+ "after": {
+  "bytes": 6000188,
+  "nodes": 1,
+  "meshes": 1,
+  "drawCalls": 3,
+  "triangles": 57985,
+  "vertices": 56629,
+  "materials": 3,
+  "textures": [
+   {
+    "name": "",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 698086
+   },
+   {
+    "name": "",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 2325149
+   },
+   {
+    "name": "",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 341370
+   },
+   {
+    "name": "walls_color",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 104072
+   },
+   {
+    "name": "walls_normal",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 131857
+   },
+   {
+    "name": "walls_roughness",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 236033
+   }
+  ],
+  "maxTexture": 2048,
+  "skins": 0,
+  "joints": 0,
+  "animations": 0,
+  "morphs": 0,
+  "otherPrimitives": 0,
+  "size": [
+   8.943869590759277,
+   4.5,
+   5.124890327453613
+  ],
+  "min": [
+   -4.471934795379639,
+   0,
+   -2.5624451637268066
+  ],
+  "max": [
+   4.471934795379639,
+   4.5,
+   2.5624451637268066
+  ],
+  "extensions": [],
+  "defects": {
+   "degenerate": 0,
+   "duplicate": 0,
+   "debrisPieces": 0,
+   "debrisTriangles": 0,
+   "debrisHeld": 0,
+   "inverted": 1,
+   "missingNormals": 0,
+   "wrongNormals": 0,
+   "openEdges": 3912,
+   "nonManifold": 13,
+   "missingUV": 0,
+   "pieces": 30
+  },
+  "detail": {
+   "median": 114.9523957172181,
+   "stretched": 0.4418249738913301,
+   "area": 383.7642308527175
+  },
+  "color": {
+   "low": 0.024658203125,
+   "mid": 0.140625,
+   "high": 0.485595703125,
+   "vivid": 0.865966796875
+  },
+  "walls": {
+   "count": 10,
+   "walls": 10,
+   "roofs": 0,
+   "kind": "stucco",
+   "size": 2048,
+   "scans": [
+    "stucco"
+   ],
+   "tris": 2384,
+   "density": 114.95260563643612,
+   "stretched": 3.798925417068251e-7
+  },
+  "windows": {
+   "found": 0,
+   "lit": 0,
+   "signs": 0,
+   "doors": 1,
+   "litTris": 0,
+   "darkTris": 0,
+   "signTris": 0,
+   "doorTris": 103,
+   "glow": null
+  }
+ },
+ "checks": [
+  {
+   "id": "valid",
+   "status": "pass",
+   "label": "Valid glTF 2.0",
+   "detail": "The Khronos validator found no errors (3 warnings).",
+   "fix": ""
+  },
+  {
+   "id": "triangles-clean",
+   "status": "pass",
+   "label": "Clean triangles",
+   "detail": "No empty or repeated triangles.",
+   "fix": ""
+  },
+  {
+   "id": "debris",
+   "status": "pass",
+   "label": "No floating debris",
+   "detail": "No small pieces float free of the model.",
+   "fix": ""
+  },
+  {
+   "id": "facing",
+   "status": "fail",
+   "label": "Faces point outward",
+   "detail": "1 shell is inside out.",
+   "fix": "Turn on Fix inside-out faces."
+  },
+  {
+   "id": "normals",
+   "status": "pass",
+   "label": "Normals",
+   "detail": "Every part has normals that agree with its faces.",
+   "fix": ""
+  },
+  {
+   "id": "closed",
+   "status": "note",
+   "label": "Open edges",
+   "detail": "3912 open edges and 13 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+   "fix": ""
+  },
+  {
+   "id": "budget",
+   "status": "pass",
+   "label": "Triangle target",
+   "detail": "57985 triangles. Target 58000.",
+   "fix": ""
+  },
+  {
+   "id": "drawcalls",
+   "status": "note",
+   "label": "Draw calls",
+   "detail": "3 draw calls, 3 materials.",
+   "fix": ""
+  },
+  {
+   "id": "textures",
+   "status": "pass",
+   "label": "Texture size",
+   "detail": "All 6 readable textures are 2048 px or under.",
+   "fix": ""
+  },
+  {
+   "id": "walls",
+   "status": "pass",
+   "label": "Walls",
+   "detail": "10 walls on a stucco texture of their own (scanned): 2384 triangles at 115 texture pixels per meter, evenly (0 percent stretched).",
+   "fix": ""
+  },
+  {
+   "id": "windows",
+   "status": "note",
+   "label": "Windows",
+   "detail": "None found. Only glass that is set back from its frame in the mesh can be found.",
+   "fix": ""
+  },
+  {
+   "id": "panels",
+   "status": "pass",
+   "label": "Signs and doors",
+   "detail": "0 signs (0 triangles, material sign_lit) and 1 door (103 triangles, material door).",
+   "fix": ""
+  },
+  {
+   "id": "color",
+   "status": "pass",
+   "label": "Color standard",
+   "detail": "Brightness runs from 2 to 49 percent, middle 14. Peak vividness 87. The shared range is 2 to 82, vividness up to 90.",
+   "fix": ""
+  },
+  {
+   "id": "detail",
+   "status": "note",
+   "label": "Texture detail",
+   "detail": "115 texture pixels per meter across most of the surface. 44 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.",
+   "fix": ""
+  },
+  {
+   "id": "size",
+   "status": "pass",
+   "label": "Size",
+   "detail": "The height is 4.50 m. Target 4.50 m.",
+   "fix": ""
+  },
+  {
+   "id": "ground",
+   "status": "pass",
+   "label": "On the ground",
+   "detail": "Lowest point is at 0.0000 m.",
+   "fix": ""
+  },
+  {
+   "id": "center",
+   "status": "pass",
+   "label": "Centered",
+   "detail": "Center is at X 0.0000, Z 0.0000.",
+   "fix": ""
+  },
+  {
+   "id": "kept",
+   "status": "pass",
+   "label": "Nothing lost",
+   "detail": "3 materials, 6 textures.",
+   "fix": ""
+  },
+  {
+   "id": "bytes",
+   "status": "note",
+   "label": "File size",
+   "detail": "5.7 MB, was 22.6 MB.",
+   "fix": ""
+  }
+ ],
+ "log": [
+  "No empty or repeated triangles were found.",
+  "No floating debris was found.",
+  "No inside-out shells were found.",
+  "No holes were found.",
+  "Flat areas: 12 walls and other flat areas (4119 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.30 percent of the part's size.",
+  "Windows: none found. A window has to be set back from its frame in the mesh. Glass that is only painted on a flat wall cannot be told from the wall.",
+  "Signs and doors: 1 door (set back like a window, but painted or reaching the ground) named as material door, unchanged in look.",
+  "Walls: 10 walls moved to a 2048 px texture of their own, one rectangle each at one even scale. The old paint was smoothed to its colors (stains, bands and corners stay, thin lines and creases go) and a new stucco surface was laid over it. Material walls. Nothing was moved.",
+  "Surfaces are scanned photographs (stucco) laid at true size and tinted to the old paint.",
+  "Where a wall is far darker than its own usual color (a window, vent or door that is only painted on, with no step in the mesh) the old paint was kept as it was, so it is not smeared. A solid block of other paint half a meter or more across (a pale window, a brown door) is kept whole the same way and faded into the new wall at its edge.",
+  "Walls taken whole: 1075 loose triangles that lay in a wall's plane or reached from it into a painted window joined that wall, so no wedge of old paint is left across it. Where two sheets of a wall lay on each other, the one in front shows.",
+  "Color standard: 2 color textures brought inside the shared range. Brightness ran from 1 to 33 percent and peak vividness was 78. Now 3 to 33 and 78. The middle of the range and every hue are untouched.",
+  "Surface maps: every material already has its own.",
+  "Reduced 141644 triangles to 57985. The surface moved by at most 0.3 percent of the model size. Edges between parts were held in place.",
+  "The model was scaled by 4.7597, set on the ground, centered.",
+  "Textures: 1 resized to 2048 px or under. Saved 6.5 MB."
+ ]
+}
