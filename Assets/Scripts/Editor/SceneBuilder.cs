@@ -48,8 +48,10 @@ namespace StreetEmpire.EditorTools
         /// get scaling and their maps wired, nothing else; only their windows_lit and sign_lit glow, as their materials
         /// assign. Every other kit model is raw or an older Sovereign Asset run and glows nowhere.</summary>
         // v75k: all six are Matthew's finished-buildings-v4 delivery (Sovereign Assets branch awnings, b7a6717), byte for byte:
-        // house-01-bungalow (9,220,316 bytes, SHA-256 d0d588d0d97ad2e9...): Material_0, windows_lit, windows_dark, door, walls
-        // store-pawn (6,047,520 bytes, SHA-256 a3aeaf92e96f3066...): Material_0, sign_lit, windows_lit, walls
+        // v75m: house-01-bungalow and store-pawn replaced by the u75m files (Sovereign Asset claude/asset-openings,
+        // docs/sovereign-assets/u75m), as delivered: lettered pawn sign_lit, redrawn bungalow front with a trim material:
+        // house-01-bungalow (9,671,508 bytes, SHA-256 31ede8437ad8d2a9...): Material_0, windows_lit, windows_dark, door, trim, walls
+        // store-pawn (6,423,252 bytes, SHA-256 2669bd6991e9c4c8...): Material_0, sign_lit, windows_lit, walls
         // apt-01-stucco (6,080,956 bytes, SHA-256 c5ead5063c464902...): Material_0, windows_lit, windows_dark, door, walls
         // house-02-two-story (5,351,672 bytes, SHA-256 8638ea2519c66e6f...): Material_0, windows_lit, door, walls
         // apt-mixed-use (5,568,548 bytes, SHA-256 bc7c7dbc37b7da50...): Material_0, windows_lit, windows_dark, door, walls
@@ -253,10 +255,10 @@ namespace StreetEmpire.EditorTools
         public static readonly Dictionary<string, float> RealHeight = new()
         {
             ["apt-01-stucco"] = 10f /* v75k finish (Matthew, 6,080,956 bytes, c5ead506) */, ["apt-02-brick"] = 10f, ["apt-mixed-use"] = 10f /* v75k finish (Matthew, 5,568,548 bytes, bc7c7dbc) */, ["apt-motel-style"] = 7f, ["civic-church"] = 10f,
-            ["house-01-bungalow"] = 4.2f /* v75k finish (Matthew, 9,220,316 bytes, d0d588d0) */, ["house-02-two-story"] = 6.5f /* v75k finish (Matthew, 5,351,672 bytes, 8638ea25) */, ["house-03-duplex"] = 4f, ["house-boarded"] = 7f,
+            ["house-01-bungalow"] = 4.2f /* v75m finish (u75m, 9,671,508 bytes, 31ede843) */, ["house-02-two-story"] = 6.5f /* v75k finish (Matthew, 5,351,672 bytes, 8638ea25) */, ["house-03-duplex"] = 4f, ["house-boarded"] = 7f,
             ["house-rowhouse-pair"] = 9f, ["house-shotgun"] = 4.5f, ["house-wood-duplex"] = 7.5f, ["shop-auto-garage"] = 5f,
             ["shop-gas-station"] = 5f, ["store-barber"] = 4.5f /* v75k finish (Matthew, 8,774,092 bytes, 59a1e8dc) */, ["store-bodega"] = 7f, ["store-laundromat"] = 6f,
-            ["store-pawn"] = 4.5f /* v75k finish (Matthew, 6,047,520 bytes, a3aeaf92) */, ["store-takeout"] = 7.5f, ["store-liquor-blank"] = 4.9f,
+            ["store-pawn"] = 4.5f /* v75m finish (u75m, 6,423,252 bytes, 2669bd69) */, ["store-takeout"] = 7.5f, ["store-liquor-blank"] = 4.9f,
             // v75l: the files are 4.5, 4.8, 6.5, 4.2, 3.6, 6.5 and 4.5 m; the flat roof house is drawn at 4 m so its 4.2 m front
             // clears the 4.5 m footprint floor
             ["house-spanish-tile"] = 4.5f, ["house-craftsman-porch"] = 4.8f, ["house-stucco-duplex-2story"] = 6.5f, ["house-boarded-stucco"] = 4.2f,
