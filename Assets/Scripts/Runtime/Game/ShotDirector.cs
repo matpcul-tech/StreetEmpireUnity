@@ -179,9 +179,9 @@ namespace StreetEmpire.Game
                     var pos = p0 + f.t * off;
                     var at = at0 + f.t * off * 0.45f;
                     int hits = 0;
-                    foreach (var q in blockers)
+                    foreach (var blk in blockers)
                     {
-                        var qq = q; qq.y = pos.y;
+                        var qq = blk; qq.y = pos.y;
                         var seg = at - pos; float den = seg.sqrMagnitude; if (den < 1e-4f) continue;
                         float u = Mathf.Clamp01(Vector3.Dot(qq - pos, seg) / den);
                         if ((pos + seg * u - qq).magnitude < 1.35f) hits++;
