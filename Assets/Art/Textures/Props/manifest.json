@@ -769,27 +769,6 @@
    "metalsmooth": "hydrant__fire_hydrant_2k_metalsmooth.png"
   },
   {
-   "prop": "liquor-sign",
-   "material": "liquor_sign",
-   "alpha": "OPAQUE",
-   "cutoff": 0.5,
-   "color": [
-    1,
-    1,
-    1,
-    1
-   ],
-   "metallic": 0,
-   "roughness": 1,
-   "tiling": [
-    1,
-    1
-   ],
-   "basecolor": "liquor-sign__liquor_sign_basecolor.jpg",
-   "normal": "liquor-sign__liquor_sign_normal.jpg",
-   "metalsmooth": "liquor-sign__liquor_sign_metalsmooth.png"
-  },
-  {
    "prop": "mailbox",
    "material": "usps",
    "alpha": "OPAQUE",
@@ -1769,6 +1748,222 @@
    "basecolor": "wood-fence__fence_boards_basecolor.jpg",
    "normal": "wood-fence__fence_boards_normal.jpg",
    "metalsmooth": "wood-fence__fence_boards_metalsmooth.png"
+  },
+  {
+   "prop": "laundromat-sign",
+   "material": "sign_lit",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "laundromat-sign__sign_lit_basecolor.jpg",
+   "normal": "laundromat-sign__sign_lit_normal.jpg",
+   "metalsmooth": "laundromat-sign__sign_lit_metalsmooth.png",
+   "emission": "laundromat-sign__sign_lit_emission.jpg",
+   "emissive": [
+    1,
+    0.7666666666666666,
+    0.43333333333333335
+   ]
+  },
+  {
+   "prop": "takeout-sign",
+   "material": "sign_lit",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "takeout-sign__sign_lit_basecolor.jpg",
+   "normal": "takeout-sign__sign_lit_normal.jpg",
+   "metalsmooth": "takeout-sign__sign_lit_metalsmooth.png",
+   "emission": "takeout-sign__sign_lit_emission.jpg",
+   "emissive": [
+    1,
+    0.7666666666666666,
+    0.43333333333333335
+   ]
+  },
+  {
+   "prop": "check-cashing-sign",
+   "material": "sign_lit",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "check-cashing-sign__sign_lit_basecolor.jpg",
+   "normal": "check-cashing-sign__sign_lit_normal.jpg",
+   "metalsmooth": "check-cashing-sign__sign_lit_metalsmooth.png",
+   "emission": "check-cashing-sign__sign_lit_emission.jpg",
+   "emissive": [
+    1,
+    0.7666666666666666,
+    0.43333333333333335
+   ]
+  },
+  {
+   "prop": "barber-sign",
+   "material": "sign_lit",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "barber-sign__sign_lit_basecolor.jpg",
+   "normal": "barber-sign__sign_lit_normal.jpg",
+   "metalsmooth": "barber-sign__sign_lit_metalsmooth.png",
+   "emission": "barber-sign__sign_lit_emission.jpg",
+   "emissive": [
+    1,
+    0.7666666666666666,
+    0.43333333333333335
+   ]
+  },
+  {
+   "prop": "auto-sign",
+   "material": "sign_lit",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "auto-sign__sign_lit_basecolor.jpg",
+   "normal": "auto-sign__sign_lit_normal.jpg",
+   "metalsmooth": "auto-sign__sign_lit_metalsmooth.png",
+   "emission": "auto-sign__sign_lit_emission.jpg",
+   "emissive": [
+    1,
+    0.7666666666666666,
+    0.43333333333333335
+   ]
+  },
+  {
+   "prop": "gas-store-sign",
+   "material": "sign_lit",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "gas-store-sign__sign_lit_basecolor.jpg",
+   "normal": "gas-store-sign__sign_lit_normal.jpg",
+   "metalsmooth": "gas-store-sign__sign_lit_metalsmooth.png",
+   "emission": "gas-store-sign__sign_lit_emission.jpg",
+   "emissive": [
+    1,
+    0.7666666666666666,
+    0.43333333333333335
+   ]
+  },
+  {
+   "prop": "gas-price-sign",
+   "material": "sign_lit",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "gas-price-sign__sign_lit_basecolor.jpg",
+   "normal": "gas-price-sign__sign_lit_normal.jpg",
+   "metalsmooth": "gas-price-sign__sign_lit_metalsmooth.png",
+   "emission": "gas-price-sign__sign_lit_emission.jpg",
+   "emissive": [
+    1,
+    0.7666666666666666,
+    0.43333333333333335
+   ]
+  },
+  {
+   "prop": "liquor-sign",
+   "material": "liquor_sign",
+   "alpha": "OPAQUE",
+   "cutoff": 0.5,
+   "color": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallic": 0,
+   "roughness": 1,
+   "tiling": [
+    1,
+    1
+   ],
+   "basecolor": "liquor-sign__liquor_sign_basecolor.jpg",
+   "normal": "liquor-sign__liquor_sign_normal.jpg",
+   "metalsmooth": "liquor-sign__liquor_sign_metalsmooth.png",
+   "emission": "liquor-sign__liquor_sign_emission.jpg",
+   "emissive": [
+    1,
+    0.85,
+    0.55
+   ]
   }
  ]
 }

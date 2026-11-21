@@ -715,7 +715,19 @@ namespace StreetEmpire.EditorTools
             if (prop.StartsWith("street-blade")) m.SetFloat("_Cull", 2f);
             m.SetColor("_BaseColor", col);
             var emap = Tx(e.emission);
-            if (emap != null)
+            bool signLit = e.material != null && (e.material.Contains("sign_lit") || e.material.Contains("liquor_sign"));
+            if (emap != null && signLit)
+            {
+                // v75p: lettered store boards use their own emission map (letters and halo). DayCycle ramps
+                // signMaterials from 0.35 by day to full at night. The glTF factor is 0 to 1; the color is
+                // boosted a little so the letters read at night.
+                var ef = e.emissive != null && e.emissive.Length >= 3 ? e.emissive : new[] { 1f, 0.77f, 0.43f };
+                m.SetTexture("_EmissionMap", emap);
+                m.SetColor("_EmissionColor", new Color(ef[0], ef[1], ef[2]) * 2.2f);
+                m.EnableKeyword("_EMISSION");
+                m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            }
+            else if (emap != null)
             {
                 // v75j: the far towers (our own Blender boxes, tools/model_edge.py, not Sovereign Asset) no longer
                 // glow: their lit window map is not wired (Matthew: only his finished files' windows light)

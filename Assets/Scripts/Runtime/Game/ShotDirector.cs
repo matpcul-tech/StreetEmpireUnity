@@ -25,6 +25,8 @@
 //                7 palm fronds close (free camera), 8 the district edge (free camera), 9 the avenue at 14:00 (for
 //                the Ultra and High pair), 0 a signal crossing at 14:00 (poles on the corners), minus the liquor
 //                store sign at 22:00, equals the mixed use apartment block by day
+//   shot=v75p    signed storefronts already in the game, view=1 to 7 (liquor, laundromat, takeout, check cashing,
+//                barber, auto garage, gas station). hour=14 or hour=22 from the URL freezes the clock.
 //   shot=fight   the opening scuffle with a hit landed on a mugger every 0.8 s, so the target ring, warning rings,
 //                hit numbers, sparks, dust and shockwaves show on cue (game camera)
 //   shot=mugger  the opening scuffle as a new game plays it (every other shot skips it)
@@ -106,6 +108,9 @@ namespace StreetEmpire.Game
                 case "v75":
                     StartCoroutine(V75(p));
                     break;
+                case "v75p":
+                    StartCoroutine(V75p(url));
+                    break;
                 case "fight":
                     StartCoroutine(Fight(p));
                     break;
@@ -117,6 +122,51 @@ namespace StreetEmpire.Game
                     break;
             }
             Debug.Log($"[ShotDirector] {shot}");
+        }
+
+        /// <summary>v75p: a front view of each signed store already in the game. view=1 liquor, 2 laundromat,
+        /// 3 takeout, 4 check cashing, 5 barber, 6 auto garage, 7 gas station (store sign and price sign). The
+        /// clock is FrozenHour from hour= in the URL. Free camera, no player in the way of the board.</summary>
+        IEnumerator V75p(string url)
+        {
+            var cam = Camera.main;
+            var brain = cam.GetComponent<Unity.Cinemachine.CinemachineBrain>(); if (brain) brain.enabled = false;
+            Vector3 Block(int id) { foreach (var m in FindObjectsByType<StreetEmpire.City.BlockMarker>(FindObjectsSortMode.None)) if (m.blockId == id) return m.transform.position; return Vector3.zero; }
+            var b10 = Block(10);
+            var blockers = new System.Collections.Generic.List<Vector3>();
+            foreach (var m in FindObjectsByType<StreetEmpire.City.PropMarker>(FindObjectsSortMode.None))
+                if (m.model != null && (m.model.StartsWith("palm") || m.model.StartsWith("tree") || m.model.Contains("pole") || m.model.Contains("lamp") || m.model.Contains("signal"))) blockers.Add(m.transform.position);
+            (Vector3 face, Vector3 n, Vector3 t, float h) Face(string model, float back)
+            {
+                (Vector3, Vector3, Vector3, float) best = (b10, Vector3.back, Vector3.right, 8f); float bestScore = float.MaxValue;
+                foreach (var m in FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None))
+                {
+                    if (m.model == null || !m.model.StartsWith(model)) continue;
+                    var c = m.GetComponent<BoxCollider>(); var bb = c ? c.bounds : new Bounds(m.transform.position, Vector3.one * 10);
+                    var o = bb.center - Block(m.blockId); o.y = 0;
+                    var n = m.transform.forward; n.y = 0; n.Normalize(); if (Vector3.Dot(n, o) < 0) n = -n;
+                    var face = bb.center + n * Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(n.x), 0, Mathf.Abs(n.z)))); face.y = bb.min.y;
+                    var cam0 = face + n * back; float score = 0;
+                    foreach (var q in blockers)
+                    {
+                        var qq = q; qq.y = face.y; var seg = face - cam0; float u = Mathf.Clamp01(Vector3.Dot(qq - cam0, seg) / seg.sqrMagnitude);
+                        if ((cam0 + seg * u - qq).magnitude < 1.6f) score += 1f;
+                    }
+                    if (score < bestScore) { bestScore = score; best = (face, n, Vector3.Cross(Vector3.up, n), bb.size.y); }
+                }
+                return best;
+            }
+            var models = new[] { "store-liquor", "store-laundromat", "store-takeout", "store-check-cashing", "store-barber", "shop-auto-garage", "shop-gas-station" };
+            var backs = new[] { 8f, 9f, 8f, 10f, 8f, 12f, 11f };
+            int view = 0; int q = url.IndexOf("view="); if (q >= 0 && int.TryParse(url.Substring(q + 5).Split('&')[0], out int v0)) view = Mathf.Clamp(v0 - 1, 0, models.Length - 1);
+            var f = Face(models[view], backs[view]);
+            float lookY = view == 6 ? 2.2f : Mathf.Clamp(f.h * 0.62f, 2.2f, 4.6f);
+            var at = f.face + Vector3.up * lookY;
+            var pos = f.face + f.n * backs[view] + Vector3.up * (lookY * 0.55f + 1.1f);
+            if (view == 6) { pos += f.t * 1.4f; at += f.t * 0.7f; }   // include the price sign on the right
+            cam.transform.position = pos; cam.transform.LookAt(at);
+            Debug.Log($"[ShotDirector] v75p view {view + 1} {models[view]} hour {StreetEmpire.Game.GameClock.FrozenHour}");
+            while (true) yield return null;
         }
 
         /// <summary>Views for the build-out shots, from the block markers: 1 an avenue at eye height, 2 a

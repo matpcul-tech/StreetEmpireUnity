@@ -305,6 +305,17 @@ namespace StreetEmpire.EditorTools
             // v75j: no lettered board over the pawn shop's own sign_lit (it covered it and glowed itself)
             if (name == "store-pawn") StorefrontLight(inst, holder);
             if (name == "store-liquor-blank") LiquorSign(inst, holder);
+            // v75p: lettered sign_lit boards on the stores already in the game (hung props, no mesh edit)
+            if (name == "store-laundromat") HangBoard(inst, holder, "laundromat-sign", -0.055f, 3.268f, 6.13f, 0.72f);
+            if (name == "store-takeout") HangBoard(inst, holder, "takeout-sign", 0.004f, 4.433f, 4.88f, 0.62f);
+            if (name == "store-check-cashing") HangBoard(inst, holder, "check-cashing-sign", 0.055f, 3.526f, 7.94f, 0.62f);
+            if (name == "store-barber") HangBoard(inst, holder, "barber-sign", -0.114f, 3.522f, 3.85f, 0.45f);
+            if (name == "shop-auto-garage") HangBoard(inst, holder, "auto-sign", -0.085f, 3.885f, 9.85f, 0.66f);
+            if (name == "shop-gas-station")
+            {
+                HangBoard(inst, holder, "gas-store-sign", -0.016f, 3.613f, 4.85f, 0.48f);
+                HangTotem(inst, holder, "gas-price-sign", 3.25f, 0.90f, 2.20f);
+            }
             var near = inst.GetComponentsInChildren<Renderer>();
             foreach (var r in near) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
             Compress(inst, name, "Near");
@@ -329,6 +340,7 @@ namespace StreetEmpire.EditorTools
             string n = m.name;
             if (n.Contains("windows_lit")) return "windows_lit";
             if (n.Contains("windows_dark")) return "windows_dark";
+            if (n.Contains("sign_lit") || n.Contains("liquor_sign")) return "sign_lit";
             if (n.Contains("_walls") || n.EndsWith("walls")) return "walls";
             if (n.Contains("Material_0")) return "Material_0";
             // other glTF materials (store-liquor-blank's kitbash atlas parts) keep their own name: the material copies
@@ -409,8 +421,8 @@ namespace StreetEmpire.EditorTools
         }
 
         /// <summary>v75c: the liquor store's blank main sign gets a lettered board (liquor-sign: LIQUOR, BEER, WINE,
-        /// through Sovereign Asset) on its face. The board's own print is its emission map, so only the letters and
-        /// their halo glow warm; DayCycle.signMaterials keeps it low by day and full at night.</summary>
+        /// through Sovereign Asset) on its face. v75p: the board's own print is its emission map again, so only the
+        /// letters and their halo glow; DayCycle.signMaterials keeps it low by day and full at night.</summary>
         static void LiquorSign(GameObject inst, GameObject holder)
         {
             var face = inst.GetComponentsInChildren<Renderer>().FirstOrDefault(r => r.name.Contains("MainSign"));
@@ -424,6 +436,63 @@ namespace StreetEmpire.EditorTools
             if (b.size.x > 1e-3f) sign.transform.localScale = new Vector3(fb.size.x * 0.94f / b.size.x, fb.size.y * 0.8f / b.size.y, 1f);
             b = WorldBounds(sign);
             sign.transform.position += new Vector3(fb.center.x - b.center.x, fb.center.y - b.center.y, fb.max.z + 0.02f - b.center.z);
+            FinishHungSign(sign);
+        }
+
+        /// <summary>v75p: hang a lettered sign_lit quad on a storefront band. x,y are the band center in the
+        /// recentered model frame (meters, y from the feet), w,h the board size. z is the front of mesh vertices
+        /// in that band, plus a small gap, so an awning in front of the band is not covered.</summary>
+        static void HangBoard(GameObject inst, GameObject holder, string prop, float x, float y, float w, float h)
+        {
+            var sign = PropBuilder.Loose(prop);
+            if (sign == null) return;
+            sign.name = prop; sign.transform.SetParent(holder.transform, false);
+            sign.transform.localRotation = Quaternion.identity;
+            var b = WorldBounds(sign);
+            if (b.size.x > 1e-3f && b.size.y > 1e-3f) sign.transform.localScale = new Vector3(w / b.size.x, h / b.size.y, 1f);
+            b = WorldBounds(sign);
+            float z = BandFrontZ(inst, x, y, w * 0.6f, h);
+            if (float.IsNegativeInfinity(z)) z = WorldBounds(inst).max.z;
+            sign.transform.position += new Vector3(x - b.center.x, y - b.center.y, z + 0.025f - b.center.z);
+            FinishHungSign(sign);
+        }
+
+        /// <summary>v75p: a standing price board at the pump-island side of the existing gas station, not in front
+        /// of the kiosk door (the door is on the left). Feet on the ground, just outside the right canopy edge,
+        /// a little in front of the mesh so it is not inside a post.</summary>
+        static void HangTotem(GameObject inst, GameObject holder, string prop, float x, float w, float h)
+        {
+            var sign = PropBuilder.Loose(prop);
+            if (sign == null) return;
+            sign.name = prop; sign.transform.SetParent(holder.transform, false);
+            sign.transform.localRotation = Quaternion.identity;
+            var b = WorldBounds(sign);
+            if (b.size.x > 1e-3f && b.size.y > 1e-3f) sign.transform.localScale = new Vector3(w / b.size.x, h / b.size.y, 1f);
+            b = WorldBounds(sign);
+            float z = WorldBounds(inst).max.z + 0.08f;
+            sign.transform.position += new Vector3(x - b.center.x, 0f - b.min.y, z - b.center.z);
+            FinishHungSign(sign);
+        }
+
+        static float BandFrontZ(GameObject inst, float x, float y, float w, float h)
+        {
+            float z = float.NegativeInfinity;
+            float x0 = x - w * 0.5f, x1 = x + w * 0.5f, y0 = y - h * 0.5f, y1 = y + h * 0.5f;
+            foreach (var f in inst.GetComponentsInChildren<MeshFilter>())
+            {
+                var mesh = f.sharedMesh; if (mesh == null) continue;
+                var xf = f.transform;
+                foreach (var v in mesh.vertices)
+                {
+                    var p = xf.TransformPoint(v);
+                    if (p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1) z = Mathf.Max(z, p.z);
+                }
+            }
+            return z;
+        }
+
+        static void FinishHungSign(GameObject sign)
+        {
             foreach (var r in sign.GetComponentsInChildren<Renderer>())
             {
                 r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = true;
@@ -431,8 +500,6 @@ namespace StreetEmpire.EditorTools
                 {
                     if (m == null) continue;
                     m.SetFloat("_Metallic", 0f);
-                    // v75j: the board does not glow (the liquor store is a raw model; only finished sign_lit glows)
-                    m.SetTexture("_EmissionMap", null); m.DisableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.black);
                     EditorUtility.SetDirty(m);
                 }
             }

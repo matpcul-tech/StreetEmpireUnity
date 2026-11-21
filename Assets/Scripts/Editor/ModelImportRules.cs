@@ -101,7 +101,7 @@ namespace StreetEmpire.EditorTools
         static readonly string[] SmallProps = { "tyre", "trashbag", "cardboard-box", "crate", "barrel", "manhole", "security-light",
             "newspaper-box", "mailbox", "utility-box-1", "utility-box-2", "aircon", "bus-stop-sign", "sign-post" };
 
-        static bool Crisp(string path) => path.Contains("chainlink-panel__modular_chainlink_fence_wire") || path.Contains("decal-set") || path.Contains("street-blade") || path.Contains("stop-sign__stop") || path.Contains("pawn-sign") || path.Contains("liquor-sign");
+        static bool Crisp(string path) => path.Contains("chainlink-panel__modular_chainlink_fence_wire") || path.Contains("decal-set") || path.Contains("street-blade") || path.Contains("stop-sign__stop") || path.Contains("pawn-sign") || path.Contains("liquor-sign") || path.Contains("laundromat-sign") || path.Contains("takeout-sign") || path.Contains("check-cashing-sign") || path.Contains("barber-sign") || path.Contains("auto-sign") || path.Contains("gas-store-sign") || path.Contains("gas-price-sign");
 
         /// <summary>Prop texture sizes: hero color 2048 with 1024 normals, glass 256, metal and smoothness 512,
         /// small clutter 512, the rest 1024 color and 512 normals.</summary>
