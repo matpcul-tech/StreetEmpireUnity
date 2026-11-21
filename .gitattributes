@@ -79,3 +79,7 @@ Assets/Art/Models/Buildings/house-02-two-story.glb -filter -diff -merge binary
 Assets/Art/Models/Buildings/apt-mixed-use.glb -filter -diff -merge binary
 Assets/Art/Models/Buildings/store-barber.glb -filter -diff -merge binary
 docs/sovereign-assets/u75n/*.jpg -filter -diff -merge binary
+
+# v75o: house-03-duplex and the u75o sheet, plain git files for the same reason as the v75l block above
+Assets/Art/Models/Buildings/house-03-duplex.glb -filter -diff -merge binary
+docs/sovereign-assets/u75o/*.jpg -filter -diff -merge binary

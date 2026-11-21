@@ -1,0 +1,282 @@
+{
+ "file": "/home/claude/work/rooms/house-03-duplex.glb",
+ "plan": {
+  "rooms": true,
+  "openings": [
+   {
+    "kind": "window",
+    "face": "+z",
+    "at": 2.08,
+    "span": [
+     -2.74,
+     -1.28
+    ],
+    "y": [
+     1.28,
+     2.39
+    ],
+    "lit": true,
+    "clear": 0.12
+   },
+   {
+    "kind": "window",
+    "face": "+z",
+    "at": 2.08,
+    "span": [
+     1.23,
+     2.72
+    ],
+    "y": [
+     1.28,
+     2.39
+    ],
+    "lit": true,
+    "bars": true
+   },
+   {
+    "kind": "window",
+    "face": "-z",
+    "at": -3.34,
+    "span": [
+     -2.7,
+     2.7
+    ],
+    "y": [
+     1.28,
+     2.39
+    ],
+    "lit": true,
+    "sashes": 4
+   }
+  ]
+ },
+ "done": {
+  "window": 3,
+  "door": 0,
+  "sign": 0,
+  "wall": 0,
+  "cut": 0,
+  "clear": 0,
+  "panes": 3
+ },
+ "log": [
+  "Openings emptied: 20021 triangles the generator left inside the redrawn windows and doors (torn glass, bent bars, shutters) were taken out.",
+  "Frames, sills and sash bars are real pieces standing off the wall, material trim, painted one color here.",
+  "Window bars: 1 window barred with straight iron bars on two rails, material bars.",
+  "Windows: 3 windows redrawn, each one whole pane the size of its opening (windows_lit) behind a frame and sash bars.",
+  "Rooms: 3 panes (6 lit, 0 dark), each made one clean rectangle where its glass was and painted with what hangs in it: 3 house windows. By day a pane is dark glass with the sky in it; windows_lit glows at night with the room behind (its emission map, at full strength for the game's clock to scale). 6 triangles of generated glass became 12."
+ ],
+ "ready": true,
+ "summary": "Every check passed on the finished file.",
+ "checks": [
+  {
+   "id": "valid",
+   "status": "pass",
+   "label": "Valid glTF 2.0",
+   "detail": "The Khronos validator found no errors (1 warnings).",
+   "fix": ""
+  },
+  {
+   "id": "triangles-clean",
+   "status": "pass",
+   "label": "Clean triangles",
+   "detail": "No empty or repeated triangles.",
+   "fix": ""
+  },
+  {
+   "id": "facing",
+   "status": "pass",
+   "label": "Faces point outward",
+   "detail": "No shell is inside out.",
+   "fix": ""
+  },
+  {
+   "id": "normals",
+   "status": "pass",
+   "label": "Normals",
+   "detail": "Every part has normals that agree with its faces.",
+   "fix": ""
+  },
+  {
+   "id": "closed",
+   "status": "note",
+   "label": "Open edges",
+   "detail": "6285 open edges and 36 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+   "fix": ""
+  },
+  {
+   "id": "budget",
+   "status": "note",
+   "label": "Triangles",
+   "detail": "14285 triangles. No target was set.",
+   "fix": ""
+  },
+  {
+   "id": "drawcalls",
+   "status": "note",
+   "label": "Draw calls",
+   "detail": "4 draw calls, 4 materials.",
+   "fix": ""
+  },
+  {
+   "id": "color",
+   "status": "note",
+   "label": "Color range",
+   "detail": "Brightness runs from 1 to 71 percent, middle 16. Peak vividness 26. The shared range is 2 to 82, vividness up to 90. This asset is outside it. Turn on Hold color to the shared standard so it matches the others.",
+   "fix": ""
+  },
+  {
+   "id": "detail",
+   "status": "note",
+   "label": "Texture detail",
+   "detail": "32 texture pixels per meter across most of the surface. Assets that share a street should be close to each other on this number.",
+   "fix": ""
+  },
+  {
+   "id": "size",
+   "status": "note",
+   "label": "Size",
+   "detail": "7.26 wide, 4.00 tall, 7.36 long (meters). No size was set.",
+   "fix": ""
+  },
+  {
+   "id": "kept",
+   "status": "pass",
+   "label": "Nothing lost",
+   "detail": "4 materials, 7 textures.",
+   "fix": ""
+  },
+  {
+   "id": "bytes",
+   "status": "note",
+   "label": "File size",
+   "detail": "3.1 MB, was 3.1 MB.",
+   "fix": ""
+  },
+  {
+   "id": "parts",
+   "status": "note",
+   "label": "Windows, signs and doors",
+   "detail": "12 lit and 0 dark window triangles, 0 sign triangles, 0 door triangles.",
+   "fix": ""
+  }
+ ],
+ "after": {
+  "bytes": 3209036,
+  "nodes": 1,
+  "meshes": 1,
+  "drawCalls": 4,
+  "triangles": 14285,
+  "vertices": 76180,
+  "materials": 4,
+  "textures": [
+   {
+    "name": "Image_2",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 89261
+   },
+   {
+    "name": "Image_0",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 208935
+   },
+   {
+    "name": "Image_1",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 91693
+   },
+   {
+    "name": "trim_color",
+    "mime": "image/jpeg",
+    "width": 128,
+    "height": 128,
+    "bytes": 2157
+   },
+   {
+    "name": "bars_color",
+    "mime": "image/jpeg",
+    "width": 64,
+    "height": 64,
+    "bytes": 1540
+   },
+   {
+    "name": "windows_day",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 512,
+    "bytes": 66767
+   },
+   {
+    "name": "windows_night",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 512,
+    "bytes": 134930
+   }
+  ],
+  "maxTexture": 1024,
+  "skins": 0,
+  "joints": 0,
+  "animations": 0,
+  "morphs": 0,
+  "otherPrimitives": 0,
+  "size": [
+   7.262650966644287,
+   3.9999999998065587,
+   7.363987922668457
+  ],
+  "min": [
+   -3.6313254833221436,
+   1.9344126300779863e-10,
+   -3.6819939613342285
+  ],
+  "max": [
+   3.6313254833221436,
+   4,
+   3.6819939613342285
+  ],
+  "extensions": [],
+  "defects": {
+   "degenerate": 0,
+   "duplicate": 0,
+   "debrisPieces": 0,
+   "debrisTriangles": 0,
+   "debrisHeld": 0,
+   "inverted": 0,
+   "missingNormals": 0,
+   "wrongNormals": 0,
+   "openEdges": 6285,
+   "nonManifold": 36,
+   "missingUV": 0,
+   "pieces": 218
+  },
+  "detail": {
+   "median": 32.25634806430321,
+   "stretched": 0.011266393653598411,
+   "area": 693.2173431599533
+  },
+  "color": {
+   "low": 0.012451171875,
+   "mid": 0.16162109375,
+   "high": 0.708251953125,
+   "vivid": 0.263427734375
+  },
+  "parts": {
+   "litTris": 12,
+   "darkTris": 0,
+   "signTris": 0,
+   "doorTris": 0,
+   "glow": [
+    1,
+    1,
+    1
+   ]
+  }
+ }
+}
