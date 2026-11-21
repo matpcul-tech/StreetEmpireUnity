@@ -357,7 +357,22 @@ namespace StreetEmpire.EditorTools
             m.SetColor("_BaseColor", Color.white);
             var n = AssetDatabase.LoadAssetAtPath<Texture2D>(tex + "_normal.jpg");
             m.SetTexture("_BumpMap", n); if (n != null) m.EnableKeyword("_NORMALMAP"); else m.DisableKeyword("_NORMALMAP");
-            m.SetFloat("_Smoothness", 0.3f); m.enableInstancing = true;
+            var ms = AssetDatabase.LoadAssetAtPath<Texture2D>(tex + "_metalsmooth.png");
+            if (ms != null)
+            {
+                m.SetTexture("_MetallicGlossMap", ms);
+                m.EnableKeyword("_METALLICSPECGLOSSMAP");
+                m.SetFloat("_Metallic", 1f);
+                m.SetFloat("_Smoothness", 1f);
+                m.SetFloat("_SmoothnessTextureChannel", 0f);
+            }
+            else
+            {
+                m.SetTexture("_MetallicGlossMap", null);
+                m.DisableKeyword("_METALLICSPECGLOSSMAP");
+                m.SetFloat("_Smoothness", 0.3f);
+            }
+            m.enableInstancing = true;
             EditorUtility.SetDirty(m);
             return m;
         }

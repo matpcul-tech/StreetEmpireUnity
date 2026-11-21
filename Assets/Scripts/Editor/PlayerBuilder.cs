@@ -139,7 +139,21 @@ namespace StreetEmpire.EditorTools
             m.SetColor("_BaseColor", Color.white);
             var n = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Models/Characters/Player/player_normal.jpg");
             if (n != null) { m.SetTexture("_BumpMap", n); m.EnableKeyword("_NORMALMAP"); }
-            m.SetFloat("_Smoothness", 0.3f);
+            var ms = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Models/Characters/Player/player_metalsmooth.png");
+            if (ms != null)
+            {
+                m.SetTexture("_MetallicGlossMap", ms);
+                m.EnableKeyword("_METALLICSPECGLOSSMAP");
+                m.SetFloat("_Metallic", 1f);
+                m.SetFloat("_Smoothness", 1f);
+                m.SetFloat("_SmoothnessTextureChannel", 0f);
+            }
+            else
+            {
+                m.SetTexture("_MetallicGlossMap", null);
+                m.DisableKeyword("_METALLICSPECGLOSSMAP");
+                m.SetFloat("_Smoothness", 0.3f);
+            }
             EditorUtility.SetDirty(m);
             return m;
         }

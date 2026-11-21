@@ -1,5 +1,6 @@
 #!/bin/sh
-# GLB character (Mixamo rig, A pose) -> T-posed FBX plus JPEG textures under Assets/Art/Models/Characters/<Name>/.
+# GLB character (Mixamo rig, A pose) -> T-posed FBX plus textures under Assets/Art/Models/Characters/<Name>/.
+# Textures: <prefix>_basecolor.jpg, <prefix>_normal.jpg, and <prefix>_metalsmooth.png when the GLB has a metallic-roughness map.
 # Usage: tools/convert_character.sh <in.glb> <Name> <file-prefix>
 set -e
 B=${BLENDER:-$HOME/apps/blender-4.2.23-linux-x64/blender}
