@@ -364,7 +364,7 @@ namespace StreetEmpire.Game
             float[] hours = { 14f, 19f, 22f, 22f, 22f, 14f, 14f, 14f, 14f, 14f, 22f, 14f, 22f, 7.333f, 9.6f, 8.383f, 2.133f, 5.917f, 5.917f, 14f, 14f, 14f, 14f, 22f, 19.4f, 14f, 14f,
                 14f, 22f, 14f, 22f, 14f, 22f, 14f,
                 14f, 22f, 14f, 22f, 14f, 22f,
-                14f, 22f, 14f, 22f, 14f, 22f, 14f, 22f };   // v75n: views 40 to 47 the white house front, left, back and right, by day and at 22:00   // v75i: views 34 to 39 the two story, barber and white house from about 75 m, by day and at 22:00   // v75h: views 27 to 32 Matthew's v3 files by day and at 22:00, 33 the white house front wall close
+                14f, 22f, 14f, 22f, 14f, 22f, 14f, 22f, 14f, 22f, 14f };   // v75n: views 40 to 47 the white house front, left, back and right, by day and at 22:00   // v75i: views 34 to 39 the two story, barber and white house from about 75 m, by day and at 22:00   // v75h: views 27 to 32 Matthew's v3 files by day and at 22:00, 33 the white house front wall close
             int view = 0; int shown = -1;
             (Vector3 pos, Vector3 at) farV = (Vector3.zero, Vector3.forward);   // v75i: the far views
             var hidden = new System.Collections.Generic.List<Renderer>();   // v75n: neighbors hidden for the white house side and back views
@@ -405,7 +405,7 @@ namespace StreetEmpire.Game
                         kb.numpad1Key, kb.numpad2Key, kb.numpad3Key, kb.numpad4Key, kb.numpad5Key, kb.numpad6Key, kb.numpad7Key, kb.numpad8Key, kb.numpad9Key, kb.numpad0Key, kb.numpadPeriodKey, kb.numpadMultiplyKey, kb.numpadPlusKey, kb.numpadMinusKey,
                         kb.leftBracketKey, kb.rightBracketKey, kb.semicolonKey, kb.quoteKey, kb.commaKey, kb.periodKey, kb.slashKey,
                         kb.backquoteKey, kb.insertKey, kb.homeKey, kb.pageUpKey, kb.deleteKey, kb.endKey,
-                        kb.zKey, kb.xKey, kb.cKey, kb.vKey, kb.bKey, kb.nKey, kb.mKey, kb.kKey };   // v75n: Z X C V B N M K the white house on all four sides   // v75i: ` Insert Home PageUp Delete End   // v75h: [ ] ; ' , . /
+                        kb.zKey, kb.xKey, kb.cKey, kb.vKey, kb.bKey, kb.nKey, kb.mKey, kb.kKey, kb.lKey, kb.oKey, kb.pKey };   // v75o: L O P wide and far   // v75n: Z X C V B N M K the white house on all four sides   // v75i: ` Insert Home PageUp Delete End   // v75h: [ ] ; ' , . /
                     for (int i = 0; i < keys.Length; i++) if (keys[i].isPressed) view = i;
                 }
                 bool free = view == 6 || view == 7 || view == 25 || view == 26 || view >= 34;   // v75e: 26, the pedestrian close up, is a free camera that follows them
@@ -519,29 +519,51 @@ namespace StreetEmpire.Game
                         // v75n: the white house (house-01-bungalow, the same one as views 6 and 24) from its front, left, back
                         // and right, free cameras 7 m off each wall at 2.6 m, aimed at the wall's middle. For the left, back
                         // and right views the other buildings and props within 16 m are hidden (they stand in the way).
-                        case 40: case 41: case 42: case 43: case 44: case 45: case 46: case 47:
+                        // v75n: the white house from its front, left, back and right (views 41 to 48), free cameras 7 m off each
+                        // wall at 2.6 m, aimed at the wall's middle. v75o: which house comes from house=NAME in the URL
+                        // (default house-01); anything standing between the camera and that wall is hidden for the shot.
+                        // v75o: L and O a wide street view of that house among its neighbors (14:00, 22:00), P the same
+                        // house from about 120 m (14:00)
+                        case 40: case 41: case 42: case 43: case 44: case 45: case 46: case 47: case 48: case 49: case 50:
                         {
-                            var f = Face("house-01", 9f); StreetEmpire.City.BuildingMarker hm = null; float hd = float.MaxValue;
+                            string hu = Application.absoluteURL ?? ""; int hq = hu.IndexOf("house="); string hn = hq >= 0 ? hu.Substring(hq + 6).Split('&')[0] : "house-01";
+                            var f = Face(hn, 9f); StreetEmpire.City.BuildingMarker hm = null; float hd = float.MaxValue;
                             foreach (var m in FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None))
                             {
-                                if (m.model == null || !m.model.StartsWith("house-01")) continue;
+                                if (m.model == null || !m.model.StartsWith(hn)) continue;
                                 var c0 = m.GetComponent<BoxCollider>(); var b0b = c0 ? c0.bounds : new Bounds(m.transform.position, Vector3.one * 10);
                                 float d = (new Vector3(b0b.center.x, 0, b0b.center.z) - new Vector3(f.face.x, 0, f.face.z)).sqrMagnitude; if (d < hd) { hd = d; hm = m; }
                             }
                             var hc = hm ? hm.GetComponent<BoxCollider>() : null; var bb = hc ? hc.bounds : new Bounds(f.face - f.n * 4f + Vector3.up * 2f, new Vector3(8f, 4f, 8f));
+                            var mid = new Vector3(bb.center.x, bb.min.y + 1.9f, bb.center.z);
+                            if (view >= 48)
+                            {
+                                if (view == 50) farV = (mid + f.n * 110f + f.t * 30f + Vector3.up * 40f, mid);
+                                else farV = (mid + f.n * 24f + f.t * 14f + Vector3.up * 9f, mid - f.t * 10f);
+                                cam.farClipPlane = 800f;
+                                Debug.Log($"[ShotDirector] v75o {hn} wide/far view {view + 1} model {(hm ? hm.model : "none")} at {bb.center}");
+                                break;
+                            }
                             int side = (view - 40) / 2; var dir = side == 0 ? f.n : side == 1 ? -f.t : side == 2 ? -f.n : f.t;
                             float ext = Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(dir.x), 0, Mathf.Abs(dir.z))));
-                            var mid = new Vector3(bb.center.x, bb.min.y + 1.9f, bb.center.z);
-                            farV = (mid + dir * (ext + 7f) + Vector3.up * 0.7f, mid);
-                            if (side != 0)
+                            float wid = Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(dir.z), 0, Mathf.Abs(dir.x))));
+                            var camPos = mid + dir * (ext + 7f) + Vector3.up * 0.7f;
+                            farV = (camPos, mid);
+                            var across = Vector3.Cross(Vector3.up, dir);
+                            foreach (var r in FindObjectsByType<Renderer>(FindObjectsSortMode.None))
                             {
-                                foreach (var m in FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None))
-                                    if (m != hm && (m.transform.position - bb.center).magnitude < 30f)
-                                        foreach (var r in m.GetComponentsInChildren<Renderer>()) if (r.enabled && (r.bounds.ClosestPoint(bb.center) - bb.center).magnitude < 16f) { r.enabled = false; hidden.Add(r); }
-                                foreach (var m in FindObjectsByType<StreetEmpire.City.PropMarker>(FindObjectsSortMode.None))
-                                    foreach (var r in m.GetComponentsInChildren<Renderer>()) if (r.enabled && r.bounds.size.y > 0.6f && (r.bounds.ClosestPoint(bb.center) - bb.center).magnitude < 16f && (hm == null || !hm.transform.IsChildOf(m.transform))) { r.enabled = false; hidden.Add(r); }
+                                if (!r.enabled || (hm != null && r.transform.IsChildOf(hm.transform))) continue;
+                                var rb = r.bounds; if (rb.size.x > 30f || rb.size.z > 30f || rb.max.y < 0.5f) continue;   // ground, roads, curbs
+                                bool block = false;
+                                for (int gx = -2; gx <= 2 && !block; gx++) for (int gy = 0; gy <= 2 && !block; gy++)
+                                {
+                                    var tgt = bb.center + dir * ext + across * (wid * 0.95f * gx / 2f); tgt.y = bb.min.y + 0.4f + (bb.size.y - 0.6f) * gy / 2f;
+                                    var ray = new Ray(camPos, tgt - camPos); float dist = (tgt - camPos).magnitude;
+                                    if (rb.IntersectRay(ray, out float hit) && hit < dist - 0.4f) block = true;
+                                }
+                                if (block) { r.enabled = false; hidden.Add(r); }
                             }
-                            Debug.Log($"[ShotDirector] v75n white house view {view + 1} side {side} model {(hm ? hm.model : "none")} at {bb.center}, size {bb.size}, hid {hidden.Count}");
+                            Debug.Log($"[ShotDirector] v75o {hn} view {view + 1} side {side} model {(hm ? hm.model : "none")} at {bb.center}, size {bb.size}, hid {hidden.Count}");
                             break;
                         }
                         case 34: case 35: case 36: case 37: case 38: case 39:

@@ -35,10 +35,9 @@ namespace StreetEmpire.EditorTools
             // Midwest and are left out; their files stay in the repo. Each house gets a stucco wash (HouseTint).
             // v75: house-01-bungalow is back: only its roof is kept from the old file, the walls, porch, posts,
             // windows and door are rebuilt as clean geometry (tools/rebuild_house01.py), READY in Sovereign Asset.
-            // v75j (Matthew): house-03-duplex is out of the rotation until a finished one arrives (its file stays in the repo)
             // v75l: the five new Eastside houses (release meshy-new-buildings-2026-11-19, finished in Sovereign Asset) join the
             // two finished ones, so the seven house slots are seven different models
-            ["house"] = new[] { "house-02-two-story", "house-spanish-tile", "house-01-bungalow", "house-craftsman-porch", "house-stucco-duplex-2story", "house-boarded-stucco", "house-flat-roof" },
+            ["house"] = new[] { "house-02-two-story", "house-spanish-tile", "house-01-bungalow", "house-craftsman-porch", "house-stucco-duplex-2story", "house-boarded-stucco", "house-flat-roof", "house-03-duplex" },   // v75o: house-03-duplex back, the u75o finished file
             // v75l: apt-dingbat takes apt-motel-style's place (Eastside has 4 apartment lots; the motel file stays in the repo)
             ["apt"] = new[] { "apt-01-stucco", "apt-mixed-use", "apt-02-brick", "apt-dingbat" },
         };
@@ -67,10 +66,13 @@ namespace StreetEmpire.EditorTools
         // house-flat-roof (7,800,828 bytes, SHA-256 9bb7bfb43bd23365...): Material_0, walls, windows_lit, windows_dark
         // apt-dingbat (7,066,688 bytes, SHA-256 6027c60d81addc3d...): Material_0, sign_lit, walls, windows_lit, windows_dark (sign_lit emission off)
         // store-check-cashing (5,966,416 bytes, SHA-256 75b476a53e0a9b59...): Material_0, door, walls
+        // v75o: house-03-duplex redrawn in Sovereign Asset (claude/asset-ribbon, docs/sovereign-assets/u75o), as delivered:
+        // house-03-duplex (3,209,036 bytes, SHA-256 23752832308e0ae7...): Material_0, trim, bars, windows_lit
         public static readonly HashSet<string> Finished = new()
         {
             "house-01-bungalow", "house-02-two-story", "apt-01-stucco", "apt-mixed-use", "store-pawn", "store-barber",
             "house-spanish-tile", "house-craftsman-porch", "house-stucco-duplex-2story", "house-boarded-stucco", "house-flat-roof", "apt-dingbat", "store-check-cashing",
+            "house-03-duplex",   // v75o
         };
 
         /// <summary>Stucco washes dealt to the houses in turn (multiplied over the model's own colors): white, warm
@@ -257,7 +259,7 @@ namespace StreetEmpire.EditorTools
         public static readonly Dictionary<string, float> RealHeight = new()
         {
             ["apt-01-stucco"] = 10f /* v75n finish (u75n, 5,718,764 bytes, 5972b404) */, ["apt-02-brick"] = 10f, ["apt-mixed-use"] = 10f /* v75n finish (u75n, 5,612,804 bytes, b75e17aa) */, ["apt-motel-style"] = 7f, ["civic-church"] = 10f,
-            ["house-01-bungalow"] = 4.2f /* v75n finish (u75n, 7,984,464 bytes, a7991f26) */, ["house-02-two-story"] = 6.5f /* v75n finish (u75n, 5,231,296 bytes, 5f53253f) */, ["house-03-duplex"] = 4f, ["house-boarded"] = 7f,
+            ["house-01-bungalow"] = 4.2f /* v75n finish (u75n, 7,984,464 bytes, a7991f26) */, ["house-02-two-story"] = 6.5f /* v75n finish (u75n, 5,231,296 bytes, 5f53253f) */, ["house-03-duplex"] = 4f /* v75o finish (u75o, 3,209,036 bytes, 23752832) */, ["house-boarded"] = 7f,
             ["house-rowhouse-pair"] = 9f, ["house-shotgun"] = 4.5f, ["house-wood-duplex"] = 7.5f, ["shop-auto-garage"] = 5f,
             ["shop-gas-station"] = 5f, ["store-barber"] = 4.5f /* v75n finish (u75n, 8,799,264 bytes, df9fd207) */, ["store-bodega"] = 7f, ["store-laundromat"] = 6f,
             ["store-pawn"] = 4.5f /* v75n finish (u75n, 6,221,616 bytes, 08c2603b) */, ["store-takeout"] = 7.5f, ["store-liquor-blank"] = 4.9f,
@@ -446,10 +448,10 @@ namespace StreetEmpire.EditorTools
                 for (int i = 0; i < mats.Length; i++)
                 {
                     if (mats[i] == null || Part(mats[i]).StartsWith("windows")) continue;   // glass keeps its own color
-                    // v75: a model with its own walls material gets the wall paint there and keeps its roof and trim;
-                    // one atlas model (house-03-duplex) gets the old light wash over everything
+                    // v75: a model with its own walls material gets the wall paint there and keeps its roof and trim
+                    // v75o: the old light wash for the one atlas model (house-03-duplex) is gone; it is a finished file now
                     bool wallPart = Part(mats[i]) == "walls";
-                    if (painted && !wallPart) continue;
+                    if (!painted || !wallPart) continue;
                     var mul = painted ? Paint(wp.mean, wall) : tint;
                     // v75e: the white house (its roof now apart) gets only a slight share of the stucco wash per lot
                     if (name == "house-01-bungalow") mul = Color.Lerp(Color.white, mul, 0.6f);
