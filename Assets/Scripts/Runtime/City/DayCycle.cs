@@ -183,8 +183,8 @@ namespace StreetEmpire.City
                 for (int k = 0; k < windowMaterials.Length && k < windowBase.Length; k++) if (windowMaterials[k]) windowMaterials[k].SetColor("_EmissionColor", windowBase[k] * glow);
                 // v75c: the far windows stay well under the town's own (Matthew: they outshone it at night)
                 foreach (var m in skylineMaterials) if (m) m.SetColor("_EmissionColor", new Color(1f, 0.85f, 0.65f) * SkylineGlow * sky2);
-                // a finished file's sign_lit: a little by day, its own full emission from the blue hour on
-                for (int k = 0; k < signMaterials.Length && k < signBase.Length; k++) if (signMaterials[k]) signMaterials[k].SetColor("_EmissionColor", signBase[k] * Mathf.Lerp(0.35f, 1f, Mathf.Max(glow, sky2)));
+                // v75q: a little by day (0.10, lit but subtle at 14:00), its own full emission from the blue hour on
+                for (int k = 0; k < signMaterials.Length && k < signBase.Length; k++) if (signMaterials[k]) signMaterials[k].SetColor("_EmissionColor", signBase[k] * Mathf.Lerp(0.10f, 1f, Mathf.Max(glow, sky2)));
             }
         }
     }

@@ -27,6 +27,7 @@
 //                store sign at 22:00, equals the mixed use apartment block by day
 //   shot=v75p    signed storefronts already in the game, view=1 to 7 (liquor, laundromat, takeout, check cashing,
 //                barber, auto garage, gas station). hour=14 or hour=22 from the URL freezes the clock.
+//   shot=v75q    same seven fronts, camera stepped off poles, palms and lamps. hour= as above.
 //   shot=fight   the opening scuffle with a hit landed on a mugger every 0.8 s, so the target ring, warning rings,
 //                hit numbers, sparks, dust and shockwaves show on cue (game camera)
 //   shot=mugger  the opening scuffle as a new game plays it (every other shot skips it)
@@ -109,7 +110,8 @@ namespace StreetEmpire.Game
                     StartCoroutine(V75(p));
                     break;
                 case "v75p":
-                    StartCoroutine(V75p(url));
+                case "v75q":
+                    StartCoroutine(V75q(url));
                     break;
                 case "fight":
                     StartCoroutine(Fight(p));
@@ -124,10 +126,11 @@ namespace StreetEmpire.Game
             Debug.Log($"[ShotDirector] {shot}");
         }
 
-        /// <summary>v75p: a front view of each signed store already in the game. view=1 liquor, 2 laundromat,
+        /// <summary>v75q: a front view of each signed store already in the game. view=1 liquor, 2 laundromat,
         /// 3 takeout, 4 check cashing, 5 barber, 6 auto garage, 7 gas station (store sign and price sign). The
-        /// clock is FrozenHour from hour= in the URL. Free camera, no player in the way of the board.</summary>
-        IEnumerator V75p(string url)
+        /// clock is FrozenHour from hour= in the URL. Free camera, no player in the way of the board. The
+        /// camera steps sideways so a pole, palm or lamp is not on the line of sight.</summary>
+        IEnumerator V75q(string url)
         {
             var cam = Camera.main;
             var brain = cam.GetComponent<Unity.Cinemachine.CinemachineBrain>(); if (brain) brain.enabled = false;
@@ -160,12 +163,39 @@ namespace StreetEmpire.Game
             var backs = new[] { 8f, 9f, 8f, 10f, 8f, 12f, 11f };
             int view = 0; int q = url.IndexOf("view="); if (q >= 0 && int.TryParse(url.Substring(q + 5).Split('&')[0], out int v0)) view = Mathf.Clamp(v0 - 1, 0, models.Length - 1);
             var f = Face(models[view], backs[view]);
-            float lookY = view == 6 ? 2.2f : Mathf.Clamp(f.h * 0.62f, 2.2f, 4.6f);
-            var at = f.face + Vector3.up * lookY;
-            var pos = f.face + f.n * backs[view] + Vector3.up * (lookY * 0.55f + 1.1f);
-            if (view == 6) { pos += f.t * 1.4f; at += f.t * 0.7f; }   // include the price sign on the right
-            cam.transform.position = pos; cam.transform.LookAt(at);
-            Debug.Log($"[ShotDirector] v75p view {view + 1} {models[view]} hour {StreetEmpire.Game.GameClock.FrozenHour}");
+            float lookY = view == 6 ? 2.4f : Mathf.Clamp(f.h * 0.62f, 2.2f, 4.6f);
+            var at0 = f.face + Vector3.up * lookY;
+            var pos0 = f.face + f.n * backs[view] + Vector3.up * (lookY * 0.55f + 1.1f);
+            // gas: the price totem stands on -X, which is camera right (-t) after the import fold
+            float bias = view == 6 ? -1.3f : 0f;
+            float bestOff = bias, bestHits = 1e9f, bestBack = backs[view];
+            for (int bi = 0; bi < 3; bi++)
+            {
+                float back = backs[view] + bi * 1.6f;
+                var p0 = f.face + f.n * back + Vector3.up * (lookY * 0.55f + 1.1f);
+                for (int i = -8; i <= 8; i++)
+                {
+                    float off = bias + i * 0.55f;
+                    var pos = p0 + f.t * off;
+                    var at = at0 + f.t * off * 0.45f;
+                    int hits = 0;
+                    foreach (var q in blockers)
+                    {
+                        var qq = q; qq.y = pos.y;
+                        var seg = at - pos; float den = seg.sqrMagnitude; if (den < 1e-4f) continue;
+                        float u = Mathf.Clamp01(Vector3.Dot(qq - pos, seg) / den);
+                        if ((pos + seg * u - qq).magnitude < 1.35f) hits++;
+                    }
+                    if (hits < bestHits || (hits == bestHits && Mathf.Abs(off - bias) < Mathf.Abs(bestOff - bias) && back <= bestBack + 0.01f))
+                    { bestHits = hits; bestOff = off; bestBack = back; pos0 = p0; }
+                    if (hits == 0 && Mathf.Abs(off - bias) < 0.01f) break;
+                }
+                if (bestHits == 0f) break;
+            }
+            var posF = pos0 + f.t * bestOff;
+            var atF = at0 + f.t * bestOff * 0.45f;
+            cam.transform.position = posF; cam.transform.LookAt(atF);
+            Debug.Log($"[ShotDirector] v75q view {view + 1} {models[view]} hour {StreetEmpire.Game.GameClock.FrozenHour} off {bestOff:0.00} back {bestBack:0.00} hits {bestHits}");
             while (true) yield return null;
         }
 

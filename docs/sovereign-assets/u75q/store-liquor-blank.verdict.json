@@ -1,0 +1,419 @@
+{
+ "name": "store-liquor-blank",
+ "engine": "sa-grayblock/sa-main assetapp/engine.js, unity-building, walls off, no triangle target",
+ "options": {
+  "triangles": null,
+  "maxTexture": 2048,
+  "textureFormat": "keep",
+  "size": null,
+  "flatten": "light",
+  "walls": "off",
+  "surfaceMaps": "light",
+  "colorStandard": true,
+  "windowLights": true,
+  "compress": "off"
+ },
+ "ready": true,
+ "before": {
+  "bytes": 2410328,
+  "nodes": 13,
+  "meshes": 12,
+  "drawCalls": 19,
+  "triangles": 1572,
+  "vertices": 3312,
+  "materials": 8,
+  "textures": [
+   {
+    "name": "storefront_normal",
+    "mime": "image/jpeg",
+    "width": 512,
+    "height": 512,
+    "bytes": 11671
+   },
+   {
+    "name": "storefront_atlas",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 19113
+   },
+   {
+    "name": "main_sign",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 128,
+    "bytes": 4370
+   },
+   {
+    "name": "walls_color",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 374259
+   },
+   {
+    "name": "walls_normal",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 1196818
+   },
+   {
+    "name": "walls_roughness",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 369169
+   },
+   {
+    "name": "Atlas_Masonry_Trim_roughness",
+    "mime": "image/png",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 68468
+   },
+   {
+    "name": "Atlas_PaintedMetal_normal",
+    "mime": "image/png",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 96066
+   },
+   {
+    "name": "Atlas_PaintedMetal_roughness",
+    "mime": "image/png",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 67549
+   },
+   {
+    "name": "Atlas_OpaqueReflectiveGlass_roughness",
+    "mime": "image/png",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 67550
+   },
+   {
+    "name": "Sign_Blank_CoreEmission_roughness",
+    "mime": "image/png",
+    "width": 1024,
+    "height": 128,
+    "bytes": 3211
+   }
+  ],
+  "maxTexture": 2048,
+  "skins": 0,
+  "joints": 0,
+  "animations": 0,
+  "morphs": 0,
+  "otherPrimitives": 0,
+  "size": [
+   10.223453998565674,
+   4.899999618530273,
+   7.599030017852783
+  ],
+  "min": [
+   -5.111726760864258,
+   2.220446049250313e-16,
+   -3.7995150089263916
+  ],
+  "max": [
+   5.111727237701416,
+   4.899999618530273,
+   3.7995150089263916
+  ],
+  "extensions": [],
+  "defects": {
+   "degenerate": 0,
+   "duplicate": 0,
+   "debrisPieces": 0,
+   "debrisTriangles": 0,
+   "debrisHeld": 0,
+   "inverted": 0,
+   "missingNormals": 0,
+   "wrongNormals": 0,
+   "openEdges": 96,
+   "nonManifold": 10,
+   "missingUV": 0,
+   "pieces": 95
+  }
+ },
+ "after": {
+  "bytes": 2339724,
+  "nodes": 13,
+  "meshes": 12,
+  "drawCalls": 19,
+  "triangles": 1572,
+  "vertices": 3264,
+  "materials": 8,
+  "textures": [
+   {
+    "name": "storefront_normal",
+    "mime": "image/jpeg",
+    "width": 512,
+    "height": 512,
+    "bytes": 11671
+   },
+   {
+    "name": "storefront_atlas",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 19113
+   },
+   {
+    "name": "main_sign",
+    "mime": "image/jpeg",
+    "width": 1024,
+    "height": 128,
+    "bytes": 4370
+   },
+   {
+    "name": "walls_color",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 374259
+   },
+   {
+    "name": "walls_normal",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 1196818
+   },
+   {
+    "name": "walls_roughness",
+    "mime": "image/jpeg",
+    "width": 2048,
+    "height": 2048,
+    "bytes": 369169
+   },
+   {
+    "name": "Atlas_Masonry_Trim_roughness",
+    "mime": "image/png",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 68468
+   },
+   {
+    "name": "Atlas_PaintedMetal_normal",
+    "mime": "image/png",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 96066
+   },
+   {
+    "name": "Atlas_PaintedMetal_roughness",
+    "mime": "image/png",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 67549
+   },
+   {
+    "name": "Atlas_OpaqueReflectiveGlass_roughness",
+    "mime": "image/png",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 67550
+   },
+   {
+    "name": "Sign_Blank_CoreEmission_roughness",
+    "mime": "image/png",
+    "width": 1024,
+    "height": 128,
+    "bytes": 3211
+   }
+  ],
+  "maxTexture": 2048,
+  "skins": 0,
+  "joints": 0,
+  "animations": 0,
+  "morphs": 0,
+  "otherPrimitives": 0,
+  "size": [
+   10.223453998565674,
+   4.899999618530273,
+   7.599030017852783
+  ],
+  "min": [
+   -5.111727237701416,
+   0,
+   -3.7995150089263916
+  ],
+  "max": [
+   5.111726760864258,
+   4.899999618530273,
+   3.7995150089263916
+  ],
+  "extensions": [
+   "EXT_meshopt_compression"
+  ],
+  "defects": {
+   "degenerate": 0,
+   "duplicate": 0,
+   "debrisPieces": 0,
+   "debrisTriangles": 0,
+   "debrisHeld": 0,
+   "inverted": 0,
+   "missingNormals": 0,
+   "wrongNormals": 0,
+   "openEdges": 96,
+   "nonManifold": 10,
+   "missingUV": 0,
+   "pieces": 95
+  },
+  "detail": {
+   "median": 105.0013972712405,
+   "stretched": 0.36420033226389925,
+   "area": 716.0947789440172
+  },
+  "color": {
+   "low": 0.024169921875,
+   "mid": 0.235595703125,
+   "high": 0.596923828125,
+   "vivid": 0.923095703125
+  },
+  "windows": {
+   "found": 0,
+   "lit": 0,
+   "litTris": 0,
+   "darkTris": 0,
+   "glow": null
+  }
+ },
+ "checks": [
+  {
+   "id": "valid",
+   "status": "pass",
+   "label": "Valid glTF 2.0",
+   "detail": "The Khronos validator found no errors (18 warnings).",
+   "fix": ""
+  },
+  {
+   "id": "triangles-clean",
+   "status": "pass",
+   "label": "Clean triangles",
+   "detail": "No empty or repeated triangles.",
+   "fix": ""
+  },
+  {
+   "id": "debris",
+   "status": "pass",
+   "label": "No floating debris",
+   "detail": "No small pieces float free of the model.",
+   "fix": ""
+  },
+  {
+   "id": "facing",
+   "status": "pass",
+   "label": "Faces point outward",
+   "detail": "No shell is inside out.",
+   "fix": ""
+  },
+  {
+   "id": "normals",
+   "status": "pass",
+   "label": "Normals",
+   "detail": "Every part has normals that agree with its faces.",
+   "fix": ""
+  },
+  {
+   "id": "closed",
+   "status": "note",
+   "label": "Open edges",
+   "detail": "96 open edges and 10 edges shared by more than two faces. Fine for games and rendering. A 3D print needs none.",
+   "fix": ""
+  },
+  {
+   "id": "budget",
+   "status": "note",
+   "label": "Triangles",
+   "detail": "1572 triangles. No target was set.",
+   "fix": ""
+  },
+  {
+   "id": "drawcalls",
+   "status": "note",
+   "label": "Draw calls",
+   "detail": "19 draw calls, 8 materials.",
+   "fix": ""
+  },
+  {
+   "id": "textures",
+   "status": "pass",
+   "label": "Texture size",
+   "detail": "All 11 readable textures are 2048 px or under.",
+   "fix": ""
+  },
+  {
+   "id": "windows",
+   "status": "note",
+   "label": "Windows",
+   "detail": "None found. Only glass that is set back from its frame in the mesh can be found.",
+   "fix": ""
+  },
+  {
+   "id": "color",
+   "status": "pass",
+   "label": "Color standard",
+   "detail": "Brightness runs from 2 to 60 percent, middle 24. Peak vividness 92. The shared range is 2 to 82, vividness up to 90.",
+   "fix": ""
+  },
+  {
+   "id": "detail",
+   "status": "note",
+   "label": "Texture detail",
+   "detail": "105 texture pixels per meter across most of the surface. 36 percent of the surface is stretched to under half that. Assets that share a street should be close to each other on this number.",
+   "fix": ""
+  },
+  {
+   "id": "size",
+   "status": "note",
+   "label": "Size",
+   "detail": "10.2 wide, 4.90 tall, 7.60 long (meters). No size was set.",
+   "fix": ""
+  },
+  {
+   "id": "ground",
+   "status": "pass",
+   "label": "On the ground",
+   "detail": "Lowest point is at 0.0000 m.",
+   "fix": ""
+  },
+  {
+   "id": "center",
+   "status": "pass",
+   "label": "Centered",
+   "detail": "Center is at X 0.0000, Z 0.0000.",
+   "fix": ""
+  },
+  {
+   "id": "kept",
+   "status": "pass",
+   "label": "Nothing lost",
+   "detail": "8 materials, 11 textures.",
+   "fix": ""
+  },
+  {
+   "id": "bytes",
+   "status": "note",
+   "label": "File size",
+   "detail": "2.2 MB, was 2.3 MB.",
+   "fix": ""
+  }
+ ],
+ "log": [
+  "No empty or repeated triangles were found.",
+  "No floating debris was found.",
+  "No inside-out shells were found.",
+  "Closed 0 holes. 24 openings left open: too large or not a simple loop.",
+  "Flat areas: 106 walls and other flat areas (212 triangles) pressed onto their planes and lit as one face each. No point moved more than 0.00 percent of the part's size.",
+  "Color standard: every color texture was already inside the shared range. Nothing was changed.",
+  "Surface maps: every material already has its own.",
+  "1 color texture is too even to read any relief from. No normal map was made for it.",
+  "Windows: none found. A window has to be set back from its frame in the mesh. Glass that is only painted on a flat wall cannot be told from the wall.",
+  "The model was set on the ground, centered. The change sits on one top node, so parts, bones and animation are untouched.",
+  "Geometry was compressed with Meshopt. The loader needs the Meshopt decoder."
+ ]
+}

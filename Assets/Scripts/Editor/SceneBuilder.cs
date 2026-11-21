@@ -75,6 +75,13 @@ namespace StreetEmpire.EditorTools
             "house-03-duplex",   // v75o
         };
 
+        /// <summary>v75q: stores whose existing windows_lit should glow at night, without joining the
+        /// Finished set (that would drop their WallPaint and would keep a shared atlas on the glass).</summary>
+        public static readonly HashSet<string> WindowGlow = new()
+        {
+            "store-laundromat", "shop-auto-garage",
+        };
+
         /// <summary>Stucco washes dealt to the houses in turn (multiplied over the model's own colors): white, warm
         /// cream, peach, pale pink and sand, as along the web game's Eastside streets.</summary>
         static readonly Color[] HouseTint =
@@ -307,14 +314,15 @@ namespace StreetEmpire.EditorTools
             if (name == "store-liquor-blank") LiquorSign(inst, holder);
             // v75p: lettered sign_lit boards on the stores already in the game (hung props, no mesh edit)
             if (name == "store-laundromat") HangBoard(inst, holder, "laundromat-sign", -0.055f, 3.268f, 6.13f, 0.72f);
-            if (name == "store-takeout") HangBoard(inst, holder, "takeout-sign", 0.004f, 4.433f, 4.88f, 0.62f);
-            if (name == "store-check-cashing") HangBoard(inst, holder, "check-cashing-sign", 0.055f, 3.526f, 7.94f, 0.62f);
+            if (name == "store-takeout") HangBoard(inst, holder, "takeout-sign", 0.004f, 4.48f, 6.05f, 0.88f);
+            if (name == "store-check-cashing") HangBoard(inst, holder, "check-cashing-sign", 0.055f, 3.50f, 8.20f, 0.72f);
             if (name == "store-barber") HangBoard(inst, holder, "barber-sign", -0.114f, 3.522f, 3.85f, 0.45f);
             if (name == "shop-auto-garage") HangBoard(inst, holder, "auto-sign", -0.085f, 3.885f, 9.85f, 0.66f);
             if (name == "shop-gas-station")
             {
-                HangBoard(inst, holder, "gas-store-sign", -0.016f, 3.613f, 4.85f, 0.48f);
-                HangTotem(inst, holder, "gas-price-sign", 3.25f, 0.90f, 2.20f);
+                // v75q: hang GAS FOOD on the canopy's street fascia, not the recessed kiosk band
+                HangBoard(inst, holder, "gas-store-sign", 0f, 4.68f, 5.60f, 0.78f);
+                HangTotem(inst, holder, "gas-price-sign", 0.90f, 2.20f);
             }
             var near = inst.GetComponentsInChildren<Renderer>();
             foreach (var r in near) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
@@ -379,6 +387,13 @@ namespace StreetEmpire.EditorTools
                     m.SetTexture("_BaseMap", null); m.SetTexture("_BumpMap", null); m.DisableKeyword("_NORMALMAP");
                     // v75j: a raw model's windows_lit is dark glass like windows_dark, no emission
                     m.SetColor("_BaseColor", new Color(0.06f, 0.07f, 0.08f)); m.SetFloat("_Smoothness", 0.75f);
+                    // v75q: laundromat and auto already carry windows_lit with a warm emissive factor.
+                    // The SA finish found no new panes and wrote no room maps, so the meshes and wall
+                    // paint stay as they are. Keep the factor so DayCycle can ramp the panes at night.
+                    if (part == "windows_lit" && WindowGlow.Contains(name) && kc.maxColorComponent > 0.01f)
+                    {
+                        m.SetTexture("_EmissionMap", null); m.SetColor("_EmissionColor", kc); m.EnableKeyword("_EMISSION");
+                    }
                     EditorUtility.SetDirty(m); continue;
                 }
                 // v75e: the white house's roof is its own material (tools/house01_v2_fix.py) on the walls textures
@@ -445,31 +460,35 @@ namespace StreetEmpire.EditorTools
         static void HangBoard(GameObject inst, GameObject holder, string prop, float x, float y, float w, float h)
         {
             var sign = PropBuilder.Loose(prop);
-            if (sign == null) return;
+            if (sign == null) { Debug.LogError($"[SceneBuilder] missing hung sign {prop}"); return; }
             sign.name = prop; sign.transform.SetParent(holder.transform, false);
             sign.transform.localRotation = Quaternion.identity;
             var b = WorldBounds(sign);
             if (b.size.x > 1e-3f && b.size.y > 1e-3f) sign.transform.localScale = new Vector3(w / b.size.x, h / b.size.y, 1f);
             b = WorldBounds(sign);
-            float z = BandFrontZ(inst, x, y, w * 0.6f, h);
+            // prefer mesh verts in the band; if the wall is one big quad the band has no verts, so use the front
+            float z = BandFrontZ(inst, x, y, w, h);
             if (float.IsNegativeInfinity(z)) z = WorldBounds(inst).max.z;
-            sign.transform.position += new Vector3(x - b.center.x, y - b.center.y, z + 0.025f - b.center.z);
+            sign.transform.position += new Vector3(x - b.center.x, y - b.center.y, z + 0.08f - b.center.z);
             FinishHungSign(sign);
+            Debug.Log($"[SceneBuilder] hung {prop} at ({x:0.00}, {y:0.00}, {z + 0.08f:0.00}) size {w:0.00}x{h:0.00}");
         }
 
-        /// <summary>v75p: a standing price board at the pump-island side of the existing gas station, not in front
-        /// of the kiosk door (the door is on the left). Feet on the ground, just outside the right canopy edge,
-        /// a little in front of the mesh so it is not inside a post.</summary>
-        static void HangTotem(GameObject inst, GameObject holder, string prop, float x, float w, float h)
+        /// <summary>v75q: a standing price board on the pump-island side, away from the kiosk door. glTFast
+        /// folds X on import, so the door (left, -X in the file) sits on +X here. Feet on the ground, just
+        /// outside that clear side, a little in front of the canopy.</summary>
+        static void HangTotem(GameObject inst, GameObject holder, string prop, float w, float h)
         {
             var sign = PropBuilder.Loose(prop);
-            if (sign == null) return;
+            if (sign == null) { Debug.LogError($"[SceneBuilder] missing hung sign {prop}"); return; }
             sign.name = prop; sign.transform.SetParent(holder.transform, false);
             sign.transform.localRotation = Quaternion.identity;
             var b = WorldBounds(sign);
             if (b.size.x > 1e-3f && b.size.y > 1e-3f) sign.transform.localScale = new Vector3(w / b.size.x, h / b.size.y, 1f);
             b = WorldBounds(sign);
-            float z = WorldBounds(inst).max.z + 0.08f;
+            var ib = WorldBounds(inst);
+            float x = -(ib.extents.x + 0.40f);
+            float z = ib.max.z + 0.18f;
             sign.transform.position += new Vector3(x - b.center.x, 0f - b.min.y, z - b.center.z);
             FinishHungSign(sign);
         }
@@ -500,6 +519,7 @@ namespace StreetEmpire.EditorTools
                 {
                     if (m == null) continue;
                     m.SetFloat("_Metallic", 0f);
+                    m.SetFloat("_Cull", 0f);   // v75q: both faces, so an import X fold cannot hide the letters
                     EditorUtility.SetDirty(m);
                 }
             }

@@ -125,6 +125,7 @@ namespace StreetEmpire.EditorTools
             {
                 if ((deal * 7 + i * 3) % 3 == 0) continue;
                 float s = (i == 0 ? -1 : 1) * (k == 0 ? 6.5f : 12.8f) + Jit(0.6f);
+                s = PalmOffSignedFront(b, k, s);
                 Place((deal + i) % 3 == 0 ? "palm-short" : "palm-tall", "tree", b.id, At(b, k, CurbLine, s, SidewalkTop), Quaternion.Euler(0, Jit(180), 0), parent, Col.Pole, 0f, pole: 0.25f);
             }
             if (k == b.id % 4) Place(b.id % 3 == 0 ? "hydrant-aged" : "hydrant", "hydrant", b.id, At(b, k, CurbLine, 3.2f, SidewalkTop), Face(-n) * Quaternion.Euler(0, Jit(25), 0), parent, Col.Bounds, 0.01f);
@@ -631,6 +632,39 @@ namespace StreetEmpire.EditorTools
             foreach (var e in JsonUtility.FromJson<Manifest>(File.ReadAllText(path)).materials) manifest[$"{e.prop}|{e.material}"] = e;
         }
 
+        /// <summary>v75q: if a curb palm would stand in front of the takeout or check cashing board, slide it
+        /// along the curb to the side of that lot. The instancer records the matrix at Place, so this runs first.</summary>
+        static float PalmOffSignedFront(BlockInfo b, int k, float s)
+        {
+            var pos = At(b, k, CurbLine, s, SidewalkTop);
+            var nCurb = N(k); var tCurb = T(k);
+            foreach (var m in Object.FindObjectsByType<BuildingMarker>(FindObjectsSortMode.None))
+            {
+                if (m.model != "store-takeout" && m.model != "store-check-cashing") continue;
+                if (m.blockId != b.id) continue;
+                var col = m.GetComponent<BoxCollider>();
+                var bb = col ? col.bounds : new Bounds(m.transform.position, Vector3.one * 8f);
+                var blk = new Vector3(b.center.x, 0f, b.center.z);
+                var n = m.transform.forward; n.y = 0f; if (n.sqrMagnitude < 1e-6f) continue; n.Normalize();
+                var outward = bb.center - blk; outward.y = 0f;
+                if (Vector3.Dot(n, outward) < 0f) n = -n;
+                if (Vector3.Dot(nCurb, n) < 0.7f) continue;
+                var t = Vector3.Cross(Vector3.up, n);
+                var face = bb.center + n * Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(n.x), 0f, Mathf.Abs(n.z))));
+                face.y = 0f;
+                var dp = pos; dp.y = 0f; dp -= face;
+                float along = Vector3.Dot(dp, n);
+                float side = Vector3.Dot(dp, t);
+                float halfW = Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(t.x), 0f, Mathf.Abs(t.z))));
+                if (along < -1f || along > 10f || Mathf.Abs(side) > halfW + 1.2f) continue;
+                float dest = ((side > 0.05f || (Mathf.Abs(side) <= 0.05f && s >= 0f)) ? 1f : -1f) * (halfW + 2.2f);
+                var np = face + t * dest + n * along;
+                s = Vector3.Dot(np - new Vector3(b.center.x, 0f, b.center.z), tCurb);
+                break;
+            }
+            return s;
+        }
+
         /// <summary>One loose copy of a prop model with its URP materials (the mugger's bat), outside the merged batches.</summary>
         public static GameObject Loose(string model)
         {
@@ -718,12 +752,13 @@ namespace StreetEmpire.EditorTools
             bool signLit = e.material != null && (e.material.Contains("sign_lit") || e.material.Contains("liquor_sign"));
             if (emap != null && signLit)
             {
-                // v75p: lettered store boards use their own emission map (letters and halo). DayCycle ramps
-                // signMaterials from 0.35 by day to full at night. The glTF factor is 0 to 1; the color is
-                // boosted a little so the letters read at night.
+                // v75q: DayCycle ramps signMaterials from 0.10 by day to full at night. The glTF factor is
+                // 0 to 1; the color is boosted a little so the letters read at night, less than v75p so the
+                // boards stay subtle at 14:00 and the price totem does not bloom out the grades.
                 var ef = e.emissive != null && e.emissive.Length >= 3 ? e.emissive : new[] { 1f, 0.77f, 0.43f };
+                float boost = prop == "gas-price-sign" ? 1.15f : 1.55f;
                 m.SetTexture("_EmissionMap", emap);
-                m.SetColor("_EmissionColor", new Color(ef[0], ef[1], ef[2]) * 2.2f);
+                m.SetColor("_EmissionColor", new Color(ef[0], ef[1], ef[2]) * boost);
                 m.EnableKeyword("_EMISSION");
                 m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
             }
