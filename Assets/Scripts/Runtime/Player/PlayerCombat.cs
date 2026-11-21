@@ -38,7 +38,7 @@ namespace StreetEmpire.Player
             if (best == null) return;
             var face = best.transform.position - transform.position; face.y = 0;
             if (face.sqrMagnitude > 1e-4f) transform.rotation = Quaternion.LookRotation(face);
-            bool cop = best.GetComponent<Cop>() != null, ped = best.GetComponent<Ped>() != null;
+            bool cop = best.GetComponent<Cop>() != null, ped = best.GetComponent<Ped>() != null || best.GetComponent<Townie>() != null;
             best.Damage(damage, gameObject);
             if (s == null) return;
             if (cop) { s.AddHeat("hitCop"); if (best.Down) s.AddHeat("koCop"); }
