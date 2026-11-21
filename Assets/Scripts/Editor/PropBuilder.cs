@@ -632,8 +632,9 @@ namespace StreetEmpire.EditorTools
             foreach (var e in JsonUtility.FromJson<Manifest>(File.ReadAllText(path)).materials) manifest[$"{e.prop}|{e.material}"] = e;
         }
 
-        /// <summary>v75q: if a curb palm would stand in front of the takeout or check cashing board, slide it
-        /// along the curb to the side of that lot. The instancer records the matrix at Place, so this runs first.</summary>
+        /// <summary>v75r: if a curb palm would stand in front of the takeout or check cashing board, slide it
+        /// along the curb to the side of that lot (further for check cashing, so CHECK CASHING is clear).
+        /// The instancer records the matrix at Place, so this runs first.</summary>
         static float PalmOffSignedFront(BlockInfo b, int k, float s)
         {
             var pos = At(b, k, CurbLine, s, SidewalkTop);
@@ -656,8 +657,11 @@ namespace StreetEmpire.EditorTools
                 float along = Vector3.Dot(dp, n);
                 float side = Vector3.Dot(dp, t);
                 float halfW = Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(t.x), 0f, Mathf.Abs(t.z))));
-                if (along < -1f || along > 10f || Mathf.Abs(side) > halfW + 1.2f) continue;
-                float dest = ((side > 0.05f || (Mathf.Abs(side) <= 0.05f && s >= 0f)) ? 1f : -1f) * (halfW + 2.2f);
+                // v75r: check cashing needs more room (v75q still left a trunk over CH). Takeout can stay closer.
+                float slop = m.model == "store-check-cashing" ? 3.5f : 1.2f;
+                float extra = m.model == "store-check-cashing" ? 6.0f : 2.2f;
+                if (along < -1f || along > 12f || Mathf.Abs(side) > halfW + slop) continue;
+                float dest = ((side > 0.05f || (Mathf.Abs(side) <= 0.05f && s >= 0f)) ? 1f : -1f) * (halfW + extra);
                 var np = face + t * dest + n * along;
                 s = Vector3.Dot(np - new Vector3(b.center.x, 0f, b.center.z), tCurb);
                 break;

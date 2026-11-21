@@ -28,6 +28,8 @@
 //   shot=v75p    signed storefronts already in the game, view=1 to 7 (liquor, laundromat, takeout, check cashing,
 //                barber, auto garage, gas station). hour=14 or hour=22 from the URL freezes the clock.
 //   shot=v75q    same seven fronts, camera stepped off poles, palms and lamps. hour= as above.
+//   shot=v75r    same seven fronts, closer camera, HUD off, line-of-sight palms/poles/lamps/signals
+//                hidden in shot mode only. hour= as above.
 //   shot=fight   the opening scuffle with a hit landed on a mugger every 0.8 s, so the target ring, warning rings,
 //                hit numbers, sparks, dust and shockwaves show on cue (game camera)
 //   shot=mugger  the opening scuffle as a new game plays it (every other shot skips it)
@@ -113,6 +115,9 @@ namespace StreetEmpire.Game
                 case "v75q":
                     StartCoroutine(V75q(url));
                     break;
+                case "v75r":
+                    StartCoroutine(V75r(url));
+                    break;
                 case "fight":
                     StartCoroutine(Fight(p));
                     break;
@@ -196,6 +201,87 @@ namespace StreetEmpire.Game
             var atF = at0 + f.t * bestOff * 0.45f;
             cam.transform.position = posF; cam.transform.LookAt(atF);
             Debug.Log($"[ShotDirector] v75q view {view + 1} {models[view]} hour {StreetEmpire.Game.GameClock.FrozenHour} off {bestOff:0.00} back {bestBack:0.00} hits {bestHits}");
+            while (true) yield return null;
+        }
+
+        /// <summary>v75r: same seven signed storefronts as v75q, but the frame must be clear of poles, palms,
+        /// lamps and signals. The camera sits closer, a little higher, with a wider FOV so the whole front still
+        /// fits, and it searches a side offset. In shot mode only, palms, poles, lamps and signals on the line
+        /// of sight are not drawn (PropInstancer.shotHide), and the HUD canvas (joystick, radar, stats) is
+        /// turned off. Neither change runs in normal play.</summary>
+        IEnumerator V75r(string url)
+        {
+            var hud = GameObject.Find("HUD");
+            if (hud) hud.SetActive(false);
+            var cam = Camera.main;
+            var brain = cam.GetComponent<Unity.Cinemachine.CinemachineBrain>(); if (brain) brain.enabled = false;
+            cam.fieldOfView = 70f;
+            Vector3 Block(int id) { foreach (var m in FindObjectsByType<StreetEmpire.City.BlockMarker>(FindObjectsSortMode.None)) if (m.blockId == id) return m.transform.position; return Vector3.zero; }
+            var b10 = Block(10);
+            var blockers = new System.Collections.Generic.List<Vector3>();
+            foreach (var m in FindObjectsByType<StreetEmpire.City.PropMarker>(FindObjectsSortMode.None))
+                if (m.model != null && (m.model.StartsWith("palm") || m.model.StartsWith("tree") || m.model.Contains("pole") || m.model.Contains("lamp") || m.model.Contains("signal")))
+                    blockers.Add(m.transform.position);
+            (Vector3 face, Vector3 n, Vector3 t, float h) Face(string model)
+            {
+                (Vector3, Vector3, Vector3, float) best = (b10, Vector3.back, Vector3.right, 8f); float bestScore = float.MaxValue;
+                foreach (var m in FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None))
+                {
+                    if (m.model == null || !m.model.StartsWith(model)) continue;
+                    var c = m.GetComponent<BoxCollider>(); var bb = c ? c.bounds : new Bounds(m.transform.position, Vector3.one * 10);
+                    var o = bb.center - Block(m.blockId); o.y = 0;
+                    var n = m.transform.forward; n.y = 0; n.Normalize(); if (Vector3.Dot(n, o) < 0) n = -n;
+                    var face = bb.center + n * Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(n.x), 0, Mathf.Abs(n.z)))); face.y = bb.min.y;
+                    float score = (bb.center - b10).magnitude * 0.001f;
+                    if (score < bestScore) { bestScore = score; best = (face, n, Vector3.Cross(Vector3.up, n), bb.size.y); }
+                }
+                return best;
+            }
+            var models = new[] { "store-liquor", "store-laundromat", "store-takeout", "store-check-cashing", "store-barber", "shop-auto-garage", "shop-gas-station" };
+            // closer than v75q, so the curb often sits beside or behind the camera
+            var backs = new[] { 6.2f, 6.4f, 6.0f, 6.8f, 5.8f, 7.8f, 8.0f };
+            int view = 0; int q = url.IndexOf("view="); if (q >= 0 && int.TryParse(url.Substring(q + 5).Split('&')[0], out int v0)) view = Mathf.Clamp(v0 - 1, 0, models.Length - 1);
+            var f = Face(models[view]);
+            float lookY = view == 6 ? 2.6f : Mathf.Clamp(f.h * 0.58f, 2.3f, 4.2f);
+            var at0 = f.face + Vector3.up * lookY;
+            float bias = view == 6 ? -1.2f : 0f;
+            float bestOff = bias, bestHits = 1e9f, bestBack = backs[view];
+            Vector3 pos0 = at0;
+            for (int bi = -2; bi <= 3; bi++)
+            {
+                float back = Mathf.Max(4.8f, backs[view] + bi * 0.7f);
+                var p0 = f.face + f.n * back + Vector3.up * (lookY * 0.42f + 1.6f);
+                for (int i = -10; i <= 10; i++)
+                {
+                    float off = bias + i * 0.45f;
+                    var pos = p0 + f.t * off;
+                    var at = at0 + f.t * off * 0.25f;
+                    int hits = 0;
+                    foreach (var blk in blockers)
+                    {
+                        var qq = blk; qq.y = 0f;
+                        var a = pos; a.y = 0f; var b = at; b.y = 0f;
+                        var seg = b - a; float den = seg.sqrMagnitude; if (den < 1e-4f) continue;
+                        float u = Mathf.Clamp01(Vector3.Dot(qq - a, seg) / den);
+                        if ((a + seg * u - qq).magnitude < 1.8f) hits++;
+                    }
+                    bool better = hits < bestHits
+                        || (hits == bestHits && Mathf.Abs(off - bias) < Mathf.Abs(bestOff - bias) && back <= bestBack + 0.01f);
+                    if (better) { bestHits = hits; bestOff = off; bestBack = back; pos0 = p0; }
+                }
+            }
+            var posF = pos0 + f.t * bestOff;
+            var atF = at0 + f.t * bestOff * 0.25f;
+            cam.transform.position = posF; cam.transform.LookAt(atF);
+            var inst = FindFirstObjectByType<StreetEmpire.City.PropInstancer>();
+            if (inst != null)
+            {
+                inst.shotHide = true;
+                inst.shotHideA = posF;
+                inst.shotHideB = atF;
+                inst.shotHideRadius = 2.1f;
+            }
+            Debug.Log($"[ShotDirector] v75r view {view + 1} {models[view]} hour {StreetEmpire.Game.GameClock.FrozenHour} off {bestOff:0.00} back {bestBack:0.00} hits {bestHits} fov {cam.fieldOfView}");
             while (true) yield return null;
         }
 

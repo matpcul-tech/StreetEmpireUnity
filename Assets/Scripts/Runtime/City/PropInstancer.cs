@@ -16,6 +16,11 @@ namespace StreetEmpire.City
         /// <summary>Copies this close always draw, on screen or not, so the shadows next to the camera stay.</summary>
         public float shadowKeep = 24f;
         public float distanceScale = 1f;
+        /// <summary>v75r shot mode only: skip palms, poles, lamps and signals that sit on this segment
+        /// (camera to storefront). Null in normal play, so nothing is hidden there.</summary>
+        public bool shotHide;
+        public Vector3 shotHideA, shotHideB;
+        public float shotHideRadius = 2f;
         const int Chunk = 500;
 
         readonly Plane[] planes = new Plane[6];
@@ -41,6 +46,7 @@ namespace StreetEmpire.City
                 foreach (var m in b.matrices)
                 {
                     var c = m.MultiplyPoint3x4(b.center);
+                    if (shotHide && StreetBlocker(b.name) && OnSegment(c, shotHideA, shotHideB, shotHideRadius)) continue;
                     float d = Vector3.Distance(eye, c);
                     if (d > cull) continue;
                     var s = m.lossyScale; float r = b.radius * Mathf.Max(Mathf.Abs(s.x), Mathf.Abs(s.y), Mathf.Abs(s.z));
@@ -87,6 +93,22 @@ namespace StreetEmpire.City
                 }
             }
             return n;
+        }
+
+        static bool StreetBlocker(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return false;
+            return name.StartsWith("palm-") || name.StartsWith("tree-") || name.Contains("utility-pole")
+                || name.Contains("street-lamp") || name.Contains("traffic-signal");
+        }
+
+        static bool OnSegment(Vector3 p, Vector3 a, Vector3 b, float radius)
+        {
+            p.y = 0f; a.y = 0f; b.y = 0f;
+            var ab = b - a; float den = ab.sqrMagnitude;
+            if (den < 1e-4f) return (p - a).sqrMagnitude <= radius * radius;
+            float u = Mathf.Clamp01(Vector3.Dot(p - a, ab) / den);
+            return (a + ab * u - p).sqrMagnitude <= radius * radius;
         }
 
         /// <summary>Swap a material in every batch (the traffic lights light up their own copies).</summary>
