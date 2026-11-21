@@ -113,8 +113,8 @@ namespace StreetEmpire.Tests
                 Assert.AreEqual(g.Count(), g.Select(b => b.model + "#" + b.wash).Distinct().Count(), $"block {g.Key} repeats a building: {string.Join(", ", g.Select(b => b.model + "#" + b.wash))}");
             Assert.IsFalse(bs.Any(b => b.model is "house-wood-duplex" or "house-shotgun" or "house-boarded" or "house-rowhouse-pair"), "no clapboard or brick houses");
             Assert.GreaterOrEqual(bs.Select(b => b.model).Distinct().Count(), 15, "the stores, apartments and the three stucco houses are placed");
-            // v75l: all seven house models of the rotation are placed
-            Assert.AreEqual(7, bs.Where(b => b.kind == "house").Select(b => b.model).Distinct().Count(), "seven house models");
+            // v75l: all seven house models of the rotation are placed; v75o: eight, house-03-duplex is back
+            Assert.AreEqual(8, bs.Where(b => b.kind == "house").Select(b => b.model).Distinct().Count(), "eight house models");
             Assert.IsTrue(bs.Any(b => b.model == "store-barber") && bs.Any(b => b.model == "civic-church") && bs.Any(b => b.model == "apt-dingbat"));   // v75l: the dingbat has the motel's lot
             foreach (var b in bs)
                 foreach (var m in b.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials))
