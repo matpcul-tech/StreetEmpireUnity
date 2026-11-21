@@ -105,6 +105,9 @@ namespace StreetEmpire.EditorTools
             pt.alignment = TextAnchor.MiddleCenter; pt.color = new Color32(0xff, 0xf1, 0xc4, 255); pt.raycastTarget = false;
             var ps = pt.gameObject.AddComponent<Shadow>(); ps.effectColor = new Color(0, 0, 0, 0.8f); ps.effectDistance = new Vector2(1.5f, -1.5f);
             arm.prompt = pt;
+
+            // town life: activity spots at the tire shop and the gas station, and the people who use them
+            TownLifeBuilder.Build(go);
         }
 
         /// <summary>Fight feedback (CombatFx): target and warning rings, hit numbers, sparks, dust, shockwaves.</summary>
