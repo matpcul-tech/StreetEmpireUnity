@@ -83,3 +83,8 @@ docs/sovereign-assets/u75n/*.jpg -filter -diff -merge binary
 # v75o: house-03-duplex and the u75o sheet, plain git files for the same reason as the v75l block above
 Assets/Art/Models/Buildings/house-03-duplex.glb -filter -diff -merge binary
 docs/sovereign-assets/u75o/*.jpg -filter -diff -merge binary
+
+# NPC v3: the character files and the npc-v3 sheets are plain git files, not LFS, for the same reason as the v75l
+# block above. To move them into LFS, delete this block and run: git add --renormalize . && git commit
+Assets/Art/Models/Characters/** -filter -diff -merge binary
+docs/sovereign-assets/npc-v3/*.jpg -filter -diff -merge binary
