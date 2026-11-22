@@ -273,9 +273,22 @@ namespace StreetEmpire.Game
             }
             else if (ped != null)
             {
+                // a crew body or boss: stand the player on a block that crew holds so its guards come out
+                string crew = ped.StartsWith("boss-red") || ped.StartsWith("reds") ? "reds" : ped.StartsWith("boss-blue") || ped.StartsWith("blues") ? "blues" : ped.StartsWith("boss-gold") || ped.StartsWith("golds") ? "golds" : null;
+                var turf = FindFirstObjectByType<TurfWar>();
+                if (crew != null && turf != null && turf.State != null)
+                    foreach (var tb in turf.State.blocks)
+                        if (tb.owner != null && tb.owner.Contains(crew)) { var at = turf.Center(tb.id); GameSession.Instance.player.Teleport(at + new Vector3(0f, 0.3f, -23f), 0f); break; }
                 Transform best = null;
-                foreach (var tr in FindObjectsByType<Transform>(FindObjectsSortMode.None))
-                    if (tr.name.Contains(ped) && tr.position.y > -10f && tr.GetComponentInChildren<SkinnedMeshRenderer>() != null) { best = tr; break; }
+                for (int tries = 0; tries < 40 && best == null; tries++)
+                {
+                    foreach (var r in FindObjectsByType<SkinnedMeshRenderer>(FindObjectsSortMode.None))
+                    {
+                        if (r.sharedMaterial == null || !r.sharedMaterial.name.StartsWith(ped) || r.transform.position.y < -10f || !r.enabled) continue;
+                        var an = r.GetComponentInParent<Animator>(); best = an != null ? an.transform : r.transform.root; break;
+                    }
+                    if (best == null) yield return new WaitForSeconds(0.5f);
+                }
                 if (best == null) { Debug.LogWarning($"[ShotDirector] v75t no character {ped}"); yield break; }
                 Debug.Log($"[ShotDirector] v75t character {ped}: {best.name}");
                 while (best != null)
