@@ -123,6 +123,7 @@ namespace StreetEmpire.EditorTools
             turf.crewTemplateIds = CrewLooks.Select(c => c.crew).ToArray();
             turf.crewTemplates = CrewLooks.SelectMany((c, k) => new[] { c.man, c.woman, c.man }.Select((look, i) =>
                 Fighter($"{c.crew} Template {i + 1}", new Vector3(i * 3, -60, 6 + k * 3), look, i == 2))).ToArray();
+            turf.crewBossTemplates = BossLooks.Select((look, k) => Fighter($"{CrewLooks[k].crew} Boss Template", new Vector3(12, -60, 6 + k * 3), look, false)).ToArray();
             turf.prompt = pt; turf.hud = hud; turf.radar = radar; turf.job = runner; turf.opening = opening; turf.arm = arm;
             hud.turfTotal = turf.blockIds.Length;
 
@@ -241,7 +242,19 @@ namespace StreetEmpire.EditorTools
         }
         public static readonly Look Unc = new("Unc", "unc", 1.80f);
         public static readonly Look[] CopLooks = { new("Cops", "cop-m-1", 1.82f), new("Cops", "cop-m-2", 1.76f) };
-        public static readonly Look[] PedLooks = { new("Peds", "ped-m-1", 1.78f), new("Peds", "ped-f-1", 1.66f), new("Peds", "ped-m-2", 1.72f), new("Peds", "ped-f-2", 1.70f) };
+        // The first four are NPC v3. The six after them are wave A (release meshy-chars-wave-a-2026-11-22,
+        // docs/sovereign-assets/chars-wave-a); new ones go on the end, the first four are used by index.
+        public static readonly Look[] PedLooks =
+        {
+            new("Peds", "ped-m-1", 1.78f), new("Peds", "ped-f-1", 1.66f), new("Peds", "ped-m-2", 1.72f), new("Peds", "ped-f-2", 1.70f),
+            new("Peds", "ped-m-3", 1.72f), new("Peds", "ped-f-3", 1.62f), new("Peds", "ped-m-4", 1.80f), new("Peds", "ped-f-4", 1.60f), new("Peds", "ped-m-5", 1.74f), new("Peds", "ped-f-5", 1.68f),
+        };
+        // only the v3 pedestrians get the flank fix; on the wave A files the sides follow the arms far less (13 to 25
+        // percent of flank vertices against 49 on ped-m-1)
+        static readonly string[] ArmFixed = { "ped-m-1", "ped-f-1", "ped-m-2", "ped-f-2" };
+        // Wave A: the crew bosses, in CrewLooks order, and the fence (in the project, no part in the game yet)
+        public static readonly Look[] BossLooks = { new("Named", "boss-redkings", 1.84f), new("Named", "boss-bluehand", 1.72f), new("Named", "boss-goldline", 1.78f) };
+        public static readonly Look Fence = new("Named", "contact-fence", 1.66f);
 
         // NPC v4 (release meshy-npc-v4-2026-11-22, docs/sovereign-assets/npc-v4): two bodies for each rival crew.
         // The files all come at 1.80 m; these are the heights they stand at in the game.
@@ -274,7 +287,7 @@ namespace StreetEmpire.EditorTools
             anim.applyRootMotion = false; anim.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
             var mat = LookMaterial(look);
             foreach (var r in model.GetComponentsInChildren<SkinnedMeshRenderer>()) { r.sharedMaterial = mat; r.updateWhenOffscreen = true; r.renderingLayerMask |= 2u; }   // 2: the character fill light
-            if (look.dir == "Peds") foreach (var r in model.GetComponentsInChildren<SkinnedMeshRenderer>()) r.sharedMesh = ArmFix(r, look.prefix);
+            if (look.dir == "Peds" && System.Array.IndexOf(ArmFixed, look.prefix) >= 0) foreach (var r in model.GetComponentsInChildren<SkinnedMeshRenderer>()) r.sharedMesh = ArmFix(r, look.prefix);
             // NPC v3: every file comes at 1.80 m, so each one is brought to its own height here (the women
             // 1.66 and 1.70, the older men 1.72 and 1.76); before, only a file more than a tenth off was rescaled
             float h = ModelHeight(model);
