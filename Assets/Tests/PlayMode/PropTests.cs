@@ -32,10 +32,10 @@ namespace StreetEmpire.Tests
             yield return Load();
             Assert.GreaterOrEqual(Count("streetlight"), 30, "a street lamp on each block side");
             Assert.GreaterOrEqual(Count("hydrant"), 9, "a hydrant per block");
-            Assert.AreEqual(16, Count("traffic signal"), "four signals at each of the four middle crossings");
+            Assert.AreEqual(64, Count("traffic signal"), "four signals at each of the sixteen middle crossings");
             Assert.GreaterOrEqual(Count("stop sign"), 20, "stop signs at the outer crossings");
-            Assert.AreEqual(16, Count("street name sign"), "a street name post at every crossing");
-            Assert.AreEqual(32, Count("street name blade"), "two name blades on every post");
+            Assert.AreEqual(36, Count("street name sign"), "a street name post at every crossing");
+            Assert.AreEqual(72, Count("street name blade"), "two name blades on every post");
             Assert.GreaterOrEqual(Count("utility pole"), 12, "utility poles");
             Assert.GreaterOrEqual(Count("parked car"), 8, "parked cars");
             Assert.GreaterOrEqual(Count("tree"), 40, "palms in the lots, the yards and along the curbs");
@@ -75,7 +75,7 @@ namespace StreetEmpire.Tests
                     Assert.IsTrue(onWalk, $"traffic signal pole at {w} is on a corner sidewalk, not the roadway");
                 }
             }
-            Assert.AreEqual(16, n, "all 16 signal poles checked");
+            Assert.AreEqual(64, n, "all 64 signal poles checked");
         }
 
         [UnityTest]

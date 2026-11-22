@@ -23,9 +23,10 @@ namespace StreetEmpire.EditorTools
             session.police = data.Police;
             session.cash = s.crews["player"].cash;
             session.spawn = player.transform.position; session.spawnYaw = player.transform.eulerAngles.y;
-            float min = CityLayout.LineCoord(w, 0) - 30, max = CityLayout.LineCoord(w, 3) + 30;
-            session.streetX = Enumerable.Range(0, 4).Select(i => WorldSpace.FromSource(CityLayout.LineCoord(w, i), 0).x).ToArray();
-            session.streetZ = Enumerable.Range(0, 4).Select(i => WorldSpace.FromSource(0, CityLayout.LineCoord(w, i)).z).ToArray();
+            int town = SceneBuilder.Town;
+            float min = CityLayout.LineCoord(w, 0) - 30, max = CityLayout.LineCoord(w, town) + 30;
+            session.streetX = Enumerable.Range(0, town + 1).Select(i => WorldSpace.FromSource(CityLayout.LineCoord(w, i), 0).x).ToArray();
+            session.streetZ = Enumerable.Range(0, town + 1).Select(i => WorldSpace.FromSource(0, CityLayout.LineCoord(w, i)).z).ToArray();
             session.spanZ = new Vector2(min + 4, max - 4);
             session.spanX = new Vector2(WorldSpace.FromSource(max, 0).x + 4, WorldSpace.FromSource(min, 0).x - 4);
 
@@ -106,11 +107,11 @@ namespace StreetEmpire.EditorTools
             var ps = pt.gameObject.AddComponent<Shadow>(); ps.effectColor = new Color(0, 0, 0, 0.8f); ps.effectDistance = new Vector2(1.5f, -1.5f);
             arm.prompt = pt;
 
-            // the turf loop (TurfWar): the district's blocks, their centers, the crews, and the bodies it copies for
+            // the turf loop (TurfWar): the town's blocks, their centers, the crews, and the bodies it copies for
             // guards and raiders (the mugger templates: two plain, one with a bat)
             var turf = go.AddComponent<TurfWar>();
             turf.world = w;
-            turf.blockIds = SceneBuilder.EastsideBlocks.ToArray();
+            turf.blockIds = SceneBuilder.TownBlocks.ToArray();
             turf.centers = turf.blockIds.Select(id => { var (tx, tz) = Simulation.BlockCenter(w, s.blocks[id]); var (ux4, uz4) = WorldSpace.FromSource(tx, tz); return new Vector3(ux4, 0, uz4); }).ToArray();
             turf.crewIds = data.Crews.crews.Select(c => c.id).ToArray();
             turf.crewNames = data.Crews.crews.Select(c => c.name).ToArray();

@@ -59,7 +59,7 @@ namespace StreetEmpire.EditorTools
         {
             var main = new GameObject("Main Camera") { tag = "MainCamera" };
             var cam = main.AddComponent<UnityEngine.Camera>();
-            cam.nearClipPlane = 0.2f; cam.farClipPlane = 600f; cam.clearFlags = CameraClearFlags.Skybox;
+            cam.nearClipPlane = 0.2f; cam.farClipPlane = 800f;   // 25 block town: the skyline rings stand farther out cam.clearFlags = CameraClearFlags.Skybox;
             main.AddComponent<AudioListener>();
             main.AddComponent<CinemachineBrain>();
 

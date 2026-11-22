@@ -5,8 +5,8 @@ What it is: take a block, earn from it, get raided, defend it, spend the cash. R
 
 How it plays:
 
-- Nine blocks. You hold Corner Store Deals. Red Kings, Blue Hand and Gold Line each hold one far corner. The other
-  five are the Locals'.
+- Twenty-five blocks (the 5 x 5 town). You hold Corner Store Deals. Red Kings, Blue Hand and Gold Line each hold
+  one far corner. The rest are the Locals'.
 - Turf is implied. There is no ring on the ground and none at anyone's feet. A block is somebody's because their
   people stand on it. The crew colors are on the radar.
 - Walk onto a block and its guards show. They hold their posts in the backyard until you come within 14 m, or hit
@@ -21,7 +21,7 @@ How it plays:
   you get a 10 second warning. Be on the block and the raiders are bodies you fight. Be away and your guards
   fight it out by rolls. A block with nobody left on it falls in 6 seconds.
 - A new player is not raided until he takes his first block, or five minutes in.
-- Hold all nine and Eastside is yours.
+- Hold all twenty-five and the town is yours.
 
 What differs from the web game: the web walks every guard and raider as a body across the whole city. Here bodies
 only exist on the block you are standing on. Fights you are not at are settled by rolls.

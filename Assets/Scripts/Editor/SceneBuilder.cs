@@ -126,6 +126,23 @@ namespace StreetEmpire.EditorTools
 
         public static readonly int[] EastsideBlocks = { 0, 1, 2, 9, 10, 11, 18, 19, 20 };
 
+        /// <summary>The town is Town x Town blocks out of the city grid's corner (Matthew, Nov 22: 25 blocks, built to
+        /// read as a town and to be the same town on every player's machine: it comes from the grid and this list
+        /// alone). The first nine are the original Eastside 3 x 3, in their old order, so every building there stays
+        /// on its lot; the sixteen new blocks follow, row by row.</summary>
+        public const int Town = 5;
+        public static readonly int[] TownBlocks = EastsideBlocks.Concat(
+            Enumerable.Range(0, Town * Town).Select(i => (i / Town) * 9 + i % Town).Where(id => !EastsideBlocks.Contains(id))).ToArray();
+
+        /// <summary>Past the Eastside (CityLayout.DistrictOf: Midtown and on) the lots take the older brick and
+        /// clapboard models and more apartments, so the middle of town reads denser and older than the stucco edge.</summary>
+        static readonly Dictionary<string, string[]> MidKit = new()
+        {
+            ["store"] = new[] { "store-bodega", "store-laundromat", "store-takeout", "store-barber", "store-check-cashing", "store-pawn", "store-liquor-blank" },
+            ["house"] = new[] { "house-rowhouse-pair", "house-wood-duplex", "house-shotgun", "house-boarded" },
+            ["apt"] = new[] { "apt-motel-style", "apt-02-brick", "apt-mixed-use", "apt-01-stucco", "apt-dingbat" },
+        };
+
         [MenuItem("Street Empire/Build Eastside Scene")]
         public static void BuildEastside()
         {
@@ -139,7 +156,7 @@ namespace StreetEmpire.EditorTools
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, additive ? NewSceneMode.Additive : NewSceneMode.Single);
             SceneManager.SetActiveScene(scene);
             // CC0 Poly Haven ground textures (Assets/Art/Textures/Ground), tiled to the size of the box they cover
-            float district = CityLayout.LineCoord(w, 3) - CityLayout.LineCoord(w, 0) + 60;
+            float district = CityLayout.LineCoord(w, Town) - CityLayout.LineCoord(w, 0) + 60;
             var asphalt = TexMat("Asphalt", "worn_asphalt", district / 4.5f, 0.12f, new Color(0.78f, 0.78f, 0.8f));
             var sidewalk = TexMat("Sidewalk", "concrete_pavement", (w.block + 4) / 2.6f, 0.08f, Color.white);
             var sidewalkStrip = TexMat("SidewalkStrips", "concrete_pavement", 1f, 0.08f, Color.white);
@@ -151,7 +168,7 @@ namespace StreetEmpire.EditorTools
 
             var root = new GameObject("Eastside");
             // asphalt under the whole district plus a margin: the streets are what the blocks leave open
-            float min = CityLayout.LineCoord(w, 0) - 30, max = CityLayout.LineCoord(w, 3) + 30;
+            float min = CityLayout.LineCoord(w, 0) - 30, max = CityLayout.LineCoord(w, Town) + 30;
             var (gx0, gz0) = WorldSpace.FromSource(min, min); var (gx1, gz1) = WorldSpace.FromSource(max, max);
             var ground = Box("Ground", root.transform, asphalt, new Vector3((gx0 + gx1) / 2, -0.05f, (gz0 + gz1) / 2), new Vector3(Mathf.Abs(gx1 - gx0), 0.1f, Mathf.Abs(gz1 - gz0)));
             GameObjectUtility.SetStaticEditorFlags(ground, StaticEditorFlags.BatchingStatic);
@@ -184,9 +201,9 @@ namespace StreetEmpire.EditorTools
             float from = min;
             // the center lines stop short of the crosswalks and stop bars (PropBuilder), 13.5 m from each crossing
             float gap = half + 4.5f;
-            for (int j = 0; j <= 3; j++) { float cj = CityLayout.LineCoord(w, j); spans.Add((from, cj - gap)); from = cj + gap; }
+            for (int j = 0; j <= Town; j++) { float cj = CityLayout.LineCoord(w, j); spans.Add((from, cj - gap)); from = cj + gap; }
             spans.Add((from, max));
-            for (int i = 0; i <= 3; i++)
+            for (int i = 0; i <= Town; i++)
             {
                 float c = CityLayout.LineCoord(w, i);
                 foreach (float off in new[] { -0.18f, 0.18f })
@@ -203,7 +220,7 @@ namespace StreetEmpire.EditorTools
 
             int placed = 0; dealt.Clear(); compressed.Clear();
             var blockInfo = new List<PropBuilder.BlockInfo>();
-            foreach (int id in EastsideBlocks)
+            foreach (int id in TownBlocks)
             {
                 var b = s.blocks[id];
                 var (scx, scz) = Simulation.BlockCenter(w, b);
@@ -226,6 +243,8 @@ namespace StreetEmpire.EditorTools
             }
 
             Combine(root.transform);
+            // 25 block town: buildings past about 200 m are not drawn (BuildingCuller)
+            root.AddComponent<BuildingCuller>();
             var sunLight = Lighting(root.transform);
             // the sun and sky follow the web clock (DayCycle); it dims and lights the building windows too
             var cycle = new GameObject("Day Cycle").AddComponent<StreetEmpire.City.DayCycle>();
@@ -242,8 +261,8 @@ namespace StreetEmpire.EditorTools
             VehicleBuilder.BuildSedan(data, s.blocks[0]);
             GameBuilder.Build(data, s, player);
             // after the people and cars, so the props keep clear of where they start
-            var xs = Enumerable.Range(0, 4).Select(i => WorldSpace.FromSource(CityLayout.LineCoord(w, i), 0).x).ToArray();
-            var zs = Enumerable.Range(0, 4).Select(i => WorldSpace.FromSource(0, CityLayout.LineCoord(w, i)).z).ToArray();
+            var xs = Enumerable.Range(0, Town + 1).Select(i => WorldSpace.FromSource(CityLayout.LineCoord(w, i), 0).x).ToArray();
+            var zs = Enumerable.Range(0, Town + 1).Select(i => WorldSpace.FromSource(0, CityLayout.LineCoord(w, i)).z).ToArray();
             PropBuilder.Build(blockInfo, xs, zs, root.transform);
             cycle.skylineMaterials = PropBuilder.EmissiveMaterials.ToArray();
             cycle.signMaterials = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None)
@@ -258,7 +277,7 @@ namespace StreetEmpire.EditorTools
             Directory.CreateDirectory("Assets/Scenes");
             EditorSceneManager.SaveScene(scene, EastsideScene);
             if (additive) { SceneManager.SetActiveScene(prev); EditorSceneManager.CloseScene(scene, true); }
-            Debug.Log($"[SceneBuilder] Eastside: {EastsideBlocks.Length} blocks, {placed} kit buildings");
+            Debug.Log($"[SceneBuilder] Town: {TownBlocks.Length} blocks, {placed} kit buildings");
         }
 
         /// <summary>Real heights in meters (v74 spec A.1: apartments 10, pawn shop 4.5, single story houses about 4,
@@ -278,8 +297,15 @@ namespace StreetEmpire.EditorTools
 
         static bool PlaceBuilding(BuildingSpot spot, Transform parent)
         {
-            var variants = Kit[spot.kind];
-            dealt.TryGetValue(spot.kind, out int n); dealt[spot.kind] = n + 1;
+            // the art on hand is houses, stores and apartments: a Downtown tower lot or a Harbor shed lot takes an
+            // apartment until those models exist
+            if (!Kit.ContainsKey(spot.kind)) spot.kind = "apt";
+            // the original nine blocks deal from the Eastside kit in their old order; the new blocks deal from the
+            // kit of their district, each with a count of its own
+            bool mid = !EastsideBlocks.Contains(spot.blockId) && CityLayout.DistrictOf(spot.blockId % 9, spot.blockId / 9, 9) != CityLayout.Eastside;
+            var variants = mid ? MidKit[spot.kind] : Kit[spot.kind];
+            string dealKey = mid ? spot.kind + ":mid" : spot.kind;
+            dealt.TryGetValue(dealKey, out int n); dealt[dealKey] = n + 1;
             string name = variants[n % variants.Length];
             // v74: the near model is the Sovereign Asset "Unity building" finish of the source at its real height in
             // meters (docs/sovereign-assets/u74), cut to the lowest triangle target the app accepts; four materials
@@ -808,10 +834,10 @@ namespace StreetEmpire.EditorTools
             // M1 view over the district from the south. M2 replaces it with the follow camera.
             var cam = new GameObject("Main Camera") { tag = "MainCamera" }.AddComponent<Camera>();
             cam.gameObject.AddComponent<AudioListener>();
-            var (cx, cz) = WorldSpace.FromSource((CityLayout.LineCoord(w, 0) + CityLayout.LineCoord(w, 3)) / 2, (CityLayout.LineCoord(w, 0) + CityLayout.LineCoord(w, 3)) / 2);
+            var (cx, cz) = WorldSpace.FromSource((CityLayout.LineCoord(w, 0) + CityLayout.LineCoord(w, Town)) / 2, (CityLayout.LineCoord(w, 0) + CityLayout.LineCoord(w, Town)) / 2);
             cam.transform.position = new Vector3(cx + 40, 60, cz - 150);
             cam.transform.LookAt(new Vector3(cx, 0, cz - 10));
-            cam.fieldOfView = 55; cam.nearClipPlane = 0.3f; cam.farClipPlane = 600;
+            cam.fieldOfView = 55; cam.nearClipPlane = 0.3f; cam.farClipPlane = 800;
             cam.clearFlags = CameraClearFlags.Skybox;
         }
 
