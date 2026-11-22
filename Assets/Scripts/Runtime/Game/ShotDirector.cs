@@ -30,6 +30,10 @@
 //   shot=v75q    same seven fronts, camera stepped off poles, palms and lamps. hour= as above.
 //   shot=v75r    same seven fronts, closer camera, HUD off, line-of-sight palms/poles/lamps/signals
 //                hidden in shot mode only. hour= as above.
+//   shot=v75t    v75t new content, free camera, HUD off, every building drawn. One of: model=NAME (a building:
+//                its front, or view=wide for the block from up high), car=NAME (a parked car or bike of that kind),
+//                ped=NAME (a character whose model name has NAME, followed), or view=downtown / view=town (high
+//                views). hour= as above.
 //   shot=fight   the opening scuffle with a hit landed on a mugger every 0.8 s, so the target ring, warning rings,
 //                hit numbers, sparks, dust and shockwaves show on cue (game camera)
 //   shot=mugger  the opening scuffle as a new game plays it (every other shot skips it)
@@ -117,6 +121,9 @@ namespace StreetEmpire.Game
                     break;
                 case "v75r":
                     StartCoroutine(V75r(url));
+                    break;
+                case "v75t":
+                    StartCoroutine(V75t(url));
                     break;
                 case "fight":
                     StartCoroutine(Fight(p));
@@ -209,6 +216,92 @@ namespace StreetEmpire.Game
         /// fits, and it searches a side offset. In shot mode only, palms, poles, lamps and signals on the line
         /// of sight are not drawn (PropInstancer.shotHide), and the HUD canvas (joystick, radar, stats) is
         /// turned off. Neither change runs in normal play.</summary>
+        static string Arg(string url, string key)
+        {
+            int q = url.IndexOf(key + "="); if (q < 0) return null;
+            return System.Uri.UnescapeDataString(url.Substring(q + key.Length + 1).Split('&')[0]);
+        }
+
+        /// <summary>v75t: views of the new buildings, cars, bikes and characters for the build report.</summary>
+        IEnumerator V75t(string url)
+        {
+            var hud = GameObject.Find("HUD");
+            if (hud) hud.SetActive(false);
+            StreetEmpire.City.BuildingCuller.On = false;
+            var cam = Camera.main;
+            var brain = cam.GetComponent<Unity.Cinemachine.CinemachineBrain>(); if (brain) brain.enabled = false;
+            cam.fieldOfView = 60f; cam.farClipPlane = 900f;
+            Vector3 Block(int id) { foreach (var m in FindObjectsByType<StreetEmpire.City.BlockMarker>(FindObjectsSortMode.None)) if (m.blockId == id) return m.transform.position; return Vector3.zero; }
+            string model = Arg(url, "model"), car = Arg(url, "car"), ped = Arg(url, "ped"), view = Arg(url, "view") ?? "front";
+            if (model != null)
+            {
+                StreetEmpire.City.BuildingMarker best = null;
+                foreach (var m in FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None))
+                    if (m.model == model) { best = m; break; }
+                if (best == null) { Debug.LogWarning($"[ShotDirector] v75t no building {model}"); yield break; }
+                var c = best.GetComponent<BoxCollider>(); var bb = c ? c.bounds : new Bounds(best.transform.position, Vector3.one * 10);
+                var n = best.transform.forward; n.y = 0; n.Normalize();
+                var t = Vector3.Cross(Vector3.up, n);
+                float size = Mathf.Max(bb.size.x, bb.size.z, bb.size.y * 0.9f);
+                if (view == "wide")
+                {
+                    var bc = Block(best.blockId);
+                    cam.transform.position = bc + n * 70f + t * 45f + Vector3.up * 55f;
+                    cam.transform.LookAt(bc + Vector3.up * 6f);
+                }
+                else
+                {
+                    var front = bb.center + n * Mathf.Abs(Vector3.Dot(bb.extents, new Vector3(Mathf.Abs(n.x), 0, Mathf.Abs(n.z))));
+                    float back = Mathf.Clamp(size * 1.15f + 4f, 12f, 70f);
+                    cam.transform.position = front + n * back + t * back * 0.35f + Vector3.up * Mathf.Clamp(bb.size.y * 0.35f, 1.7f, 14f);
+                    cam.transform.LookAt(new Vector3(bb.center.x, bb.min.y + bb.size.y * 0.45f, bb.center.z));
+                }
+                Debug.Log($"[ShotDirector] v75t building {model} block {best.blockId}.{best.index} size {bb.size}");
+            }
+            else if (car != null)
+            {
+                Transform best = null;
+                foreach (var m in FindObjectsByType<StreetEmpire.City.PropMarker>(FindObjectsSortMode.None))
+                    if (m.kind == "parked car" && m.model == car) { best = m.transform; break; }
+                if (best == null) { Debug.LogWarning($"[ShotDirector] v75t no parked {car}"); yield break; }
+                var rs = best.GetComponentsInChildren<Renderer>(); var bb = new Bounds(best.position, Vector3.one);
+                if (rs.Length > 0) { bb = rs[0].bounds; foreach (var r in rs) bb.Encapsulate(r.bounds); }
+                var dir = (best.forward * 0.8f + best.right * 0.9f).normalized;
+                cam.transform.position = bb.center + dir * Mathf.Max(4.5f, bb.size.magnitude * 1.1f) + Vector3.up * 1.4f;
+                cam.transform.LookAt(bb.center);
+                Debug.Log($"[ShotDirector] v75t car {car} at {best.position}");
+            }
+            else if (ped != null)
+            {
+                Transform best = null;
+                foreach (var tr in FindObjectsByType<Transform>(FindObjectsSortMode.None))
+                    if (tr.name.Contains(ped) && tr.position.y > -10f && tr.GetComponentInChildren<SkinnedMeshRenderer>() != null) { best = tr; break; }
+                if (best == null) { Debug.LogWarning($"[ShotDirector] v75t no character {ped}"); yield break; }
+                Debug.Log($"[ShotDirector] v75t character {ped}: {best.name}");
+                while (best != null)
+                {
+                    var f = best.forward; f.y = 0; if (f.sqrMagnitude < 1e-4f) f = Vector3.forward; f.Normalize();
+                    cam.transform.position = best.position + f * 2.8f + Vector3.Cross(Vector3.up, f) * 0.9f + Vector3.up * 1.5f;
+                    cam.transform.LookAt(best.position + Vector3.up * 1.0f);
+                    yield return null;
+                }
+            }
+            else if (view == "downtown")
+            {
+                var bc = Block(40); var tc = Block(20);
+                var dir = bc - tc; dir.y = 0; dir.Normalize();
+                cam.transform.position = bc - dir * 120f + Vector3.Cross(Vector3.up, dir) * 30f + Vector3.up * 34f;
+                cam.transform.LookAt(bc + Vector3.up * 14f);
+            }
+            else
+            {
+                var s = GameSession.Instance;
+                float cx = (s.spanX.x + s.spanX.y) / 2, cz = (s.spanZ.x + s.spanZ.y) / 2;
+                cam.transform.position = new Vector3(cx - 150f, 110f, cz - 170f);
+                cam.transform.LookAt(new Vector3(cx, 0, cz));
+            }
+        }
+
         IEnumerator V75r(string url)
         {
             var hud = GameObject.Find("HUD");

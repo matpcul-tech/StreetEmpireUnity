@@ -119,6 +119,20 @@ namespace StreetEmpire.Tests
             // v75l: all seven house models of the rotation are placed; v75o: eight, house-03-duplex is back
             Assert.AreEqual(8, bs.Where(b => b.kind == "house" && East(b)).Select(b => b.model).Distinct().Count(), "eight house models on the Eastside");
             Assert.IsTrue(bs.Any(b => b.model == "store-barber") && bs.Any(b => b.model == "civic-church") && bs.Any(b => b.model == "apt-dingbat"));   // v75l: the dingbat has the motel's lot
+            // v75t: the twenty wave A civic and wave B buildings are placed, each once, on landmark lots inside their blocks
+            var wave = new[] { "civic-bank", "civic-church", "civic-clinic", "civic-police-station", "civic-school", "crew-bluehand-club", "crew-goldline-harbor", "crew-redkings-club", "dock-ice-house", "dock-pier-warehouse", "job-car-wash", "job-chop-shop", "job-loading-lot", "job-pool-hall", "tower-brutalist-concrete", "tower-copper-mansard", "tower-deco-setback", "tower-terracotta", "warehouse-cold-storage", "warehouse-sawtooth" };
+            foreach (var wn in wave) Assert.AreEqual(1, bs.Count(x => x.model == wn), $"{wn} placed once");
+            var blockAt = Object.FindObjectsByType<StreetEmpire.City.BlockMarker>(FindObjectsSortMode.None).ToDictionary(k => k.blockId, k => k.transform.position);
+            foreach (var lm in bs.Where(x => wave.Contains(x.model)))
+            {
+                var lb = lm.GetComponent<BoxCollider>().bounds; var ctr = blockAt[lm.blockId];
+                Assert.LessOrEqual(Mathf.Max(Mathf.Abs(lb.min.x - ctr.x), Mathf.Abs(lb.max.x - ctr.x), Mathf.Abs(lb.min.z - ctr.z), Mathf.Abs(lb.max.z - ctr.z)), 20.6f, $"{lm.model} stays inside block {lm.blockId}");
+                foreach (var nbr in bs.Where(x => x != lm && x.blockId == lm.blockId))
+                {
+                    var nb = nbr.GetComponent<BoxCollider>().bounds; nb.Expand(new Vector3(-0.3f, 0f, -0.3f));
+                    Assert.IsFalse(lb.Intersects(nb), $"{lm.model} overlaps {nbr.model} on block {lm.blockId}");
+                }
+            }
             foreach (var b in bs)
                 foreach (var m in b.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials))
                     Assert.AreEqual(0f, m.GetFloat("_Metallic"), 1e-4f, $"{b.model} is not metallic");

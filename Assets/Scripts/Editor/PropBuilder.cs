@@ -65,7 +65,7 @@ namespace StreetEmpire.EditorTools
         {
             LoadManifest(); mats.Clear(); counts.Clear(); tris = 0; rng = new System.Random(1931); LampSpots.Clear(); EmissiveMaterials.Clear();
             batches.Clear(); placed.Clear();
-            KeepClear();
+            KeepClear(); LandmarkBoxes();
             var root = new GameObject("Props").transform; root.SetParent(parent, false);
             var cycle = new GameObject("Traffic Signals"); cycle.transform.SetParent(root, false);
             signals = cycle.AddComponent<TrafficSignalCycle>();
@@ -490,7 +490,7 @@ namespace StreetEmpire.EditorTools
 
         static void Car(string kind, BlockInfo b, Vector3 at, Quaternion rot, Transform parent, float jitter = 0f, float lean = 0f)
         {
-            if (Blocked(at, lean > 0f ? 2f : 4f)) return;
+            if (Blocked(at, lean > 0f ? 2f : 4f) || InLandmark(at, 3f)) return;
             string key = $"car-{kind}";
             if (!batches.TryGetValue(key, out var batch))
             {
@@ -599,6 +599,7 @@ namespace StreetEmpire.EditorTools
             var sc = scale ?? Vector3.one;
             var batch = Batch(model, mirrorX, variant, sc);
             if (batch == null) return null;
+            if (landmarkBoxes.Count > 0 && InLandmark(pos, Mathf.Max(batch.lod0.bounds.extents.x * Mathf.Abs(sc.x), batch.lod0.bounds.extents.z * Mathf.Abs(sc.z), batch.lod0.bounds.extents.x * Mathf.Abs(sc.z), batch.lod0.bounds.extents.z * Mathf.Abs(sc.x)) + 0.15f)) return null;
             var holder = new GameObject($"{kind} ({model})");
             holder.transform.SetParent(parent, false);
             // the collider is fitted in the holder's own space before it is posed
@@ -633,6 +634,31 @@ namespace StreetEmpire.EditorTools
             foreach (var c in Object.FindObjectsByType<CharacterController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)) keep.Add((c.transform.position, 1.6f));
             foreach (var c in Object.FindObjectsByType<CarController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)) keep.Add((c.transform.position, 4.5f));
             foreach (var m in Object.FindObjectsByType<MissionRunner>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)) if (m.giver) keep.Add((m.giver.position, 2.5f));
+        }
+
+        /// <summary>v75t: the footprints of the landmark lots (SceneBuilder.Landmarks). Those files can be wider or
+        /// deeper than the 13 m lot and reach into the side yards, so a prop or a parked car that would stand
+        /// inside one is not placed. Props around every other building are placed as before.
+        /// Curb, sidewalk and street props (lamps, poles, signals, parked cars at the curb) stand more than 20 m out
+        /// from the block center, past any lot, so only spots inside the block are checked.</summary>
+        static List<(Bounds box, Vector3 block)> landmarkBoxes = new();
+
+        static void LandmarkBoxes()
+        {
+            Physics.SyncTransforms();
+            landmarkBoxes = Object.FindObjectsByType<BuildingMarker>(FindObjectsSortMode.None)
+                .Where(m => m.kind == "landmark" && m.GetComponent<BoxCollider>() != null)
+                .Select(m => (m.GetComponent<BoxCollider>().bounds, m.transform.parent != null ? m.transform.parent.position : m.transform.position)).ToList();
+        }
+
+        static bool InLandmark(Vector3 p, float r)
+        {
+            foreach (var (b, c) in landmarkBoxes)
+            {
+                if (Mathf.Abs(p.x - c.x) > 19.9f || Mathf.Abs(p.z - c.z) > 19.9f) continue;
+                if (p.x > b.min.x - r && p.x < b.max.x + r && p.z > b.min.z - r && p.z < b.max.z + r) return true;
+            }
+            return false;
         }
 
         static bool Blocked(Vector3 p, float r)

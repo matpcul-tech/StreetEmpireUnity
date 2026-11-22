@@ -94,3 +94,20 @@ docs/sovereign-assets/npc-v4/*.jpg -filter -diff -merge binary
 Assets/Art/Models/Cars/V2/** -filter -diff -merge binary
 docs/sovereign-assets/cars-v2/*.jpg -filter -diff -merge binary
 docs/sovereign-assets/chars-wave-a/*.jpg -filter -diff -merge binary
+
+# v75t: the twenty wave A civic and wave B buildings (release meshy-buildings-wave-ab-2026-11-22, civic-church replaced
+# by its wave A file), their extracted textures and the v75t sheets are plain git files, for the same reason as the
+# v75l block above (and so CI does not spend LFS bandwidth on about 700 MB of models)
+Assets/Art/Models/Buildings/civic-*.glb -filter -diff -merge binary
+Assets/Art/Models/Buildings/crew-*.glb -filter -diff -merge binary
+Assets/Art/Models/Buildings/dock-*.glb -filter -diff -merge binary
+Assets/Art/Models/Buildings/job-*.glb -filter -diff -merge binary
+Assets/Art/Models/Buildings/tower-*.glb -filter -diff -merge binary
+Assets/Art/Models/Buildings/warehouse-*.glb -filter -diff -merge binary
+Assets/Art/Textures/Buildings/civic-* -filter -diff -merge binary
+Assets/Art/Textures/Buildings/crew-* -filter -diff -merge binary
+Assets/Art/Textures/Buildings/dock-* -filter -diff -merge binary
+Assets/Art/Textures/Buildings/job-* -filter -diff -merge binary
+Assets/Art/Textures/Buildings/tower-* -filter -diff -merge binary
+Assets/Art/Textures/Buildings/warehouse-* -filter -diff -merge binary
+docs/sovereign-assets/v75t/*.jpg -filter -diff -merge binary
