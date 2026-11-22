@@ -113,6 +113,7 @@ namespace StreetEmpire.Tests
             var carBatches = inst.batches.Where(b => b.name.StartsWith("car-")).ToArray();
             Assert.GreaterOrEqual(carBatches.Select(b => b.name.Split('@', '#')[0]).Distinct().Count(), 8, "the curbs hold a mix of the v2 cars");
             Assert.IsTrue(carBatches.All(b => b.lod1 != null), "every parked car has a far version");
+            Assert.IsTrue(carBatches.Any(b => b.name.StartsWith("car-cruiser") || b.name.StartsWith("car-dirt-bike") || b.name.StartsWith("car-sport-bike")), "motorcycles at the curb");
             for (int i = 0; i < 3; i++) yield return null;
             if (SystemInfo.supportsInstancing) Assert.Greater(inst.LastDraws, 0, "the instancer draws");
         }

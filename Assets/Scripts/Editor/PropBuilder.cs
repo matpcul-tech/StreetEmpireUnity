@@ -170,6 +170,12 @@ namespace StreetEmpire.EditorTools
                 Car(kind, b, At(b, k, ParkLine, s, 0), Face(dir), parent);
                 if (deal % 4 == 1) Car(StreetCar(deal + b.id * 5 + k + 4), b, At(b, k, ParkLine, s + (deal % 2 == 0 ? -6.4f : 6.4f), 0), Face(dir), parent);
             }
+            // motorcycles v2: one at the curb on some of the sides without cars, leaned over as if on its stand
+            else if (b.id % 2 == 0)
+            {
+                string bike = VehicleBuilder.V2Bikes[(b.id / 2 + k) % VehicleBuilder.V2Bikes.Length];
+                Car(bike, b, At(b, k, ParkLine, (deal % 3 - 1) * 6f, 0), Face(deal % 2 == 0 ? t : -t), parent, 0f, 9f);
+            }
         }
 
         /// <summary>The open lot between the two corner buildings of a side.</summary>
@@ -482,9 +488,9 @@ namespace StreetEmpire.EditorTools
         static readonly string[] StreetCars = { "sedan", "sedan-clean", "coupe", "pickup", "suv", "sedan", "van", "sedan-clean", "lowrider", "suv", "pickup", "taxi", "coupe" };
         static string StreetCar(int deal) => StreetCars[((deal % StreetCars.Length) + StreetCars.Length) % StreetCars.Length];
 
-        static void Car(string kind, BlockInfo b, Vector3 at, Quaternion rot, Transform parent, float jitter = 0f)
+        static void Car(string kind, BlockInfo b, Vector3 at, Quaternion rot, Transform parent, float jitter = 0f, float lean = 0f)
         {
-            if (Blocked(at, 4f)) return;
+            if (Blocked(at, lean > 0f ? 2f : 4f)) return;
             string key = $"car-{kind}";
             if (!batches.TryGetValue(key, out var batch))
             {
@@ -505,7 +511,7 @@ namespace StreetEmpire.EditorTools
             }
             var car = new GameObject($"Parked {kind}");
             car.transform.SetParent(parent, false);
-            car.transform.SetPositionAndRotation(at, rot * Quaternion.Euler(0, Jit(jitter * 6f), 0));
+            car.transform.SetPositionAndRotation(at, rot * Quaternion.Euler(0, Jit(jitter * 6f), lean));
             var box = car.AddComponent<BoxCollider>(); box.center = batch.lod0.bounds.center; box.size = batch.lod0.bounds.size;
             var mk = car.AddComponent<PropMarker>(); mk.kind = "parked car"; mk.model = kind; mk.blockId = b.id;
             placed[key].Add(car.transform.localToWorldMatrix);
