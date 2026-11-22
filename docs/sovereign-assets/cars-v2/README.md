@@ -37,3 +37,18 @@ Mesh, UVs, wheel pivots and size are as delivered.
 
 How they look and drive in a running game: wheel spin direction, how the semi-gloss paint reads at dusk, and whether
 the parked mix costs frame rate on a phone.
+
+# Motorcycles v2 (Nov 22, 2026)
+
+Source: release `meshy-bikes-v2-2026-11-22`, the 1024 px files, verified against MANIFEST.txt: cruiser, dirt-bike,
+sport-bike. 10,000 to 11,700 triangles, 2.10 to 2.40 m long, body and wheel materials, a steer node (fork, bars,
+front fender) on the steering-head axis with wheel_f under it, wheel_r separate. bikes.jpg shows them from the
+prepared files.
+
+Prepared by the same tools/car_v2.mjs (body to an even semi-gloss, JPEG maps, far version). The far versions only
+drop to 72 to 82 percent of the triangles: the spokes and frame tubes do not simplify further at the same error.
+
+In the game: parked at the curb on some of the sides that have no parked cars, leaned 9 degrees as if on a stand.
+
+Not done: riding them. That needs a seated rider pose, lean in the turns and the steer node turning with the bars;
+the driving code today only knows cars.

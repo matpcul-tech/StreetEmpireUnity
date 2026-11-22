@@ -113,6 +113,7 @@ namespace StreetEmpire.Tests
             var carBatches = inst.batches.Where(b => b.name.StartsWith("car-")).ToArray();
             Assert.GreaterOrEqual(carBatches.Select(b => b.name.Split('@', '#')[0]).Distinct().Count(), 8, "the curbs hold a mix of the v2 cars");
             Assert.IsTrue(carBatches.All(b => b.lod1 != null), "every parked car has a far version");
+            Assert.IsTrue(carBatches.Any(b => b.name.StartsWith("car-cruiser") || b.name.StartsWith("car-dirt-bike") || b.name.StartsWith("car-sport-bike")), "motorcycles at the curb");
             for (int i = 0; i < 3; i++) yield return null;
             if (SystemInfo.supportsInstancing) Assert.Greater(inst.LastDraws, 0, "the instancer draws");
         }
@@ -123,6 +124,8 @@ namespace StreetEmpire.Tests
             yield return Load();
             var buildings = Object.FindObjectsByType<BuildingMarker>(FindObjectsSortMode.None).Select(b => b.GetComponent<BoxCollider>()).Where(c => c != null).ToArray();
             var blocks = Object.FindObjectsByType<BlockMarker>(FindObjectsSortMode.None);
+            // the loops are made once, not once per collider: on 25 blocks that ran past the 180 s limit
+            var loops = blocks.Select(blk => (blk.blockId, loop: Ped.BuildLoop(blk.transform.position, 21f, 2.5f, 0.5f).ToArray())).ToArray();
             int checkedCols = 0;
             foreach (var p in props)
                 foreach (var c in p.GetComponentsInChildren<Collider>())
@@ -130,16 +133,15 @@ namespace StreetEmpire.Tests
                     checkedCols++;
                     var pb = c.bounds; pb.Expand(-0.05f);
                     foreach (var b in buildings)
-                        Assert.IsFalse(pb.Intersects(b.bounds), $"{p.name} at {p.transform.position} overlaps {b.name}");
+                        if (pb.Intersects(b.bounds)) Assert.Fail($"{p.name} at {p.transform.position} overlaps {b.name}");
                     // the pedestrians walk a rounded square 21 m out from their block center, about 0.3 m wide
-                    foreach (var blk in blocks)
+                    foreach (var (blockId, loop) in loops)
                     {
-                        var loop = Ped.BuildLoop(blk.transform.position, 21f, 2.5f, 0.5f);
                         foreach (var q in loop)
                         {
                             var at = new Vector3(q.x, pb.center.y, q.z);
                             var cp = pb.ClosestPoint(at); cp.y = at.y;
-                            Assert.Greater(Vector3.Distance(cp, at), 0.3f, $"{p.name} at {p.transform.position} blocks the sidewalk loop of block {blk.blockId}");
+                            if (Vector3.Distance(cp, at) <= 0.3f) Assert.Fail($"{p.name} at {p.transform.position} blocks the sidewalk loop of block {blockId}");
                         }
                     }
                 }

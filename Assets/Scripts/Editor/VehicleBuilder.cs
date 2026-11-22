@@ -19,8 +19,10 @@ namespace StreetEmpire.EditorTools
 
         // Cars v2 (release meshy-cars-v2-2026-11-22, docs/sovereign-assets/cars-v2): nine cars in real meters, body,
         // glass and wheel materials, four wheel nodes pivoting at the hub. Prepared by tools/car_v2.mjs.
-        public static readonly string[] V2Kinds = { "sedan-clean", "sedan", "police", "coupe", "lowrider", "pickup", "suv", "taxi", "van" };
-        static readonly float[] V2Lengths = { 4.75f, 5.00f, 5.25f, 4.50f, 5.35f, 5.30f, 4.85f, 5.20f, 5.30f };
+        // Motorcycles v2 (release meshy-bikes-v2-2026-11-22): the last three. Parked only for now.
+        public static readonly string[] V2Kinds = { "sedan-clean", "sedan", "police", "coupe", "lowrider", "pickup", "suv", "taxi", "van", "cruiser", "dirt-bike", "sport-bike" };
+        static readonly float[] V2Lengths = { 4.75f, 5.00f, 5.25f, 4.50f, 5.35f, 5.30f, 4.85f, 5.20f, 5.30f, 2.40f, 2.18f, 2.10f };
+        public static readonly string[] V2Bikes = { "cruiser", "dirt-bike", "sport-bike" };
         public static string V2Glb(string kind, bool far = false) => $"Assets/Art/Models/Cars/V2/{(far ? "LOD1/" : "")}{kind}.glb";
         public static float V2Length(string kind) { int i = System.Array.IndexOf(V2Kinds, kind); return i < 0 ? 4.75f : V2Lengths[i]; }
 
