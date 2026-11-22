@@ -127,7 +127,7 @@ namespace StreetEmpire.Tests
             var label = GameObject.Find("BuildLabel"); Assert.IsNotNull(label, "build label on the HUD");
             StringAssert.StartsWith("v0.5", label.GetComponent<UnityEngine.UI.Text>().text);
             var sedan = Object.FindObjectsByType<CarController>(FindObjectsSortMode.None).First(c => c.name == "Sedan");
-            Assert.IsTrue(sedan.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials).Any(m => m != null && m.name.EndsWith("_painted")), "sedan wears the painted atlas");
+            Assert.IsTrue(sedan.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials).Any(m => m != null && m.name == "v2-sedan-clean_body"), "the sedan is the v2 clean sedan");
         }
     }
 }

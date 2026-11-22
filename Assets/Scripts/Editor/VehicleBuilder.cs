@@ -17,6 +17,13 @@ namespace StreetEmpire.EditorTools
         // the first PAINT color in vehicles.js (deep red), baked into the atlas by tools/paint_car.mjs
         const string SedanPaint = "Assets/Art/Models/Cars/sedan_paint_6a2420.jpg";
 
+        // Cars v2 (release meshy-cars-v2-2026-11-22, docs/sovereign-assets/cars-v2): nine cars in real meters, body,
+        // glass and wheel materials, four wheel nodes pivoting at the hub. Prepared by tools/car_v2.mjs.
+        public static readonly string[] V2Kinds = { "sedan-clean", "sedan", "police", "coupe", "lowrider", "pickup", "suv", "taxi", "van" };
+        static readonly float[] V2Lengths = { 4.75f, 5.00f, 5.25f, 4.50f, 5.35f, 5.30f, 4.85f, 5.20f, 5.30f };
+        public static string V2Glb(string kind, bool far = false) => $"Assets/Art/Models/Cars/V2/{(far ? "LOD1/" : "")}{kind}.glb";
+        public static float V2Length(string kind) { int i = System.Array.IndexOf(V2Kinds, kind); return i < 0 ? 4.75f : V2Lengths[i]; }
+
         public static CarController BuildSedan(GameData data, Block b0)
         {
             var w = data.World;
@@ -24,8 +31,8 @@ namespace StreetEmpire.EditorTools
             // state.js: makeCar(s, bc.x + PITCH / 2 - 5.6, bc.z - 10 + (i % 3) * 6, 0, types[0] = 'sedan')
             var (x, z) = WorldSpace.FromSource(cx + w.pitch / 2 - 5.6f, cz - 10);
             // kit.json sedan: length 4.5 m, yaw 0 (nose along +Z)
-            var car = BuildCar("Sedan", SedanGlb, "sedan", 4.5f, data.Vehicle("sedan"));
-            Paint(car.gameObject, "sedan", SedanPaint);
+            // cars v2: the clean sedan, in its own paint
+            var car = BuildCar("Sedan", V2Glb("sedan-clean"), "v2-sedan-clean", V2Length("sedan-clean"), data.Vehicle("sedan"));
             car.transform.SetPositionAndRotation(new Vector3(x, 0, z), Quaternion.identity);
             return car;
         }
@@ -34,27 +41,24 @@ namespace StreetEmpire.EditorTools
         /// as an inactive template the police dispatch copies. Police cars keep their own paint (makeKitCar).</summary>
         public static CarController BuildPoliceTemplate(GameData data)
         {
-            var car = BuildCar("Cruiser Template", PoliceGlb, "police", 5.2f, data.Vehicle("police"));
+            var car = BuildCar("Cruiser Template", V2Glb("police"), "v2-police", V2Length("police"), data.Vehicle("police"));
             car.transform.position = new Vector3(0, -60, 0);
             car.gameObject.AddComponent<StreetEmpire.Game.PoliceCruiser>();
             car.gameObject.SetActive(false);
             return car;
         }
 
-        /// <summary>A parked, static copy of a kit car for the curbs (no controller, no rigidbody): the stock
-        /// or painted sedan, or the police cruiser. Root at the ground center, nose along +Z, box collider.</summary>
-        public static GameObject ParkedCar(string kind, bool painted, string glb = null)
+        /// <summary>A parked, static copy of a v2 car for the curbs (no controller, no rigidbody), or its far
+        /// version. Root at the ground center, nose along +Z, box collider.</summary>
+        public static GameObject ParkedCar(string kind, bool far = false)
         {
-            bool police = kind == "police";
-            var root = new GameObject(police ? "Parked cruiser" : painted ? "Parked sedan (red)" : "Parked sedan");
-            var model = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(glb ?? (police ? PoliceGlb : SedanGlb)));
+            if (System.Array.IndexOf(V2Kinds, kind) < 0) { Debug.LogError($"[VehicleBuilder] no car '{kind}', using the sedan"); kind = "sedan"; }
+            var root = new GameObject($"Parked {kind}");
+            var model = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(V2Glb(kind, far)));
             model.name = "Model"; model.transform.SetParent(root.transform, false);
-            string name = police ? "police" : "sedan";
-            UrpMaterials.Apply(model, name);
-            BindTextures(model, name);
-            if (painted && !police) Paint(model, "sedan", SedanPaint);
+            UrpMaterials.Apply(model, "v2-" + kind);
             var bounds = Bounds(model);
-            model.transform.localScale *= (police ? 5.2f : 4.5f) / Mathf.Max(bounds.size.z, 1e-3f);
+            model.transform.localScale *= V2Length(kind) / Mathf.Max(bounds.size.z, 1e-3f);
             bounds = Bounds(model);
             model.transform.localPosition += new Vector3(-bounds.center.x, -bounds.min.y, -bounds.center.z);
             bounds = Bounds(model);

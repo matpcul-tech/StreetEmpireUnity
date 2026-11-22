@@ -110,6 +110,9 @@ namespace StreetEmpire.Tests
             Assert.IsNotNull(hydrant.GetTexture("_BumpMap"), "hydrant normal map");
             Assert.IsNotNull(hydrant.GetTexture("_MetallicGlossMap"), "hydrant metallic smoothness map");
             Assert.IsTrue(inst.batches.Any(b => b.name.StartsWith("car-sedan") && b.lod1 != null), "parked sedans have a LOD1");
+            var carBatches = inst.batches.Where(b => b.name.StartsWith("car-")).ToArray();
+            Assert.GreaterOrEqual(carBatches.Select(b => b.name.Split('@', '#')[0]).Distinct().Count(), 8, "the curbs hold a mix of the v2 cars");
+            Assert.IsTrue(carBatches.All(b => b.lod1 != null), "every parked car has a far version");
             for (int i = 0; i < 3; i++) yield return null;
             if (SystemInfo.supportsInstancing) Assert.Greater(inst.LastDraws, 0, "the instancer draws");
         }
