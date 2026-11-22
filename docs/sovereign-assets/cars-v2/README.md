@@ -52,3 +52,24 @@ In the game: parked at the curb on some of the sides that have no parked cars, l
 
 Not done: riding them. That needs a seated rider pose, lean in the turns and the steer node turning with the bars;
 the driving code today only knows cars.
+
+# v75t on the phone: the cars came out in camouflage (fixed Nov 22, 2026)
+
+Seen in the v75t test build: every v2 car body was a patchwork of lighter and darker triangles. Color, wheels and
+glass were right; the shading was wrong.
+
+Cause, read out of the v75t APK:
+- Android builds use the DXT5nm-style normal encoding (ProjectSettings m_BuildTargetNormalMapEncoding 1). A normal
+  map imported from a file is stored that way. The car normal maps were images inside the GLBs, stored as plain
+  RGB, so the shader took X from an alpha channel that is not there and every normal leaned hard along its tangent.
+- These bodies are unwrapped as a mosaic of small charts, each turned its own way. A lean along the tangent lights
+  each chart differently. The old kit sedan has a tidy unwrap and its maps were files, so it never showed.
+- The mesh, its UVs and its tangents in the build are right (checked against the UVs), and so are the color maps.
+
+Fix (tools/car_v2.mjs, VehicleBuilder.BindV2):
+- No normal map on the cars. The mesh normals are smooth; renders with and without the map look the same.
+- The color maps are JPEG files under Art/Textures/Cars/V2 and the GLBs carry no images. They import as ordinary
+  compressed textures, and the near and far car share one copy (v75t carried two uncompressed 1024 copies of every
+  body map plus two normal maps, about 16 MB of memory a car).
+
+Not checked from here: the fix on a phone.
