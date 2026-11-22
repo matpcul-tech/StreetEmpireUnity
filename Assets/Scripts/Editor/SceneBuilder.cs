@@ -86,9 +86,9 @@ namespace StreetEmpire.EditorTools
         /// windows_lit / windows_dark all sample, so every part binds the one extracted Material_0 set
         /// ({name}__Material_0_*), GPU compressed like every other building map. Only windows_lit glows (its own
         /// emissive factor, on the DayCycle night ramp); windows_dark is matte glass and stays dark.
-        /// The church and six heavy ones (tower-terracotta 1.11M triangles, tower-copper-mansard 649k,
-        /// dock-pier-warehouse 532k, tower-deco-setback 515k, warehouse-sawtooth 452k, job-pool-hall 375k) are in as
-        /// delivered while Matthew's 100k remesh is made.</summary>
+        /// civic-church, tower-copper-mansard, dock-pier-warehouse, warehouse-sawtooth and job-pool-hall are Matthew's
+        /// remesh at 83k to 96k triangles (heavy-remesh, passed in review); tower-terracotta (1.11M) and
+        /// tower-deco-setback (515k) stay as first delivered, their remeshes were kept out.</summary>
         public static readonly HashSet<string> AtlasFinished = new()
         {
             "civic-bank", "civic-church", "civic-clinic", "civic-police-station", "civic-school",
