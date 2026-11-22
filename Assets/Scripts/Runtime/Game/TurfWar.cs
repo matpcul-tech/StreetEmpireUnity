@@ -37,6 +37,9 @@ namespace StreetEmpire.Game
         public string[] crewIds = new string[0], crewNames = new string[0];
         public Color[] crewColors = new Color[0];
         public GameObject[] templates = new GameObject[0]; // inactive brawler bodies; the last one holds a bat
+        // NPC v4: each rival crew's own bodies, three per crew in crewTemplateIds order (man, woman, man with a bat)
+        public GameObject[] crewTemplates = new GameObject[0];
+        public string[] crewTemplateIds = new string[0];
         public Text prompt;
         public GameHud hud; public Minimap radar; public MissionRunner job; public MuggerOpening opening; public ArmGuards arm;
         public long seed = 1;
@@ -263,10 +266,17 @@ namespace StreetEmpire.Game
             if (quiet || br == null) Destroy(x.go); else br.leave = true;   // a brawler runs off, then removes himself
         }
 
-        GameObject Make(Vector3 at, Vector3 face, float hp, bool bat, string name)
+        GameObject Make(Vector3 at, Vector3 face, float hp, bool bat, string name, string crew)
         {
-            if (templates.Length == 0) return null;
-            var pick = bat || templates.Length == 1 ? templates[templates.Length - 1] : templates[look++ % (templates.Length - 1)];
+            // a rival crew wears its own bodies; your guards and anyone else use the plain ones
+            int k = System.Array.IndexOf(crewTemplateIds, crew);
+            GameObject pick = null;
+            if (k >= 0 && crewTemplates.Length >= (k + 1) * 3) pick = bat ? crewTemplates[k * 3 + 2] : crewTemplates[k * 3 + (look++ % 2)];
+            if (pick == null)
+            {
+                if (templates.Length == 0) return null;
+                pick = bat || templates.Length == 1 ? templates[templates.Length - 1] : templates[look++ % (templates.Length - 1)];
+            }
             face.y = 0;
             var go = Instantiate(pick, new Vector3(at.x, 0.3f, at.z), face.sqrMagnitude > 1e-4f ? Quaternion.LookRotation(face) : Quaternion.identity);
             go.name = name;
@@ -284,7 +294,7 @@ namespace StreetEmpire.Game
             var dir = off.normalized;
             var post = c + off;
             bool friendly = b.owner == Turf.You, bat = b.armed;
-            var go = Make(post, dir, 60f + (b.armed ? world.upgradeHp : 0f), bat, $"{CrewName(b.owner)} guard ({b.hustle})");
+            var go = Make(post, dir, 60f + (b.armed ? world.upgradeHp : 0f), bat, $"{CrewName(b.owner)} guard ({b.hustle})", b.owner);
             if (go == null) return;
             var body = new Body { go = go, hp = go.GetComponent<Health>(), block = b.id, slot = slot, crew = b.owner, friendly = friendly };
             var br = go.GetComponent<Brawler>();
@@ -307,7 +317,7 @@ namespace StreetEmpire.Game
             var dir = from.sqrMagnitude > 1f ? from.normalized : Vector3.forward;
             var side = Vector3.Cross(Vector3.up, dir);
             var at = c + dir * (world.block / 2f + 1f) + side * ((slot - 1.5f) * 1.8f);
-            var go = Make(at, -dir, 60f, slot == 3, $"{CrewName(b.raid.crew)} raider ({b.hustle})");
+            var go = Make(at, -dir, 60f, slot == 3, $"{CrewName(b.raid.crew)} raider ({b.hustle})", b.raid.crew);
             if (go == null) return;
             var body = new Body { go = go, hp = go.GetComponent<Health>(), block = b.id, crew = b.raid.crew, raider = true };
             var br = go.GetComponent<Brawler>();

@@ -88,3 +88,4 @@ docs/sovereign-assets/u75o/*.jpg -filter -diff -merge binary
 # block above. To move them into LFS, delete this block and run: git add --renormalize . && git commit
 Assets/Art/Models/Characters/** -filter -diff -merge binary
 docs/sovereign-assets/npc-v3/*.jpg -filter -diff -merge binary
+docs/sovereign-assets/npc-v4/*.jpg -filter -diff -merge binary
