@@ -52,7 +52,7 @@ namespace StreetEmpire.Game
                 {
                     0 => "<color=#ffcc33>1/3</color>  Stop the muggers: " + (touch ? "HIT" : "F or click"),
                     1 => "<color=#ffcc33>2/3</color>  Talk to Unc: " + (touch ? "USE" : "E"),
-                    2 => "<color=#ffcc33>3/3</color>  Take a block: clear it, stand in the ring",
+                    2 => "<color=#ffcc33>3/3</color>  Take a block: clear it, then hold it",
                     _ => "",
                 };
             }

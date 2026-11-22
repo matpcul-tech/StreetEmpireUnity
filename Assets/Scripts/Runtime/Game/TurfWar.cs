@@ -1,8 +1,10 @@
 // The turf loop in the town: runs the Turf sim (Assets/Scripts/Sim/Turf.cs) for the district's blocks and puts
 // bodies on it where the player is. Guards stand in the middle of their block and come for you when you walk in;
-// knock them all down and hold the ring for captureTime to take the block. Your blocks pile up a stash you
-// pocket by standing in the ring, rivals raid them (a warning first), and USE on a block you hold buys the next
-// thing it needs: a guard (100), bats for the guards (80), the build up (200).
+// knock them all down and stay on the block for captureTime to take it. Your blocks pile up a stash you pocket
+// by walking onto them, rivals raid them (a warning first), and USE on a block you hold buys the next thing it
+// needs: a guard (100), bats for the guards (80), the build up (200).
+// Turf is implied (Matthew, Nov 22): no ring on the ground and none at anyone's feet. A block is somebody's
+// because their people stand on it; the crew colors are on the radar.
 // Bodies only exist on the block the player is on. Everything else is the sim's counts.
 using System.Collections.Generic;
 using System.Linq;
@@ -40,6 +42,7 @@ namespace StreetEmpire.Game
         public long seed = 1;
 
         public TurfState State { get; private set; }
+        /// <summary>The block whose ground the player stands on (inside its sidewalk), -1 for none.</summary>
         public int ZoneBlock { get; private set; } = -1;
         public int NearBlock { get; private set; } = -1;
         public int GuardBodies => bodies.Count(b => !b.raider && !b.friendly);
@@ -48,14 +51,11 @@ namespace StreetEmpire.Game
 
         class Body { public GameObject go; public Health hp; public int block, slot; public string crew; public bool raider, friendly, gone; }
         readonly List<Body> bodies = new();
-        readonly List<Renderer> rings = new();
-        MaterialPropertyBlock mpb; Mesh ringMesh, footMesh;
-        float syncT, saveT; int look; bool ringsMade;
-        static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
+        float syncT, saveT; int look;
 
         void Awake()
         {
-            Instance = this; mpb = new MaterialPropertyBlock();
+            Instance = this;
             if (arm != null) arm.enabled = false;   // its one purchase is part of the buy prompt here
             if (prompt) prompt.gameObject.SetActive(false);
         }
@@ -134,12 +134,15 @@ namespace StreetEmpire.Game
             var user = s.player.GetComponent<VehicleUser>();
             bool inCar = user != null && user.Car != null;
 
-            // where the player is: on which block, and in whose ring (not from a car, and not while down)
-            float half = world.block / 2f + 4f; int near = -1, zone = -1;
+            // where the player is: near which block (its lots and sidewalks: bodies show), and on which block's own
+            // ground, inside the sidewalk (that is what holds or takes it; not from a car, and not while down, and
+            // not by walking past on the sidewalk)
+            float half = world.block / 2f + 4f, lot = world.block / 2f - 1f; int near = -1, zone = -1;
             for (int i = 0; i < centers.Length; i++)
             {
-                if (Mathf.Abs(p.x - centers[i].x) < half && Mathf.Abs(p.z - centers[i].z) < half) near = blockIds[i];
-                if (!inCar && !s.IsDown && Flat(p, centers[i]) < world.zoneRadius) zone = blockIds[i];
+                float dx = Mathf.Abs(p.x - centers[i].x), dz = Mathf.Abs(p.z - centers[i].z);
+                if (dx < half && dz < half) near = blockIds[i];
+                if (!inCar && !s.IsDown && dx < lot && dz < lot) zone = blockIds[i];
             }
             NearBlock = near; ZoneBlock = zone;
 
@@ -157,7 +160,6 @@ namespace StreetEmpire.Game
             if ((saveT += dt) > 20f) { saveT = 0; Save(); }
 
             if ((syncT -= dt) <= 0) { syncT = 0.25f; Sync(s, p); }
-            Rings();
             if (hud != null) { hud.turfOwned = State.Owned(Turf.You); hud.turfTotal = State.blocks.Count; }
         }
 
@@ -168,7 +170,7 @@ namespace StreetEmpire.Game
             switch (e.type)
             {
                 case "stash": if (e.amount >= 10) s.Say($"Collected ${e.amount} from {hustle}.", 2.5f); return false;
-                case "cleared": if (e.crew != Turf.You) s.Say($"{hustle} is clear. Hold the ring to take it.", 3f); return false;
+                case "cleared": if (e.crew != Turf.You) s.Say($"{hustle} is clear. Stay on the block to take it.", 3f); return false;
                 case "capture":
                     if (e.crew == Turf.You) { s.Say($"{hustle} is yours." + (e.amount > 0 ? $" +${e.amount} from the stash." : ""), 4f); if (opening != null) opening.TookBlock(); }
                     else if (e.from == Turf.You) s.Say($"{CrewName(e.crew)} took {hustle} from you.", 4f);
@@ -185,7 +187,7 @@ namespace StreetEmpire.Game
             return false;
         }
 
-        /// <summary>The buy prompt on a block you hold, and the capture count while you hold a ring.</summary>
+        /// <summary>The buy prompt on a block you hold, and the count while you hold a block you are taking.</summary>
         void Buy(GameSession s, Vector3 p, bool inCar)
         {
             string text = "";
@@ -195,7 +197,7 @@ namespace StreetEmpire.Game
                 bool raiders = zb.hasRaid && zb.raid.eta <= 0 && zb.raid.n > 0;
                 if (zb.guards > 0) text = $"{zb.guards} guard{(zb.guards > 1 ? "s" : "")} still on {zb.hustle}";
                 else if (raiders) text = $"{CrewName(zb.raid.crew)} are fighting over {zb.hustle}";
-                else text = $"Taking {zb.hustle}   {Mathf.Max(0f, world.captureTime - zb.capT):0.0}s";
+                else text = $"Holding {zb.hustle}   {Mathf.Max(0f, world.captureTime - zb.capT):0.0}s";
             }
             var nb = NearBlock >= 0 ? State.Block(NearBlock) : null;
             string buy = text.Length == 0 && !inCar && !s.IsDown ? Turf.NextBuy(nb) : null;
@@ -261,7 +263,7 @@ namespace StreetEmpire.Game
             if (quiet || br == null) Destroy(x.go); else br.leave = true;   // a brawler runs off, then removes himself
         }
 
-        GameObject Make(Vector3 at, Vector3 face, float hp, bool bat, string name, Color crew)
+        GameObject Make(Vector3 at, Vector3 face, float hp, bool bat, string name)
         {
             if (templates.Length == 0) return null;
             var pick = bat || templates.Length == 1 ? templates[templates.Length - 1] : templates[look++ % (templates.Length - 1)];
@@ -269,17 +271,6 @@ namespace StreetEmpire.Game
             var go = Instantiate(pick, new Vector3(at.x, 0.3f, at.z), face.sqrMagnitude > 1e-4f ? Quaternion.LookRotation(face) : Quaternion.identity);
             go.name = name;
             var h = go.GetComponent<Health>(); h.max = h.hp = hp;
-            // a ring in the crew's color at his feet says whose he is
-            var fx = CombatFx.Instance;
-            if (fx != null && fx.ringMat != null)
-            {
-                if (footMesh == null) footMesh = Ring(0.42f, 0.58f, 20);
-                var ring = new GameObject("Crew Ring"); ring.transform.SetParent(go.transform, false); ring.transform.localPosition = new Vector3(0, 0.06f, 0);
-                ring.AddComponent<MeshFilter>().sharedMesh = footMesh;
-                var r = ring.AddComponent<MeshRenderer>(); r.sharedMaterial = fx.ringMat;
-                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; r.receiveShadows = false;
-                mpb.SetColor(BaseColor, new Color(crew.r, crew.g, crew.b, 0.9f)); r.SetPropertyBlock(mpb);
-            }
             return go;
         }
 
@@ -293,7 +284,7 @@ namespace StreetEmpire.Game
             var dir = off.normalized;
             var post = c + off;
             bool friendly = b.owner == Turf.You, bat = b.armed;
-            var go = Make(post, dir, 60f + (b.armed ? world.upgradeHp : 0f), bat, $"{CrewName(b.owner)} guard ({b.hustle})", CrewColor(b.owner));
+            var go = Make(post, dir, 60f + (b.armed ? world.upgradeHp : 0f), bat, $"{CrewName(b.owner)} guard ({b.hustle})");
             if (go == null) return;
             var body = new Body { go = go, hp = go.GetComponent<Health>(), block = b.id, slot = slot, crew = b.owner, friendly = friendly };
             var br = go.GetComponent<Brawler>();
@@ -316,7 +307,7 @@ namespace StreetEmpire.Game
             var dir = from.sqrMagnitude > 1f ? from.normalized : Vector3.forward;
             var side = Vector3.Cross(Vector3.up, dir);
             var at = c + dir * (world.block / 2f + 1f) + side * ((slot - 1.5f) * 1.8f);
-            var go = Make(at, -dir, 60f, slot == 3, $"{CrewName(b.raid.crew)} raider ({b.hustle})", CrewColor(b.raid.crew));
+            var go = Make(at, -dir, 60f, slot == 3, $"{CrewName(b.raid.crew)} raider ({b.hustle})");
             if (go == null) return;
             var body = new Body { go = go, hp = go.GetComponent<Health>(), block = b.id, crew = b.raid.crew, raider = true };
             var br = go.GetComponent<Brawler>();
@@ -336,52 +327,6 @@ namespace StreetEmpire.Game
         }
 
         // ---- what you see ----
-
-        static Mesh Ring(float r0, float r1, int seg)
-        {
-            var v = new Vector3[seg * 2]; var tri = new int[seg * 6];
-            for (int i = 0; i < seg; i++)
-            {
-                float a = i * Mathf.PI * 2f / seg; var d = new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a));
-                v[i * 2] = d * r0; v[i * 2 + 1] = d * r1;
-                int n = (i + 1) % seg;
-                tri[i * 6] = i * 2; tri[i * 6 + 1] = n * 2 + 1; tri[i * 6 + 2] = i * 2 + 1;
-                tri[i * 6 + 3] = i * 2; tri[i * 6 + 4] = n * 2; tri[i * 6 + 5] = n * 2 + 1;
-            }
-            var m = new Mesh { name = "Turf Ring" }; m.vertices = v; m.triangles = tri; m.RecalculateNormals(); m.RecalculateBounds(); return m;
-        }
-
-        /// <summary>The capture ring on the ground in the middle of each block, in the owner's color; it pulses while being taken.</summary>
-        void Rings()
-        {
-            var fx = CombatFx.Instance;
-            if (!ringsMade)
-            {
-                if (fx == null || fx.ringMat == null) return;
-                ringsMade = true; ringMesh = Ring(world.zoneRadius - 0.35f, world.zoneRadius, 48);
-                for (int i = 0; i < centers.Length; i++)
-                {
-                    var go = new GameObject($"Turf Ring {blockIds[i]}"); go.transform.SetParent(transform, false);
-                    go.transform.position = new Vector3(centers[i].x, 0.07f, centers[i].z);
-                    go.AddComponent<MeshFilter>().sharedMesh = ringMesh;
-                    var r = go.AddComponent<MeshRenderer>(); r.sharedMaterial = fx.ringMat;
-                    r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; r.receiveShadows = false;
-                    rings.Add(r);
-                }
-            }
-            for (int i = 0; i < rings.Count; i++)
-            {
-                var b = State.Block(blockIds[i]); if (b == null || rings[i] == null) continue;
-                var c = CrewColor(b.owner); float a = 0.75f;
-                if (b.capT > 0 && b.capBy != null)
-                {
-                    c = Color.Lerp(c, CrewColor(b.capBy), Mathf.Clamp01(b.capT / world.captureTime));
-                    a = 0.6f + 0.4f * Mathf.Abs(Mathf.Sin(Time.time * 6f));
-                }
-                else if (b.hasRaid && b.owner == Turf.You) { c = Color.Lerp(c, CrewColor(b.raid.crew), 0.5f + 0.5f * Mathf.Sin(Time.time * 8f)); a = 1f; }
-                mpb.SetColor(BaseColor, new Color(c.r, c.g, c.b, a)); rings[i].SetPropertyBlock(mpb);
-            }
-        }
 
         /// <summary>Block owners on the radar: a dot in the crew's color on each block.</summary>
         void Paint()

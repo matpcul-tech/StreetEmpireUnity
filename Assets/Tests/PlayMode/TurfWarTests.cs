@@ -49,16 +49,20 @@ namespace StreetEmpire.Tests
             Assert.IsFalse(Brawler.All.Any(b => b.Alerted), "they hold their posts while you stay off the middle");
             Assert.AreEqual(Turf.Locals, turf.State.Block(1).owner);
 
-            // knock them down, then hold the ring
+            // knock them down, then hold the block (no ring: anywhere on its own ground, inside the sidewalk)
             foreach (var b in Brawler.All.ToArray()) b.GetComponent<Health>().Damage(999f, s.player.gameObject);
             yield return null; yield return null;
             Assert.AreEqual(0, turf.State.Block(1).guards, "both down");
             Assert.AreEqual(0, s.Stars, "no heat for fighting a crew");
-            s.player.Teleport(new Vector3(c.x + 2.5f, 0.3f, c.z - 0.5f), 0f);   // in the ring, off the backyard fence
+            Assert.AreEqual(-1, turf.ZoneBlock, "the sidewalk does not count as holding the block");
+            Assert.AreEqual(0f, turf.State.Block(1).capT, "nothing counts from the sidewalk");
+            Assert.IsNull(GameObject.Find("Turf Ring 1"), "no ring on the ground");
+            Assert.IsFalse(Brawler.All.Any(b => b.transform.Find("Crew Ring") != null), "no ring at anyone's feet");
+            s.player.Teleport(new Vector3(c.x + 5.5f, 0.3f, c.z - 6.2f), 0f);   // 8.3 m off the middle: on the block, outside the old 7 m ring
             yield return new WaitForSeconds(1f);
-            Assert.AreEqual(1, turf.ZoneBlock, "standing in the ring");
-            Assert.Greater(turf.State.Block(1).capT, 0f, "the ring is counting");
-            StringAssert.Contains("Taking Car Wash", turf.prompt.text);
+            Assert.AreEqual(1, turf.ZoneBlock, "standing on the block");
+            Assert.Greater(turf.State.Block(1).capT, 0f, "the hold is counting");
+            StringAssert.Contains("Holding Car Wash", turf.prompt.text);
             yield return new WaitForSeconds(turf.world.captureTime + 0.5f);
             Assert.AreEqual(Turf.You, turf.State.Block(1).owner, "the block is yours");
             StringAssert.Contains("Car Wash is yours", s.Message);

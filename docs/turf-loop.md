@@ -7,12 +7,14 @@ How it plays:
 
 - Nine blocks. You hold Corner Store Deals. Red Kings, Blue Hand and Gold Line each hold one far corner. The other
   five are the Locals'.
-- Every block has a ring on the ground in its backyard, in its owner's color. The same colors are on the radar.
-- Walk onto a block and its guards show (a ring in their crew's color at their feet). They hold their posts until
-  you come within 14 m, or hit one.
-- Knock them all down, stand in the ring for 6 seconds, and the block is yours. One guard of yours stays on it.
-- Your blocks pile up a stash (rate x 0.4 with no guards, up to 1.0 with three, double when built up). Stand in
-  the ring to pocket it.
+- Turf is implied. There is no ring on the ground and none at anyone's feet. A block is somebody's because their
+  people stand on it. The crew colors are on the radar.
+- Walk onto a block and its guards show. They hold their posts in the backyard until you come within 14 m, or hit
+  one.
+- Knock them all down, then stay on the block for 6 seconds (anywhere on its own ground, inside the sidewalk; the
+  count shows as "Holding Car Wash 4.2s") and the block is yours. One guard of yours stays on it.
+- Your blocks pile up a stash (rate x 0.4 with no guards, up to 1.0 with three, double when built up). Walk onto
+  the block to pocket it.
 - USE on a block you hold buys the next thing it needs: a second guard (100), bats (80), a third guard (100),
   the build up (200).
 - Rivals bank their own stash, keep two guards on a block, and raid a neighbor when they have 150. On your block
@@ -25,7 +27,7 @@ What differs from the web game: the web walks every guard and raider as a body a
 only exist on the block you are standing on. Fights you are not at are settled by rolls.
 
 Not in yet: your guards fighting as bodies (they stand at their posts; the sim rolls for them), crew models for
-each rival (all guards and raiders use the Locals bodies, told apart by the ring at their feet), recruits that
+each rival (all guards and raiders use the Locals bodies; on a block the guards are its owner's), recruits that
 follow you, and the block colors painted into the radar map itself (owners show as dots).
 
 Saved: the turf state and cash are kept between launches on the phone (PlayerPrefs `turf.v1`). Jobs and the
