@@ -647,7 +647,7 @@ namespace StreetEmpire.EditorTools
         {
             Physics.SyncTransforms();
             landmarkBoxes = Object.FindObjectsByType<BuildingMarker>(FindObjectsSortMode.None)
-                .Where(m => m.kind == "landmark" && m.GetComponent<BoxCollider>() != null)
+                .Where(m => (m.kind == "landmark" || SceneBuilder.AtlasFinished.Contains(m.model)) && m.GetComponent<BoxCollider>() != null)
                 .Select(m => (m.GetComponent<BoxCollider>().bounds, m.transform.parent != null ? m.transform.parent.position : m.transform.position)).ToList();
         }
 
