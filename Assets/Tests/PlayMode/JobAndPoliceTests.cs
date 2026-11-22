@@ -63,7 +63,8 @@ namespace StreetEmpire.Tests
         static int policeRuns;
 
         // M5: repeated 10 times to check for flakiness (the M4 version failed once with officers stuck at a block)
-        [UnityTest, Repeat(10)]
+        // v75t: the ten runs take longer with the wave A and B buildings in the scene; the 180 s default ran out at run 9
+        [UnityTest, Repeat(10), Timeout(480000)]
         public IEnumerator HittingPeopleBringsStarsAndPoliceBust()
         {
             policeRuns++;

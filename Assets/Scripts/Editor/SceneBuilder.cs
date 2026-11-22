@@ -73,6 +73,45 @@ namespace StreetEmpire.EditorTools
             "house-01-bungalow", "house-02-two-story", "apt-01-stucco", "apt-mixed-use", "store-pawn", "store-barber",
             "house-spanish-tile", "house-craftsman-porch", "house-stucco-duplex-2story", "house-boarded-stucco", "house-flat-roof", "apt-dingbat", "store-check-cashing",
             "house-03-duplex",   // v75o
+            // v75t: the wave A civic and wave B buildings (release meshy-buildings-wave-ab-2026-11-22), as delivered
+            "civic-bank", "civic-church", "civic-clinic", "civic-police-station", "civic-school",
+            "crew-bluehand-club", "crew-goldline-harbor", "crew-redkings-club", "dock-ice-house", "dock-pier-warehouse",
+            "job-car-wash", "job-chop-shop", "job-loading-lot", "job-pool-hall", "tower-brutalist-concrete",
+            "tower-copper-mansard", "tower-deco-setback", "tower-terracotta", "warehouse-cold-storage", "warehouse-sawtooth",
+        };
+
+        /// <summary>v75t: Matthew's wave A civic and wave B finished buildings (release meshy-buildings-wave-ab-2026-11-22,
+        /// docs/sovereign-assets/v75t), byte for byte as delivered: no decimation, no LOD, no wash, no tint, no added
+        /// quads. Each file carries one Meshy atlas (image 0) that its unnamed main material, its door and its
+        /// windows_lit / windows_dark all sample, so every part binds the one extracted Material_0 set
+        /// ({name}__Material_0_*), GPU compressed like every other building map. Only windows_lit glows (its own
+        /// emissive factor, on the DayCycle night ramp); windows_dark is matte glass and stays dark.
+        /// civic-church, tower-copper-mansard, dock-pier-warehouse, warehouse-sawtooth and job-pool-hall are Matthew's
+        /// remesh at 83k to 96k triangles (heavy-remesh, passed in review); tower-terracotta (1.11M) and
+        /// tower-deco-setback (515k) stay as first delivered, their remeshes were kept out.</summary>
+        public static readonly HashSet<string> AtlasFinished = new()
+        {
+            "civic-bank", "civic-church", "civic-clinic", "civic-police-station", "civic-school",
+            "crew-bluehand-club", "crew-goldline-harbor", "crew-redkings-club", "dock-ice-house", "dock-pier-warehouse",
+            "job-car-wash", "job-chop-shop", "job-loading-lot", "job-pool-hall", "tower-brutalist-concrete",
+            "tower-copper-mansard", "tower-deco-setback", "tower-terracotta", "warehouse-cold-storage", "warehouse-sawtooth",
+        };
+
+        /// <summary>v75t: lots that take a named landmark instead of the model dealt to them (the deal still counts the
+        /// lot, so every other lot keeps its model). Key: block id and lot index (0..3). All in the sixteen new
+        /// blocks, none on the nine turf blocks or the gas and auto blocks: Downtown's one block (40) is the four
+        /// towers, block 31 the docks, 39 the warehouse row, 30 the police station and the bank, one crew club in each
+        /// of 13, 21 and 22, the pool hall in 37, the school in 28 and the clinic in 27. The church keeps its store lot
+        /// on block 20 (Kit). A file wider or deeper than the 13 m lot is moved in, front still on its street, so it
+        /// stays inside its block; props that would land in one are not placed (PropBuilder).</summary>
+        public static readonly Dictionary<(int block, int index), string> Landmarks = new()
+        {
+            [(40, 0)] = "tower-terracotta", [(40, 1)] = "tower-deco-setback", [(40, 2)] = "tower-copper-mansard", [(40, 3)] = "tower-brutalist-concrete",
+            [(31, 0)] = "job-loading-lot", [(31, 1)] = "dock-pier-warehouse", [(31, 2)] = "dock-ice-house", [(31, 3)] = "warehouse-cold-storage",
+            [(39, 1)] = "warehouse-sawtooth", [(39, 2)] = "job-car-wash", [(39, 3)] = "job-chop-shop",
+            [(30, 2)] = "civic-police-station", [(30, 3)] = "civic-bank",
+            [(13, 3)] = "crew-bluehand-club", [(21, 3)] = "crew-redkings-club", [(22, 3)] = "crew-goldline-harbor",
+            [(37, 3)] = "job-pool-hall", [(28, 3)] = "civic-school", [(27, 2)] = "civic-clinic",
         };
 
         /// <summary>v75q: stores whose existing windows_lit should glow at night, without joining the
@@ -284,7 +323,7 @@ namespace StreetEmpire.EditorTools
         /// barbershop about 4.5; the rest read from each model's storeys). Sovereign Asset Size: Height used the same.</summary>
         public static readonly Dictionary<string, float> RealHeight = new()
         {
-            ["apt-01-stucco"] = 10f /* v75n finish (u75n, 5,718,764 bytes, 5972b404) */, ["apt-02-brick"] = 10f, ["apt-mixed-use"] = 10f /* v75n finish (u75n, 5,612,804 bytes, b75e17aa) */, ["apt-motel-style"] = 7f, ["civic-church"] = 10f,
+            ["apt-01-stucco"] = 10f /* v75n finish (u75n, 5,718,764 bytes, 5972b404) */, ["apt-02-brick"] = 10f, ["apt-mixed-use"] = 10f /* v75n finish (u75n, 5,612,804 bytes, b75e17aa) */, ["apt-motel-style"] = 7f, ["civic-church"] = 13f /* v75t: the wave A file, 13 m to the tower top */,
             ["house-01-bungalow"] = 4.2f /* v75n finish (u75n, 7,984,464 bytes, a7991f26) */, ["house-02-two-story"] = 6.5f /* v75n finish (u75n, 5,231,296 bytes, 5f53253f) */, ["house-03-duplex"] = 4f /* v75o finish (u75o, 3,209,036 bytes, 23752832) */, ["house-boarded"] = 7f,
             ["house-rowhouse-pair"] = 9f, ["house-shotgun"] = 4.5f, ["house-wood-duplex"] = 7.5f, ["shop-auto-garage"] = 5f,
             ["shop-gas-station"] = 5f, ["store-barber"] = 4.5f /* v75n finish (u75n, 8,799,264 bytes, df9fd207) */, ["store-bodega"] = 7f, ["store-laundromat"] = 6f,
@@ -307,13 +346,15 @@ namespace StreetEmpire.EditorTools
             string dealKey = mid ? spot.kind + ":mid" : spot.kind;
             dealt.TryGetValue(dealKey, out int n); dealt[dealKey] = n + 1;
             string name = variants[n % variants.Length];
+            bool landmark = Landmarks.TryGetValue((spot.blockId, spot.index), out var lmName);
+            if (landmark) name = lmName;
             // v74: the near model is the Sovereign Asset "Unity building" finish of the source at its real height in
             // meters (docs/sovereign-assets/u74), cut to the lowest triangle target the app accepts; four materials
             // (Material_0, walls, windows_lit, windows_dark) kept apart
             var model = AssetDatabase.LoadAssetAtPath<GameObject>($"{Models}/{name}.glb");
             var holder = new GameObject($"{spot.kind} {spot.index} ({name})");
             var marker = holder.AddComponent<BuildingMarker>();
-            marker.blockId = spot.blockId; marker.index = spot.index; marker.kind = spot.kind; marker.model = name;
+            marker.blockId = spot.blockId; marker.index = spot.index; marker.kind = landmark ? "landmark" : spot.kind; marker.model = name;
             if (model == null) { Debug.LogError($"[SceneBuilder] missing kit model {name}"); Object.DestroyImmediate(holder); return false; }
 
             // v74: the files are in real meters now (Sovereign Asset Size: Height), so no fit to the 13 m lot; feet
@@ -334,7 +375,7 @@ namespace StreetEmpire.EditorTools
             // v75j: no SplitWindows (the per pane lit and dark scatter, door glass rules and warm room UVs): it changed
             // Matthew's meshes and UVs, and lit raw models' window triangles
             // v75e: the white house's roof has its own material now, so it is washed again, the walls only and lightly
-            if (spot.kind == "house") { marker.wash = n % HouseTint.Length; if (!Finished.Contains(name)) Wash(inst, name, HouseTint[marker.wash], HouseWall[marker.wash % HouseWall.Length]); }
+            if (spot.kind == "house" && !landmark) { marker.wash = n % HouseTint.Length; if (!Finished.Contains(name)) Wash(inst, name, HouseTint[marker.wash], HouseWall[marker.wash % HouseWall.Length]); }
             // v75j: no lettered board over the pawn shop's own sign_lit (it covered it and glowed itself)
             if (name == "store-pawn") StorefrontLight(inst, holder);
             if (name == "store-liquor-blank") LiquorSign(inst, holder);
@@ -363,6 +404,19 @@ namespace StreetEmpire.EditorTools
             var (x, z) = WorldSpace.FromSource(spot.x, spot.z);
             holder.transform.SetParent(parent, true);
             holder.transform.SetPositionAndRotation(new Vector3(x, 0.24f, z), Quaternion.Euler(0, WorldSpace.YawFromSource(spot.yaw) * Mathf.Rad2Deg, 0));
+            // v75t: a wave A or B file wider or deeper than the 13 m lot keeps its outer edges on the block's edge (20 m
+            // out from the block center, where the 13 m lot ends) and grows in toward the middle instead of out over
+            // the sidewalk. Holder space: +Z faces the lot's street, X runs along it.
+            if (AtlasFinished.Contains(name))
+            {
+                var outward = holder.transform.position - parent.position; outward.y = 0;
+                float sideSign = Mathf.Sign(Vector3.Dot(outward, holder.transform.right)), frontSign = Mathf.Sign(Vector3.Dot(outward, holder.transform.forward));
+                float wide = bounds.size.x, deep = bounds.size.z;
+                var shift = Vector3.zero;
+                if (wide > 13f) shift += holder.transform.right * sideSign * (6.5f - wide / 2f);
+                if (deep > 13f) shift += holder.transform.forward * frontSign * (6.5f - deep / 2f);
+                holder.transform.position += shift;
+            }
             return true;
         }
 
@@ -398,6 +452,14 @@ namespace StreetEmpire.EditorTools
                 // carried the glTF emissiveFactor and emissive map over); its glass keeps its own maps too
                 if (finished && (part == "windows_lit" || part == "windows_dark"))
                 {
+                    // v75t: the wave A and B glass samples the file's one atlas: the extracted, compressed copy
+                    if (AtlasFinished.Contains(name))
+                    {
+                        var abc = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__Material_0_basecolor.jpg");
+                        if (abc != null) m.SetTexture("_BaseMap", abc);
+                        m.SetTexture("_BumpMap", null); m.DisableKeyword("_NORMALMAP");
+                        m.SetTexture("_MetallicGlossMap", null); m.DisableKeyword("_METALLICSPECGLOSSMAP");
+                    }
                     m.SetFloat("_Metallic", 0f);
                     EditorUtility.SetDirty(m); continue;
                 }
@@ -424,6 +486,8 @@ namespace StreetEmpire.EditorTools
                 }
                 // v75e: the white house's roof is its own material (tools/house01_v2_fix.py) on the walls textures
                 string tp = part == "roof" ? "walls" : part;
+                // v75t: the wave A and B files have one atlas for every part (their main material has no name)
+                if (AtlasFinished.Contains(name)) tp = "Material_0";
                 var bc = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{tp}_basecolor.jpg");
                 var nm = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{tp}_normal.jpg");
                 var ms = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{tp}_metalsmooth.png");

@@ -44,15 +44,17 @@ namespace StreetEmpire.Tests
                 var col = b.GetComponent<BoxCollider>();
                 Assert.IsNotNull(col, $"{b.name} has a collider");
                 var bounds = col.bounds;
-                Assert.That(bounds.size.y, Is.InRange(2f, 40f), $"{b.name} height");
+                // v75t: the wave A and B landmarks run up to the 45 m deco tower and the 23.6 m sawtooth warehouse
+                bool landmark = b.kind == "landmark" || b.model == "civic-church";
+                Assert.That(bounds.size.y, Is.InRange(2f, landmark ? 46f : 40f), $"{b.name} height");
                 // v74: scaled to real heights, so footprints run from about 5 m (pawn shop) to 14 m (the motel)
-                Assert.That(Mathf.Max(bounds.size.x, bounds.size.z), Is.InRange(4.5f, 15f), $"{b.name} footprint about its 13 m lot");
+                Assert.That(Mathf.Max(bounds.size.x, bounds.size.z), Is.InRange(4.5f, landmark ? 24f : 15f), $"{b.name} footprint about its 13 m lot");
                 var block = blocks.First(k => k.blockId == b.blockId).transform.position;
                 Assert.Less(Mathf.Abs(bounds.center.x - block.x), 20.5f, $"{b.name} inside its block (x)");
                 Assert.Less(Mathf.Abs(bounds.center.z - block.z), 20.5f, $"{b.name} inside its block (z)");
                 Assert.That(bounds.min.y, Is.InRange(0f, 0.6f), $"{b.name} sits on the ground");
             }
-            Assert.AreEqual(3, buildings.Select(b => b.kind).Distinct().Count(), "store, house and apt");
+            Assert.AreEqual(4, buildings.Select(b => b.kind).Distinct().Count(), "store, house, apt and (v75t) landmark");
 
             var sun = Object.FindObjectsByType<Light>(FindObjectsSortMode.None).FirstOrDefault(l => l.type == LightType.Directional && l.name == "Sun");   // not the character fill
             Assert.IsNotNull(sun, "sun light");
