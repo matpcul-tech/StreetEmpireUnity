@@ -76,16 +76,18 @@ namespace StreetEmpire.EditorTools
 
             // the opening scuffle (state.js openingScuffle): two plain mugger bodies and one with a bat, inactive
             var opening = go.AddComponent<MuggerOpening>(); opening.job = runner;
-            opening.templates = new[] { PedLooks[2], PedLooks[0], PedLooks[0] }.Select((look, i) =>
+            GameObject Fighter(string name, Vector3 at, Look look, bool bat)
             {
-                var m = Character($"Mugger Template {i + 1}", new Vector3(i * 3, -60, 0), 0, look, true);
+                var m = Character(name, at, 0, look, true);
                 var h = m.AddComponent<Health>(); h.max = h.hp = 50;
                 m.AddComponent<HitReaction>();
                 m.AddComponent<Brawler>();
-                if (i == 2) HoldBat(m);
+                if (bat) HoldBat(m);
                 m.SetActive(false);
                 return m;
-            }).ToArray();
+            }
+            opening.templates = new[] { PedLooks[2], PedLooks[0], PedLooks[0] }.Select((look, i) =>
+                Fighter($"Mugger Template {i + 1}", new Vector3(i * 3, -60, 0), look, i == 2)).ToArray();
 
             var hud = Hud(runner, opening);
             ObjectiveMarker(hud.transform, runner, opening);
@@ -117,6 +119,10 @@ namespace StreetEmpire.EditorTools
             turf.crewNames = data.Crews.crews.Select(c => c.name).ToArray();
             turf.crewColors = data.Crews.crews.Select(c => GameDataLoader.ParseColor(c.color)).ToArray();
             turf.templates = opening.templates;
+            // NPC v4: the rival crews' own bodies, three each (man, woman, man with a bat)
+            turf.crewTemplateIds = CrewLooks.Select(c => c.crew).ToArray();
+            turf.crewTemplates = CrewLooks.SelectMany((c, k) => new[] { c.man, c.woman, c.man }.Select((look, i) =>
+                Fighter($"{c.crew} Template {i + 1}", new Vector3(i * 3, -60, 6 + k * 3), look, i == 2))).ToArray();
             turf.prompt = pt; turf.hud = hud; turf.radar = radar; turf.job = runner; turf.opening = opening; turf.arm = arm;
             hud.turfTotal = turf.blockIds.Length;
 
@@ -236,6 +242,20 @@ namespace StreetEmpire.EditorTools
         public static readonly Look Unc = new("Unc", "unc", 1.80f);
         public static readonly Look[] CopLooks = { new("Cops", "cop-m-1", 1.82f), new("Cops", "cop-m-2", 1.76f) };
         public static readonly Look[] PedLooks = { new("Peds", "ped-m-1", 1.78f), new("Peds", "ped-f-1", 1.66f), new("Peds", "ped-m-2", 1.72f), new("Peds", "ped-f-2", 1.70f) };
+
+        // NPC v4 (release meshy-npc-v4-2026-11-22, docs/sovereign-assets/npc-v4): two bodies for each rival crew.
+        // The files all come at 1.80 m; these are the heights they stand at in the game.
+        public static readonly (string crew, Look man, Look woman)[] CrewLooks =
+        {
+            ("reds", new Look("Crews", "reds-m-3", 1.80f), new Look("Crews", "reds-f-2", 1.68f)),
+            ("blues", new Look("Crews", "blues-m-3", 1.76f), new Look("Crews", "blues-f-2", 1.64f)),
+            ("golds", new Look("Crews", "golds-m-3", 1.82f), new Look("Crews", "golds-f-2", 1.72f)),
+        };
+        // NPC v4: the four other bodies a player can pick. In the project, not yet selectable in the game.
+        public static readonly Look[] PlayerLooks =
+        {
+            new("Player", "player-f-1", 1.68f), new("Player", "player-m-2", 1.78f), new("Player", "player-m-3", 1.80f), new("Player", "player-f-4", 1.66f),
+        };
 
         public static GameObject Character(string name, Vector3 at, float yaw, Look look, bool body)
         {

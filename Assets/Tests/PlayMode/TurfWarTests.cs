@@ -29,6 +29,9 @@ namespace StreetEmpire.Tests
             Assert.AreEqual("reds", turf.State.Block(40).owner, "a rival on each far corner of the town");
             Assert.AreEqual("blues", turf.State.Block(4).owner); Assert.AreEqual("golds", turf.State.Block(36).owner);
             Assert.AreEqual(3, turf.templates.Length);
+            Assert.AreEqual(9, turf.crewTemplates.Length, "three bodies for each rival crew");
+            CollectionAssert.AreEqual(new[] { "reds", "blues", "golds" }, turf.crewTemplateIds);
+            Assert.IsTrue(turf.crewTemplates.All(x => x != null && x.GetComponent<Brawler>() != null && x.GetComponentInChildren<SkinnedMeshRenderer>(true).sharedMaterial.name.StartsWith(turf.crewTemplateIds[System.Array.IndexOf(turf.crewTemplates, x) / 3])), "each crew wears its own bodies");
             var c0 = turf.Center(0);
             s.player.Teleport(c0 + new Vector3(0, 0.3f, 12f), 180f);
             yield return null; yield return null;
@@ -71,6 +74,14 @@ namespace StreetEmpire.Tests
             yield return null;
             StringAssert.Contains("Turf 2/25", hud.sub.text);
             Assert.AreEqual(25, s.rep);
+
+            // NPC v4: on the Red Kings' corner the guards are Red Kings, not the plain bodies
+            var cr = turf.Center(40);
+            s.player.Teleport(cr + new Vector3(0, 0.3f, 21f), 180f);
+            t = 0; while (!Brawler.All.Any(b => b.posted && b.name.StartsWith("Red Kings")) && t < 4f) { t += Time.deltaTime; yield return null; }
+            var redGuards = Brawler.All.Where(b => b.posted && b.name.StartsWith("Red Kings")).ToArray();
+            Assert.Greater(redGuards.Length, 0, "Red Kings guards on their block");
+            Assert.IsTrue(redGuards.All(b => b.GetComponentInChildren<SkinnedMeshRenderer>().sharedMaterial.name.StartsWith("reds-")), "they wear the Red Kings bodies");
         }
     }
 }
