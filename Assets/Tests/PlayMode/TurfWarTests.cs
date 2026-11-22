@@ -81,7 +81,17 @@ namespace StreetEmpire.Tests
             t = 0; while (!Brawler.All.Any(b => b.posted && b.name.StartsWith("Red Kings")) && t < 4f) { t += Time.deltaTime; yield return null; }
             var redGuards = Brawler.All.Where(b => b.posted && b.name.StartsWith("Red Kings")).ToArray();
             Assert.Greater(redGuards.Length, 0, "Red Kings guards on their block");
-            Assert.IsTrue(redGuards.All(b => b.GetComponentInChildren<SkinnedMeshRenderer>().sharedMaterial.name.StartsWith("reds-")), "they wear the Red Kings bodies");
+            // wave A: it is their only block, so the first of them is the boss, and he takes more knocking down
+            Assert.AreEqual(3, turf.crewBossTemplates.Length, "a boss for each rival crew");
+            var boss = redGuards.FirstOrDefault(b => b.name.StartsWith("Red Kings boss"));
+            // (the sim has been running: if the Red Kings took a second block by now, he is not out)
+            Assert.AreEqual(turf.State.Owned("reds") == 1, boss != null, "the Red Kings boss is out exactly when this is their last block");
+            if (boss != null)
+            {
+                Assert.AreEqual("boss-redkings", boss.GetComponentInChildren<SkinnedMeshRenderer>().sharedMaterial.name);
+                Assert.AreEqual(turf.bossHp, boss.GetComponent<Health>().max, 0.01f);
+            }
+            Assert.IsTrue(redGuards.Where(b => b != boss).All(b => b.GetComponentInChildren<SkinnedMeshRenderer>().sharedMaterial.name.StartsWith("reds-")), "the rest wear the Red Kings bodies");
         }
     }
 }

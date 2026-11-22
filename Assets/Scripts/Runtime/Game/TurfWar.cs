@@ -40,6 +40,9 @@ namespace StreetEmpire.Game
         // NPC v4: each rival crew's own bodies, three per crew in crewTemplateIds order (man, woman, man with a bat)
         public GameObject[] crewTemplates = new GameObject[0];
         public string[] crewTemplateIds = new string[0];
+        // Wave A: each rival crew's boss, in crewTemplateIds order. He stands guard on his crew's last block.
+        public GameObject[] crewBossTemplates = new GameObject[0];
+        public float bossHp = 150f;
         public Text prompt;
         public GameHud hud; public Minimap radar; public MissionRunner job; public MuggerOpening opening; public ArmGuards arm;
         public long seed = 1;
@@ -266,12 +269,20 @@ namespace StreetEmpire.Game
             if (quiet || br == null) Destroy(x.go); else br.leave = true;   // a brawler runs off, then removes himself
         }
 
-        GameObject Make(Vector3 at, Vector3 face, float hp, bool bat, string name, string crew)
+        /// <summary>The boss of a rival crew, or null. He is on the block when it is the only one his crew has left.</summary>
+        GameObject BossOn(TurfBlock b)
+        {
+            int k = System.Array.IndexOf(crewTemplateIds, b.owner);
+            if (k < 0 || k >= crewBossTemplates.Length || crewBossTemplates[k] == null) return null;
+            return State.Owned(b.owner) == 1 ? crewBossTemplates[k] : null;
+        }
+
+        GameObject Make(Vector3 at, Vector3 face, float hp, bool bat, string name, string crew, GameObject forced = null)
         {
             // a rival crew wears its own bodies; your guards and anyone else use the plain ones
             int k = System.Array.IndexOf(crewTemplateIds, crew);
-            GameObject pick = null;
-            if (k >= 0 && crewTemplates.Length >= (k + 1) * 3) pick = bat ? crewTemplates[k * 3 + 2] : crewTemplates[k * 3 + (look++ % 2)];
+            GameObject pick = forced;
+            if (pick == null && k >= 0 && crewTemplates.Length >= (k + 1) * 3) pick = bat ? crewTemplates[k * 3 + 2] : crewTemplates[k * 3 + (look++ % 2)];
             if (pick == null)
             {
                 if (templates.Length == 0) return null;
@@ -294,7 +305,11 @@ namespace StreetEmpire.Game
             var dir = off.normalized;
             var post = c + off;
             bool friendly = b.owner == Turf.You, bat = b.armed;
-            var go = Make(post, dir, 60f + (b.armed ? world.upgradeHp : 0f), bat, $"{CrewName(b.owner)} guard ({b.hustle})", b.owner);
+            // the first man on a crew's last block is its boss: more to knock down, and no bat
+            var boss = !friendly && slot == 0 ? BossOn(b) : null;
+            var go = boss != null
+                ? Make(post, dir, bossHp, false, $"{CrewName(b.owner)} boss ({b.hustle})", b.owner, boss)
+                : Make(post, dir, 60f + (b.armed ? world.upgradeHp : 0f), bat, $"{CrewName(b.owner)} guard ({b.hustle})", b.owner);
             if (go == null) return;
             var body = new Body { go = go, hp = go.GetComponent<Health>(), block = b.id, slot = slot, crew = b.owner, friendly = friendly };
             var br = go.GetComponent<Brawler>();
