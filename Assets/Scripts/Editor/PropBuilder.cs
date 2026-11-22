@@ -165,9 +165,10 @@ namespace StreetEmpire.EditorTools
             {
                 float s = (deal % 3 - 1) * 7f + Jit(1.5f);
                 var dir = deal % 2 == 0 ? t : -t;
-                string kind = deal % 7 == 0 ? "police" : "sedan";
-                Car(kind, deal % 3 != 1, b, At(b, k, ParkLine, s, 0), Face(dir), parent);
-                if (deal % 4 == 1) Car("sedan", deal % 2 == 1, b, At(b, k, ParkLine, s + (deal % 2 == 0 ? -6.2f : 6.2f), 0), Face(dir), parent);
+                // cars v2: the curb is a mix of all nine, a cruiser now and then
+                string kind = deal % 7 == 0 ? "police" : StreetCar(deal + b.id * 3 + k);
+                Car(kind, b, At(b, k, ParkLine, s, 0), Face(dir), parent);
+                if (deal % 4 == 1) Car(StreetCar(deal + b.id * 5 + k + 4), b, At(b, k, ParkLine, s + (deal % 2 == 0 ? -6.4f : 6.4f), 0), Face(dir), parent);
             }
         }
 
@@ -191,8 +192,8 @@ namespace StreetEmpire.EditorTools
                 case 1: // parking lot: cracked concrete pad, stalls, two cars, a barrier at the mouth
                     marks.Pad("Lot", L(13f, 0, 0), t, n, 12.6f, 11.6f, LotTop);
                     for (int i = 0; i < 4; i++) marks.Line(L(10.5f, -6f + i * 4f, 0), t, n, 0.12f, 5f, LotTop + 0.002f);
-                    Car("sedan", deal % 2 == 0, b, L(10.5f, -4f, LotTop), Face(n), parent);
-                    Car(deal % 3 == 0 ? "police" : "sedan", deal % 2 == 1, b, L(10.5f, 4f, LotTop), Face(-n), parent, 0.5f);
+                    Car(StreetCar(deal + b.id), b, L(10.5f, -4f, LotTop), Face(n), parent);
+                    Car(deal % 3 == 0 ? "police" : StreetCar(deal + b.id + 5), b, L(10.5f, 4f, LotTop), Face(-n), parent, 0.5f);
                     Place("road-barrier", "barrier", b.id, L(18.4f, -5.2f), Face(n), parent, Col.Bounds, 0.01f);
                     Place("road-barrier", "barrier", b.id, L(18.4f, 5.2f), Face(n) * Quaternion.Euler(0, Jit(8), 0), parent, Col.Bounds, 0.01f);
                     Place("security-light", "security light", b.id, L(7.6f, 0f, LotTop), Face(n), parent, Col.Bounds, 0.015f);
@@ -477,21 +478,24 @@ namespace StreetEmpire.EditorTools
 
         // ---------------------------------------------------------------- placing
 
-        static void Car(string kind, bool painted, BlockInfo b, Vector3 at, Quaternion rot, Transform parent, float jitter = 0f)
+        // the cars people park: plain ones often, the lowrider and the taxi now and then
+        static readonly string[] StreetCars = { "sedan", "sedan-clean", "coupe", "pickup", "suv", "sedan", "van", "sedan-clean", "lowrider", "suv", "pickup", "taxi", "coupe" };
+        static string StreetCar(int deal) => StreetCars[((deal % StreetCars.Length) + StreetCars.Length) % StreetCars.Length];
+
+        static void Car(string kind, BlockInfo b, Vector3 at, Quaternion rot, Transform parent, float jitter = 0f)
         {
             if (Blocked(at, 4f)) return;
-            string key = $"car-{kind}{(painted && kind != "police" ? "-painted" : "")}";
+            string key = $"car-{kind}";
             if (!batches.TryGetValue(key, out var batch))
             {
-                // the full kit car up close and its Sovereign Asset cut (Models/Cars/LOD1) past 25 m, fitted the same way
-                var near = VehicleBuilder.ParkedCar(kind, painted);
+                // the full car up close and its far version (Models/Cars/V2/LOD1) past 15 m, fitted the same way
+                var near = VehicleBuilder.ParkedCar(kind);
                 var order = new List<Material>();
                 var lod0 = MeshMerge.Merge(near, m => m, order, false, $"{MeshDir}/Props/{key}.asset");
                 Mesh lod1 = null;
-                var glb = $"Assets/Art/Models/Cars/LOD1/{kind}.glb";
-                if (AssetDatabase.LoadAssetAtPath<GameObject>(glb) != null)
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(VehicleBuilder.V2Glb(kind, true)) != null)
                 {
-                    var far = VehicleBuilder.ParkedCar(kind, painted, glb);
+                    var far = VehicleBuilder.ParkedCar(kind, true);
                     lod1 = MeshMerge.Merge(far, m => m, order, false, $"{MeshDir}/Props/{key}-lod1.asset");
                     Object.DestroyImmediate(far);
                 }
@@ -499,7 +503,7 @@ namespace StreetEmpire.EditorTools
                 batch = NewBatch(key, lod0, lod1, order, 15f, 150f, true);
                 batch.shadowDistance = 40f;
             }
-            var car = new GameObject(kind == "police" ? "Parked cruiser" : painted ? "Parked sedan (red)" : "Parked sedan");
+            var car = new GameObject($"Parked {kind}");
             car.transform.SetParent(parent, false);
             car.transform.SetPositionAndRotation(at, rot * Quaternion.Euler(0, Jit(jitter * 6f), 0));
             var box = car.AddComponent<BoxCollider>(); box.center = batch.lod0.bounds.center; box.size = batch.lod0.bounds.size;

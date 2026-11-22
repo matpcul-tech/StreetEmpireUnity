@@ -89,3 +89,7 @@ docs/sovereign-assets/u75o/*.jpg -filter -diff -merge binary
 Assets/Art/Models/Characters/** -filter -diff -merge binary
 docs/sovereign-assets/npc-v3/*.jpg -filter -diff -merge binary
 docs/sovereign-assets/npc-v4/*.jpg -filter -diff -merge binary
+
+# Cars v2: the car files and the cars-v2 sheet are plain git files, not LFS, for the same reason as the blocks above.
+Assets/Art/Models/Cars/V2/** -filter -diff -merge binary
+docs/sovereign-assets/cars-v2/*.jpg -filter -diff -merge binary
