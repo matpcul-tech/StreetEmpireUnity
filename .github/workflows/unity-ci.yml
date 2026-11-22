@@ -50,6 +50,14 @@ jobs:
           path: Library
           key: Library-test-${{ hashFiles('Packages/packages-lock.json', 'Packages/manifest.json', 'ProjectSettings/ProjectVersion.txt') }}
           restore-keys: Library-test-
+      # v75t: the wave A and B buildings (about 700 MB of GLBs with 4096 maps) push the editor past the runner's 16 GB
+      # while glTFast imports them on a cold Library; swap on the big /mnt disk keeps the import from being killed
+      - name: Add swap (large building imports)
+        run: |
+          sudo swapoff -a || true
+          D=/mnt; [ -d /mnt ] && [ "$(df --output=avail -BG /mnt | tail -1 | tr -dc 0-9)" -gt 30 ] || D=/
+          sudo fallocate -l 16G $D/se-swapfile && sudo chmod 600 $D/se-swapfile && sudo mkswap $D/se-swapfile && sudo swapon $D/se-swapfile || echo "no swap added"
+          free -h; df -h /
       - uses: game-ci/unity-test-runner@v4
         id: tests
         with:
@@ -97,6 +105,14 @@ jobs:
           restore-keys: Library2-${{ matrix.targetPlatform }}-
       - name: Build label for the HUD (which build is installed)
         run: mkdir -p Assets/Resources && echo "v0.5 ${GITHUB_SHA::7}" > Assets/Resources/build-label.txt
+      # v75t: the wave A and B buildings (about 700 MB of GLBs with 4096 maps) push the editor past the runner's 16 GB
+      # while glTFast imports them on a cold Library; swap on the big /mnt disk keeps the import from being killed
+      - name: Add swap (large building imports)
+        run: |
+          sudo swapoff -a || true
+          D=/mnt; [ -d /mnt ] && [ "$(df --output=avail -BG /mnt | tail -1 | tr -dc 0-9)" -gt 30 ] || D=/
+          sudo fallocate -l 16G $D/se-swapfile && sudo chmod 600 $D/se-swapfile && sudo mkswap $D/se-swapfile && sudo swapon $D/se-swapfile || echo "no swap added"
+          free -h; df -h /
       - uses: game-ci/unity-builder@v6
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
