@@ -221,6 +221,8 @@ namespace StreetEmpire.EditorTools
             ped.blockCenter = blockCenter; ped.half = half; ped.lap = lap;
         }
 
+        // NPC v3 (release meshy-npc-v3-2026-11-22, docs/sovereign-assets/npc-v3): the eight remade characters, same
+        // names and folders as before.
         // M5: the finished Meshy characters already on the box, converted by tools/convert_character.sh (Mixamo
         // rigs, Humanoid on import, so they share Player.controller and its CC0 UAL clips). Heights are the
         // ones the roster files were made at.
@@ -252,9 +254,10 @@ namespace StreetEmpire.EditorTools
             var mat = LookMaterial(look);
             foreach (var r in model.GetComponentsInChildren<SkinnedMeshRenderer>()) { r.sharedMaterial = mat; r.updateWhenOffscreen = true; r.renderingLayerMask |= 2u; }   // 2: the character fill light
             if (look.dir == "Peds") foreach (var r in model.GetComponentsInChildren<SkinnedMeshRenderer>()) r.sharedMesh = ArmFix(r, look.prefix);
-            // the files are authored at their height; only rescale one that came out of the converter far off it
+            // NPC v3: every file comes at 1.80 m, so each one is brought to its own height here (the women
+            // 1.66 and 1.70, the older men 1.72 and 1.76); before, only a file more than a tenth off was rescaled
             float h = ModelHeight(model);
-            if (h > 0.1f && Mathf.Abs(h - look.height) > 0.1f * look.height) model.transform.localScale *= look.height / h;
+            if (h > 0.1f && Mathf.Abs(h - look.height) > 0.01f * look.height) model.transform.localScale *= look.height / h;
             // no shift by the bind pose mesh: Humanoid places the hips from the clip and the avatar's own leg
             // length, so the soles meet the root as they do for the player (a shift by the old bent-leg bind
             // pose sank the feet and bent the knees)
