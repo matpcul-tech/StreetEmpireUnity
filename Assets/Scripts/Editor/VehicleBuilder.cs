@@ -24,6 +24,25 @@ namespace StreetEmpire.EditorTools
         static readonly float[] V2Lengths = { 4.75f, 5.00f, 5.25f, 4.50f, 5.35f, 5.30f, 4.85f, 5.20f, 5.30f, 2.40f, 2.18f, 2.10f };
         public static readonly string[] V2Bikes = { "cruiser", "dirt-bike", "sport-bike" };
         public static string V2Glb(string kind, bool far = false) => $"Assets/Art/Models/Cars/V2/{(far ? "LOD1/" : "")}{kind}.glb";
+        /// <summary>Puts a v2 vehicle's color maps on its body and wheel materials. The maps are files under
+        /// Art/Textures/Cars/V2, not images inside the GLB, so they import as ordinary compressed textures and the
+        /// near and far car share one copy. No normal map (see tools/car_v2.mjs for why).</summary>
+        public static void BindV2(GameObject model, string kind)
+        {
+            foreach (var r in model.GetComponentsInChildren<Renderer>(true))
+                foreach (var m in r.sharedMaterials)
+                {
+                    if (m == null) continue;
+                    string part = m.name.EndsWith("_body") ? "body" : m.name.EndsWith("_wheel") ? "wheel" : null;
+                    if (part == null) continue;
+                    var t = AssetDatabase.LoadAssetAtPath<Texture2D>($"Assets/Art/Textures/Cars/V2/{kind}_{part}.jpg");
+                    if (t == null) { Debug.LogError($"[VehicleBuilder] no color map for {kind} {part}"); continue; }
+                    m.SetTexture("_BaseMap", t); m.SetTexture("_MainTex", t);
+                    m.SetTexture("_BumpMap", null); m.DisableKeyword("_NORMALMAP");
+                    EditorUtility.SetDirty(m);
+                }
+        }
+
         public static float V2Length(string kind) { int i = System.Array.IndexOf(V2Kinds, kind); return i < 0 ? 4.75f : V2Lengths[i]; }
 
         public static CarController BuildSedan(GameData data, Block b0)
@@ -35,6 +54,7 @@ namespace StreetEmpire.EditorTools
             // kit.json sedan: length 4.5 m, yaw 0 (nose along +Z)
             // cars v2: the clean sedan, in its own paint
             var car = BuildCar("Sedan", V2Glb("sedan-clean"), "v2-sedan-clean", V2Length("sedan-clean"), data.Vehicle("sedan"));
+            BindV2(car.gameObject, "sedan-clean");
             car.transform.SetPositionAndRotation(new Vector3(x, 0, z), Quaternion.identity);
             return car;
         }
@@ -44,6 +64,7 @@ namespace StreetEmpire.EditorTools
         public static CarController BuildPoliceTemplate(GameData data)
         {
             var car = BuildCar("Cruiser Template", V2Glb("police"), "v2-police", V2Length("police"), data.Vehicle("police"));
+            BindV2(car.gameObject, "police");
             car.transform.position = new Vector3(0, -60, 0);
             car.gameObject.AddComponent<StreetEmpire.Game.PoliceCruiser>();
             car.gameObject.SetActive(false);
@@ -59,6 +80,7 @@ namespace StreetEmpire.EditorTools
             var model = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(V2Glb(kind, far)));
             model.name = "Model"; model.transform.SetParent(root.transform, false);
             UrpMaterials.Apply(model, "v2-" + kind);
+            BindV2(model, kind);
             var bounds = Bounds(model);
             model.transform.localScale *= V2Length(kind) / Mathf.Max(bounds.size.z, 1e-3f);
             bounds = Bounds(model);

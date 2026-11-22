@@ -113,6 +113,13 @@ namespace StreetEmpire.Tests
             var carBatches = inst.batches.Where(b => b.name.StartsWith("car-")).ToArray();
             Assert.GreaterOrEqual(carBatches.Select(b => b.name.Split('@', '#')[0]).Distinct().Count(), 8, "the curbs hold a mix of the v2 cars");
             Assert.IsTrue(carBatches.All(b => b.lod1 != null), "every parked car has a far version");
+            // v75t: the bodies came out in camouflage on the phone. Their normal maps were images inside the GLB,
+            // which Android reads wrongly; the cars carry no normal map now and their color maps are texture files.
+            var carMats = carBatches.SelectMany(b => b.materials).Where(m => m != null).Distinct().ToArray();
+            Assert.IsTrue(carMats.All(m => m.GetTexture("_BumpMap") == null && !m.IsKeywordEnabled("_NORMALMAP")), "no car material has a normal map");
+            var painted = carMats.Where(m => m.name.EndsWith("_body") || m.name.EndsWith("_wheel")).ToArray();
+            Assert.GreaterOrEqual(painted.Length, 16, "body and wheel materials for the parked cars");
+            Assert.IsTrue(painted.All(m => m.GetTexture("_BaseMap") != null), "every body and wheel has its color map");
             Assert.IsTrue(carBatches.Any(b => b.name.StartsWith("car-cruiser") || b.name.StartsWith("car-dirt-bike") || b.name.StartsWith("car-sport-bike")), "motorcycles at the curb");
             for (int i = 0; i < 3; i++) yield return null;
             if (SystemInfo.supportsInstancing) Assert.Greater(inst.LastDraws, 0, "the instancer draws");
