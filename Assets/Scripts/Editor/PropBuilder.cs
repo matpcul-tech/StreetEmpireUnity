@@ -35,8 +35,11 @@ namespace StreetEmpire.EditorTools
         public const float SidewalkTop = 0.22f, YardTop = 0.24f, LotTop = 0.255f;
         public const float CurbLine = 21.75f, InnerLine = 19.6f, ParkLine = 24.1f;
         // street names: the east-west streets (constant z, south to north) and the north-south avenues (constant x)
-        public static readonly string[] XStreetNames = { "E 31ST ST", "E 33RD ST", "E 35TH ST", "E 37TH ST" };
-        public static readonly string[] ZStreetNames = { "KING AVE", "GARFIELD AVE", "PRAIRIE AVE", "INDIANA AVE" };
+        // 25 block town: six streets each way. There are four name blades each way (street-blade-0 to 7), so until
+        // blades for the two new names exist the fifth and sixth posts carry the first and second names again.
+        public static readonly string[] XStreetNames = { "E 31ST ST", "E 33RD ST", "E 35TH ST", "E 37TH ST", "E 39TH ST", "E 41ST ST" };
+        public static readonly string[] ZStreetNames = { "KING AVE", "GARFIELD AVE", "PRAIRIE AVE", "INDIANA AVE", "CALUMET AVE", "WABASH AVE" };
+        const int Blades = 4;
 
         [Serializable] class Entry { public string prop, material, alpha, basecolor, normal, metalsmooth, emission; public float cutoff, metallic, roughness; public float[] color, tiling, emissive; }
         [Serializable] class Manifest { public Entry[] materials; }
@@ -301,8 +304,8 @@ namespace StreetEmpire.EditorTools
                             post = true;
                             var at = b.center + new Vector3(sx * CurbLine, SidewalkTop, sz * CurbLine);
                             Place("sign-post", "street name sign", -1, at, Quaternion.identity, cross, Col.Pole, 0.004f, pole: 0.05f);
-                            Place($"street-blade-{j}", "street name blade", -1, at + Vector3.up * 3.02f, Quaternion.identity, cross, Col.None, 0.004f);
-                            Place($"street-blade-{4 + i}", "street name blade", -1, at + Vector3.up * 2.84f, Quaternion.Euler(0, 90, 0), cross, Col.None, 0.004f);
+                            Place($"street-blade-{j % Blades}", "street name blade", -1, at + Vector3.up * 3.02f, Quaternion.identity, cross, Col.None, 0.004f);
+                            Place($"street-blade-{Blades + i % Blades}", "street name blade", -1, at + Vector3.up * 2.84f, Quaternion.Euler(0, 90, 0), cross, Col.None, 0.004f);
                         }
                     }
                     Crosswalks(p, marks);
@@ -379,7 +382,12 @@ namespace StreetEmpire.EditorTools
             var rand = new System.Random(75);
             // v75c: pushed back from the freeway wall (was 190, 255, 325 m: flat gray boxes right behind it by day),
             // so the day fog (140 to 520 m) hazes the near ring and nearly melts the back one into the sky
-            foreach (var (r, count) in new[] { (265f, 34), (340f, 40), (415f, 46) })
+            // 25 block town: the rings step out with the town (they were set for a 174 m district) so the near one
+            // still stands well behind the freeway wall
+            float grow = Mathf.Max(0f, Mathf.Max(x1 - x0, z1 - z0) / 2f - 87f) * 0.6f;
+            foreach (var (r0, count0) in new[] { (265f, 34), (340f, 40), (415f, 46) })
+            {
+                float r = r0 + grow; int count = Mathf.RoundToInt(count0 * r / r0);
                 for (int i = 0; i < count; i++)
                 {
                     float a = (i + (float)rand.NextDouble() * 0.6f) / count * Mathf.PI * 2f;
@@ -390,6 +398,7 @@ namespace StreetEmpire.EditorTools
                     int pick = rand.Next(4); if (r > 300f && pick == 3) pick = 1; if (r < 200f && pick == 1) pick = 2;
                     Place(towers[pick], "district edge", -1, p, face, root, Col.None, 0f);
                 }
+            }
         }
 
         /// <summary>Zebra crosswalks on all four approaches and a stop bar in the lane that comes in.</summary>

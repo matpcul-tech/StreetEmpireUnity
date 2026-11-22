@@ -182,7 +182,7 @@ namespace StreetEmpire.Game
                 case "recruit": s.Say($"A guard is on {hustle}. -${e.amount}", 2.5f); return false;
                 case "arm": s.Say($"Guards on {hustle} got bats and more health. -${e.amount}", 3f); return false;
                 case "build": s.Say($"{hustle} is built up. It earns double. -${e.amount}", 3f); return false;
-                case "win": s.Say("Eastside is yours. Every block.", 8f); return false;
+                case "win": s.Say("The town is yours. Every block.", 8f); return false;
             }
             return false;
         }
