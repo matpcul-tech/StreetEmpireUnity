@@ -2,8 +2,8 @@
 // (48 hp, fists, rush) stands 9 m ahead on the street and goes for your bag; within 2.3 m he grabs it and
 // shoves you back; when he is hurt, has grabbed, or after 3.2 s his two friends pile in (50 hp fists, and
 // 56 hp with a bat); when all three are down, or after 22 s, "The street goes quiet. Unc wants a word."
-// It also keeps the onboarding steps (main.js ONB): 1/3 stop the muggers, 2/3 talk to Unc (3/3 take a block
-// needs turf capture, not in this build).
+// It also keeps the onboarding steps (main.js ONB): 1/3 stop the muggers, 2/3 talk to Unc, 3/3 take a block
+// (turf capture, TurfWar).
 // Not here yet: the Red Kings scout drive by that follows the fight in the web game.
 using System.Collections.Generic;
 using System.Linq;
@@ -37,6 +37,9 @@ namespace StreetEmpire.Game
             if (!AutoStart) { Stage = Beat.Done; Step = -1; }
         }
 
+        /// <summary>The player took his first block: onboarding is done.</summary>
+        public void TookBlock() { if (Step == 2) Step = -1; }
+
         /// <summary>No scuffle and no onboarding box (screenshot set ups that are about something else).</summary>
         public void Skip() { if (Stage == Beat.Waiting) Stage = Beat.Done; Step = -1; }
 
@@ -59,9 +62,8 @@ namespace StreetEmpire.Game
         {
             var s = GameSession.Instance; if (s == null || s.player == null) return;
             float dt = Time.deltaTime;
-            // the talk step is done once Unc's job is running. The web's 3/3 (take a block) waits on turf capture,
-            // which this build does not have yet, so the box goes away there instead of asking for it.
-            if (Step == 1 && job != null && job.Stage != MissionRunner.State.Offered) Step = -1;
+            // the talk step is done once Unc's job is running; then 3/3, take a block (TurfWar calls TookBlock)
+            if (Step == 1 && job != null && job.Stage != MissionRunner.State.Offered) Step = TurfWar.Instance != null ? 2 : -1;
             if (Stage == Beat.Waiting) { if ((wait -= dt) <= 0) Begin(); return; }
             if (Stage == Beat.Done) return;
             t += dt;

@@ -20,6 +20,10 @@ namespace StreetEmpire.Game
         /// <summary>Seconds left in the swing being wound up (CombatFx draws the warning ring), 0 when not swinging.</summary>
         public float Windup => windup;
         public static readonly List<Brawler> All = new();
+        // Turf guards (TurfWar): a posted brawler holds his post in the middle of his block and only comes for the
+        // player once the player is within aggro of the post, or has hit him
+        public bool posted; public Vector3 post; public float aggro = 14f;
+        public bool Alerted { get; private set; }
 
         NpcBody body; Health health; float windup, cd, downT, leaveT; bool flanked;
 
@@ -37,12 +41,23 @@ namespace StreetEmpire.Game
                 if (downT > 6f) Destroy(gameObject); return; }
             var p = s.player.transform.position;
             var to = Flat(p - transform.position); float d = to.magnitude;
-            if (s.IsDown) leave = true;   // after a WASTED or BUSTED they are gone, not waiting at the respawn
+            // after a WASTED or BUSTED they are gone, not waiting at the respawn; a guard goes back to his post
+            if (s.IsDown) { if (posted) Alerted = false; else leave = true; }
             if (leave)
             {
                 leaveT += dt; body.Move(Flat(transform.position - p).normalized * 3.2f, dt);
                 if (leaveT > 6f || d > 45f) Destroy(gameObject);
                 return;
+            }
+            if (posted && !Alerted)
+            {
+                if (!s.IsDown && (Flat(p - post).magnitude < aggro || health.hp < health.max)) Alerted = true;
+                else
+                {
+                    var back = Flat(post - transform.position);
+                    body.Move(back.magnitude > 0.7f ? back.normalized * 2.6f : Vector3.zero, dt);
+                    return;
+                }
             }
             var user = s.player.GetComponent<VehicleUser>();
             bool inCar = user != null && user.Car != null;
@@ -94,7 +109,7 @@ namespace StreetEmpire.Game
             float mine = Flat(transform.position - p).sqrMagnitude; int nearer = 0;
             foreach (var b in All)
             {
-                if (b == this || b.leave || b.health == null || b.health.Down) continue;
+                if (b == this || b.leave || b.health == null || b.health.Down || (b.posted && !b.Alerted)) continue;
                 if (Flat(b.transform.position - p).sqrMagnitude < mine) nearer++;
             }
             return nearer < 2;

@@ -106,6 +106,19 @@ namespace StreetEmpire.EditorTools
             var ps = pt.gameObject.AddComponent<Shadow>(); ps.effectColor = new Color(0, 0, 0, 0.8f); ps.effectDistance = new Vector2(1.5f, -1.5f);
             arm.prompt = pt;
 
+            // the turf loop (TurfWar): the district's blocks, their centers, the crews, and the bodies it copies for
+            // guards and raiders (the mugger templates: two plain, one with a bat)
+            var turf = go.AddComponent<TurfWar>();
+            turf.world = w;
+            turf.blockIds = SceneBuilder.EastsideBlocks.ToArray();
+            turf.centers = turf.blockIds.Select(id => { var (tx, tz) = Simulation.BlockCenter(w, s.blocks[id]); var (ux4, uz4) = WorldSpace.FromSource(tx, tz); return new Vector3(ux4, 0, uz4); }).ToArray();
+            turf.crewIds = data.Crews.crews.Select(c => c.id).ToArray();
+            turf.crewNames = data.Crews.crews.Select(c => c.name).ToArray();
+            turf.crewColors = data.Crews.crews.Select(c => GameDataLoader.ParseColor(c.color)).ToArray();
+            turf.templates = opening.templates;
+            turf.prompt = pt; turf.hud = hud; turf.radar = radar; turf.job = runner; turf.opening = opening; turf.arm = arm;
+            hud.turfTotal = turf.blockIds.Length;
+
             // town life: activity spots at the tire shop and the gas station, and the people who use them
             TownLifeBuilder.Build(go);
         }

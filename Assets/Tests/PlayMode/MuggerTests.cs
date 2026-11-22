@@ -15,7 +15,7 @@ namespace StreetEmpire.Tests
     [PrebuildSetup(typeof(SceneSetup))]
     public class MuggerTests
     {
-        [TearDown] public void Reset() { MuggerOpening.AutoStart = false; Time.timeScale = 1f; }
+        [TearDown] public void Reset() { MuggerOpening.AutoStart = false; Time.timeScale = 1f; TurfWar.AutoStart = true; }
 
         static float Flat(Vector3 a, Vector3 b) => Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
 
@@ -23,6 +23,7 @@ namespace StreetEmpire.Tests
         public IEnumerator OpeningScufflePlaysLikeTheWebGame()
         {
             MuggerOpening.AutoStart = true; Time.timeScale = 1f;
+            TurfWar.AutoStart = false;   // this one reads the message line; the turf loop has its own test
             SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
             var s = GameSession.Instance; var o = Object.FindFirstObjectByType<MuggerOpening>();
@@ -79,7 +80,9 @@ namespace StreetEmpire.Tests
             o.job.scriptTalk = true;
             s.player.Teleport(o.job.giver.position + o.job.giver.forward * 1.5f, 0);
             yield return null; yield return null; yield return null;
-            Assert.IsFalse(hud.onboardingBox.activeSelf, "the box goes once the job starts");
+            StringAssert.Contains("Take a block", hud.onboarding.text, "3/3 take a block, now that turf capture is in");
+            o.TookBlock(); yield return null;
+            Assert.IsFalse(hud.onboardingBox.activeSelf, "the box goes once the first block is taken");
         }
     }
 }
