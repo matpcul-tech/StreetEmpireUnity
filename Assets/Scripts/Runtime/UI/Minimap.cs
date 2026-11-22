@@ -18,6 +18,8 @@ namespace StreetEmpire.UI
         public float[] streetX, streetZ; public Vector2 spanX, spanZ;
         public Vector3[] blocks; public bool[] yours; public float blockSize = 40f;
         public Transform unc; public MissionRunner job;
+        /// <summary>Set by TurfWar: a dot in the owner's color on each block of the turf map.</summary>
+        [System.NonSerialized] public Vector3[] turfAt; [System.NonSerialized] public Color[] turfColor;
         [Header("Parts")]
         public RectTransform frame, map; public RawImage mapImage; public Image arrow, frameImage, rimImage; public Text north, uncLetter;
         public float rimMeters = 80f;
@@ -110,6 +112,8 @@ namespace StreetEmpire.UI
                 scanT = 0.5f; people.Clear();
                 foreach (var h in FindObjectsByType<Health>(FindObjectsSortMode.None)) if (h.gameObject != s.player.gameObject) people.Add(h);
             }
+            for (int i = 0; turfAt != null && turfColor != null && i < turfAt.Length && i < turfColor.Length; i++)
+                Put(ToRadar(turfAt[i], p, yaw), turfColor[i], 20f, false, true);
             bool flash = Mathf.FloorToInt(Time.time / 0.2f) % 2 == 0;
             foreach (var h in people)
             {

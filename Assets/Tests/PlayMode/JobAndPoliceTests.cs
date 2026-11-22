@@ -18,14 +18,14 @@ namespace StreetEmpire.Tests
         IEnumerator Load()
         {
             Time.timeScale = 1f;
-            StreetEmpire.Game.MuggerOpening.AutoStart = false; SceneManager.LoadScene("Eastside");
+            StreetEmpire.Game.MuggerOpening.AutoStart = false; StreetEmpire.Game.TurfWar.AutoStart = false; SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
             s = GameSession.Instance; player = Object.FindFirstObjectByType<PlayerMotor>(); job = Object.FindFirstObjectByType<MissionRunner>();
             Assert.IsNotNull(s, "session"); Assert.IsNotNull(player, "player"); Assert.IsNotNull(job, "Bag Back runner");
             for (int i = 0; i < 10; i++) yield return null;
         }
 
-        [TearDown] public void Reset() => Time.timeScale = 1f;
+        [TearDown] public void Reset() { Time.timeScale = 1f; StreetEmpire.Game.TurfWar.AutoStart = true; }
 
         static float Flat(Vector3 a, Vector3 b) => Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
 
