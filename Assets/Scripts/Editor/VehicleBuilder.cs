@@ -33,12 +33,30 @@ namespace StreetEmpire.EditorTools
                 foreach (var m in r.sharedMaterials)
                 {
                     if (m == null) continue;
-                    string part = m.name.EndsWith("_body") ? "body" : m.name.EndsWith("_wheel") ? "wheel" : null;
+                    string part = m.name.EndsWith("_body") ? "body" : m.name.EndsWith("_wheel") ? "wheel" : m.name.EndsWith("_glass") ? "glass" : m.name.EndsWith("_decal") ? "decal" : null;
                     if (part == null) continue;
-                    var t = AssetDatabase.LoadAssetAtPath<Texture2D>($"Assets/Art/Textures/Cars/V2/{kind}_{part}.jpg");
+                    // v75u: every car's glass shares one map; the cruiser and the taxi carry their lettering on a cut-out panel
+                    string file = part == "glass" ? "glass.png" : part == "decal" ? $"{kind}_decal.png" : $"{kind}_{part}.jpg";
+                    var t = AssetDatabase.LoadAssetAtPath<Texture2D>($"Assets/Art/Textures/Cars/V2/{file}");
                     if (t == null) { Debug.LogError($"[VehicleBuilder] no color map for {kind} {part}"); continue; }
                     m.SetTexture("_BaseMap", t); m.SetTexture("_MainTex", t);
                     m.SetTexture("_BumpMap", null); m.DisableKeyword("_NORMALMAP");
+                    if (part == "glass")
+                    {
+                        // the map carries the glass color; a little of it glows so a window still reads at night
+                        m.SetColor("_BaseColor", Color.white); m.SetFloat("_Smoothness", 0.6f);
+                        m.SetTexture("_EmissionMap", t); m.SetColor("_EmissionColor", new Color(0.22f, 0.22f, 0.22f));
+                        m.EnableKeyword("_EMISSION"); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                        // no sky reflection on the glass: on the phone it showed as gray blotches on the lowrider and the
+                        // SUV (build 14652fa). The map already carries the look of a reflected sky.
+                        m.SetFloat("_EnvironmentReflections", 0f); m.EnableKeyword("_ENVIRONMENTREFLECTIONS_OFF");
+                    }
+                    if (part == "decal")
+                    {
+                        m.SetColor("_BaseColor", Color.white); m.SetFloat("_Smoothness", 0.4f);
+                        m.SetFloat("_AlphaClip", 1f); m.SetFloat("_Cutoff", 0.5f); m.EnableKeyword("_ALPHATEST_ON");
+                        m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+                    }
                     EditorUtility.SetDirty(m);
                 }
         }

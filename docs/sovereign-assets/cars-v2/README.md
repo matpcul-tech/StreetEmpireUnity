@@ -73,3 +73,23 @@ Fix (tools/car_v2.mjs, VehicleBuilder.BindV2):
   body map plus two normal maps, about 16 MB of memory a car).
 
 Not checked from here: the fix on a phone.
+
+# v75u: lettering, glass, and the SUV roof (Nov 22, 2026)
+
+From the phone, on build 14652fa: the cruiser and taxi had no lettering, every window was a flat black panel, and
+the SUV had a black square on its roof. All three are in tools/car_v2.mjs and VehicleBuilder.BindV2.
+lettering-glass-roof.jpg shows the cruiser, taxi and SUV from both sides, above and front (the cruiser's lettering
+was narrowed to its white doors after that sheet was made).
+
+- Lettering: "PORT CALDER / POLICE" on the cruiser's white doors, "NIGHTOWL CAB CO. / TAXI / 555-0144" on the
+  taxi's. Both names are invented. It sits on a thin panel copied from the body's own side faces, 1 cm out, with
+  its own UVs laid flat, so it follows the doors and reads the right way round on both sides. The words are a
+  cut-out PNG (<kind>_decal.png). It cannot be painted into the body map, which is a mosaic of small charts.
+- Glass: one shared map (glass.png), lighter toward the top with two soft streaks, UVs laid by height and length,
+  and a little of it glowing so windows still read at night.
+- SUV roof: its map painted the roof near black. The dark texels of the roof's upward faces take the door paint.
+
+Not done: the taxi's roof sign is still blank, every cruiser carries the same lettering (no unit numbers), and no
+paint colors yet.
+
+Not checked from here: any of this on a phone.

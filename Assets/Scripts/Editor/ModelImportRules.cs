@@ -65,6 +65,10 @@ namespace StreetEmpire.EditorTools
             t.mipmapEnabled = true; t.maxTextureSize = max;
             // ground textures tile across big boxes and are seen at grazing angles
             if (assetPath.StartsWith("Assets/Art/Textures/Ground/")) { t.wrapMode = UnityEngine.TextureWrapMode.Repeat; t.anisoLevel = 8; }
+            // v75u car lettering: a cut-out panel over the doors. Clamped so the words do not repeat past the panel's
+            // edge, and its alpha kept in the mips so the letters do not thin out with distance.
+            if (assetPath.StartsWith("Assets/Art/Textures/Cars/V2/") && assetPath.EndsWith("_decal.png"))
+            { t.wrapMode = UnityEngine.TextureWrapMode.Clamp; t.alphaIsTransparency = true; t.mipMapsPreserveCoverage = true; t.alphaTestReferenceValue = 0.5f; t.filterMode = UnityEngine.FilterMode.Trilinear; t.anisoLevel = 4; }
             if (assetPath.EndsWith("yard_variation.png")) t.sRGBTexture = false;   // URP detail albedo: linear, 0.5 is neutral
             if (assetPath.StartsWith("Assets/Art/Textures/Props/") && assetPath.Contains("chainlink")) t.wrapMode = UnityEngine.TextureWrapMode.Repeat;
             // building walls are seen at grazing angles down the street: 8x anisotropic so the mips do not shimmer
@@ -77,6 +81,8 @@ namespace StreetEmpire.EditorTools
             // mips so they do not thin or stripe with distance, trilinear with 4x anisotropic, and the alpha kept on
             // WebGL (DXT5, not DXT1) and on Android in 4x4 ASTC blocks (8x8 blocks smear the cut edge into stripes)
             bool frond = assetPath.StartsWith("Assets/Art/Textures/Props/") && !normal && !data && (assetPath.Contains("palm_frond") || assetPath.Contains("dry_blades") || assetPath.Contains("decal-set") || assetPath.Contains("fence_wire") || assetPath.Contains("fx_dust"));
+            // v75u: the car lettering panels are cut out too (4x4 ASTC on Android, DXT5 on WebGL so the alpha survives)
+            frond |= assetPath.StartsWith("Assets/Art/Textures/Cars/V2/") && assetPath.EndsWith("_decal.png");
             if (frond) { t.alphaIsTransparency = true; t.mipMapsPreserveCoverage = true; t.alphaTestReferenceValue = 0.5f; t.filterMode = UnityEngine.FilterMode.Trilinear; t.anisoLevel = 4; }
             t.textureCompression = TextureImporterCompression.Compressed;
             // M5: compressed on the GPU, not RGBA32. Android ASTC (6x6 color, 5x5 normals), WebGL DXT
