@@ -46,13 +46,17 @@ namespace StreetEmpire.Tests
                 yield return null; yield return null; yield return null;
                 foreach (string kind in Kinds)
                 {
-                    if (hour != 14f && kind != "coupe" && kind != "limo" && kind != "suv" && kind != "school-bus") continue;
+                    if (hour != 14f && kind != "coupe" && kind != "limo" && kind != "suv" && kind != "school-bus" && kind != "city-bus") continue;
                     var m = marks.FirstOrDefault(x => x.model == kind); if (m == null) continue;
                     var box = m.GetComponent<BoxCollider>(); var t = m.transform;
                     Vector3 c = t.TransformPoint(box.center); float len = Mathf.Max(box.size.z, box.size.x);
                     // the street side, three quarters from the front
                     Vector3 side = Vector3.Dot(t.right, -c) > Vector3.Dot(-t.right, -c) ? t.right : -t.right;
-                    foreach (var p in FindSide(c, t, side, len))
+                    // the buses also from the far side and the back: their glass wraps the whole body
+                    bool bus = kind == "city-bus" || kind == "school-bus";
+                    var views = bus && hour == 14f ? new[] { side, -side, -t.forward } : new[] { side };
+                    for (int vi = 0; vi < views.Length; vi++)
+                    foreach (var p in vi < 2 ? FindSide(c, t, views[vi], len) : new[] { c - t.forward * Mathf.Max(5.5f, len * 0.95f) + t.right * 2f + Vector3.up * 1.5f })
                     {
                         cam.transform.position = p; cam.transform.LookAt(c + Vector3.up * 0.1f);
                         // the instanced props (cars included) are queued in PropInstancer.LateUpdate for that frame only,
@@ -66,7 +70,7 @@ namespace StreetEmpire.Tests
                         string b64 = System.Convert.ToBase64String(tex.EncodeToJPG(72));
                         int parts = (b64.Length + 5999) / 6000;
                         for (int i = 0; i < parts; i++)
-                            Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, "[LookShot] {0}-h{1} {2}/{3} {4}", kind, hour, i + 1, parts, b64.Substring(i * 6000, Mathf.Min(6000, b64.Length - i * 6000)));
+                            Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, "[LookShot] {0}-h{1}{5} {2}/{3} {4}", kind, hour, i + 1, parts, b64.Substring(i * 6000, Mathf.Min(6000, b64.Length - i * 6000)), vi == 0 ? "" : vi == 1 ? "-far" : "-back");
                         shots++;
                         break;
                     }
