@@ -20,6 +20,8 @@ Split method (per Matthew's Nov 23 instructions): the as delivered file is split
 | warehouse-sawtooth | 65,178 (92,761) | 4.46 | split |
 | civic-school | 65,713 (86,872) | 5.14 | split |
 | civic-police-station | 88,034 (184,272) | 6.38 | split |
+| civic-bank | 89,183 (146,570) | 6.53 | split |
+| crew-bluehand-club | 78,296 (155,340) | 5.87 | split |
 
 Flags:
 - copper mansard is just under the 60k band and over the 4 MB target (its vertex data alone is about 3.5 MB). Wall textures are a little softer up close than the 4K originals.
@@ -28,6 +30,8 @@ Flags:
 - warehouse-sawtooth: split method, 65,178 tris, over the 50k cap because the as delivered glass, door and frames alone are about 30k. Brick slightly softer, faint creases under the parapet.
 - civic-school: split method, 65,713 tris, over the 20k to 40k box band because the as delivered frames and frame ring alone are about 46k. Brick courses noticeably softer up close.
 - civic-police-station: split method, 88,034 tris, over the 20k to 40k box band because the as delivered frames, sills and wall fill under the cut seams are kept. Faint thin crack lines on some wall faces up close, brick softer.
+- civic-bank: split method, 89,183 tris, over the 20k to 40k box band because the as delivered window grilles, frames and frame ring alone are about 62k. A few faint crack lines and one thin light sliver near the cornice up close.
+- crew-bluehand-club: split method, 78,296 tris, over the 20k to 40k box band because the as delivered frames and frame ring alone are about 49k. Thin hairline crack lines on some wall faces up close, brick softer.
 
 MANIFEST.txt lists bytes, triangles and SHA-256 for every file. r2-views-front-back-side.jpg has front 3/4, back 3/4 and side views with triangle counts. as-delivered-vs-r2.jpg compares day, night and close views.
 
