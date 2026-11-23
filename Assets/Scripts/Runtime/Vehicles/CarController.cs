@@ -47,7 +47,7 @@ namespace StreetEmpire.Vehicles
             {
                 var c = PlayerControls.Instance;
                 var m = c.Move;
-                throttle = scriptThrottle ?? m.y; steer = scriptSteer ?? m.x; hb = scriptHandbrake || c.Sprint;
+                throttle = scriptThrottle ?? Throttle(m.y, c.Gas, c.Reverse, PlayerControls.TouchPedals); steer = scriptSteer ?? m.x; hb = scriptHandbrake || c.Sprint;
             }
             else if (aiDriven) { throttle = aiThrottle; steer = aiSteer; }
             CarPhysics.Drive(state, stats, throttle, steer, hb, dt);
@@ -55,6 +55,14 @@ namespace StreetEmpire.Vehicles
             float y = GroundY(new Vector3(state.x, transform.position.y, state.z));
             transform.SetPositionAndRotation(new Vector3(state.x, y, state.z), Quaternion.Euler(0, state.yaw * Mathf.Rad2Deg, 0));
             foreach (var w in wheels) w.Rotate(state.v / 0.34f * Mathf.Rad2Deg * dt, 0, 0, Space.Self);
+        }
+
+        /// <summary>Pedals win over the stick. On a phone the stick only steers, so a thumb that drifts up or
+        /// down while turning does not speed up, brake or back the car up. REV brakes first, then reverses.</summary>
+        public static float Throttle(float stickY, bool gas, bool reverse, bool pedalsOnly)
+        {
+            if (gas || reverse || pedalsOnly) return (gas ? 1f : 0f) - (reverse ? 1f : 0f);
+            return stickY;
         }
 
         void Collide()
