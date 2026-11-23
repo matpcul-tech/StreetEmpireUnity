@@ -1,23 +1,26 @@
-# r2: remeshed wave A and B buildings, batch 1 (7 of 18)
+Street Empire wave A and B buildings, r2 remesh. Prerelease for review, not game ready.
 
-Source: prerelease `meshy-buildings-wave-ab-r2-2026-11-23`. The GLBs here match its MANIFEST.txt byte for byte (SHA-256).
+Batch 1 is the 7 buildings that passed review as whole remeshes. Later buildings use the split method and are added here as they pass. job-car-wash and warehouse-cold-storage stay as delivered and are not repeated here.
 
-Why: the as delivered files are 81k to 1.1M triangles and 21 to 64 MB each. They pushed the APK from 266 MB to 546 MB.
+Whole remesh method: Meshy remesh (free) from each original High Detail model, never decimated. Each file is scaled to the as delivered height, grounded with its origin at ground center, same facing, same footprint (within 2.4 cm). Material names, count and order match the game files, including windows_lit with its glow, by giving each remesh triangle the material of the nearest as delivered triangle. Textures are 1024 (color and normal JPEG, metal roughness JPEG). job-loading-lot came back from Meshy with its UVs packed into a thin strip, so it got new UV charts and its color, roughness and normal were baked from the as delivered file onto the same remesh surface.
 
-Method: a Meshy remesh (never a decimation) of each original model, scaled to the as delivered height, origin at ground
-center, same facing and footprint, so each file drops into its old lot with no code change. Material names, count and
-order are the same as before (windows_lit keeps its emissive factor). Each file has one 1024 atlas; the extracted
-textures (`NAME__Material_0_*`) were rebuilt with tools/extract_building_textures.mjs, door copies not kept as before.
+Split method (per Matthew's Nov 23 instructions): the as delivered file is split by material. Only the wall and roof surface comes from the Meshy remesh. windows_lit, windows_dark, door and the window frame geometry around them (within the frame ring of each pane) are the as delivered triangles, unmoved and not re triangulated, joined back onto the remeshed walls. Where a remesh triangle was torn, folded or crossed a window it was cut and the as delivered triangles under it fill the gap, so the seams overlap slightly instead of opening. Remesh triangles facing into the wall had their winding fixed. Color, roughness and normal are baked from the as delivered file into one new 1024 atlas per building. Joined parts are not welded, so the topology check counts open edges along the seams; the ray test from four sides and above finds no see through areas.
 
-| model | triangles before | triangles now | MB before | MB now |
-|---|---|---|---|---|
-| civic-church | 96,044 | 66,297 | 39.6 | 3.81 |
-| tower-copper-mansard | 83,279 | 57,522 | 41.2 | 4.64 |
-| crew-redkings-club | 214,254 | 25,658 | 29.9 | 1.98 |
-| civic-clinic | 80,754 | 23,182 | 26.3 | 1.82 |
-| dock-ice-house | 249,464 | 25,846 | 33.5 | 1.88 |
-| job-pool-hall | 88,972 | 23,923 | 35.9 | 1.89 |
-| job-loading-lot | 101,064 | 20,695 | 24.5 | 1.92 |
+| file | triangles (as delivered) | MB | method |
+|---|---|---|---|
+| civic-church | 66,297 (96,044) | 3.81 | whole remesh |
+| tower-copper-mansard | 57,522 (83,279) | 4.64 | whole remesh |
+| crew-redkings-club | 25,658 (214,254) | 1.98 | whole remesh |
+| civic-clinic | 23,182 (80,754) | 1.82 | whole remesh |
+| dock-ice-house | 25,846 (249,464) | 1.88 | whole remesh |
+| job-pool-hall | 23,923 (88,972) | 1.89 | whole remesh |
+| job-loading-lot | 20,695 (101,064) | 1.92 | whole remesh |
+| dock-pier-warehouse | 45,437 (84,618) | 3.72 | split |
 
-The other 11 wave A and B buildings are still the as delivered files and follow in a later PR. The "Add swap (large
-building imports)" CI step stays until all of them are in.
+Flags:
+- copper mansard is just under the 60k band and over the 4 MB target (its vertex data alone is about 3.5 MB). Wall textures are a little softer up close than the 4K originals.
+- dock-pier-warehouse: split method, 45,437 tris, over the 20k to 40k box band only because of as delivered fill at the cut seams. Clapboard relief slightly softer.
+
+MANIFEST.txt lists bytes, triangles and SHA-256 for every file. r2-views-front-back-side.jpg has front 3/4, back 3/4 and side views with triangle counts. as-delivered-vs-r2.jpg compares day, night and close views.
+
+The as delivered release meshy-buildings-wave-ab-2026-11-22 stays up.
