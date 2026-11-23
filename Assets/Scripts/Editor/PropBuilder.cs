@@ -176,6 +176,13 @@ namespace StreetEmpire.EditorTools
                 string bike = VehicleBuilder.V2Bikes[(b.id / 2 + k) % VehicleBuilder.V2Bikes.Length];
                 Car(bike, b, At(b, k, ParkLine, (deal % 3 - 1) * 6f, 0), Face(deal % 2 == 0 ? t : -t), parent, 0f, 9f);
             }
+            // wave C: a bus, a truck or the like along some of the sides that are still empty, one to a side
+            else if (deal % 2 == 0)
+            {
+                int bigs = VehicleBuilder.V2Big.Length;
+                string big = VehicleBuilder.V2Big[((deal / 2 + b.id * 3 + k) % bigs + bigs) % bigs];
+                Car(big, b, At(b, k, ParkLine + 0.35f, 0, 0), Face(deal % 4 == 0 ? t : -t), parent);
+            }
         }
 
         /// <summary>The open lot between the two corner buildings of a side.</summary>
@@ -485,7 +492,7 @@ namespace StreetEmpire.EditorTools
         // ---------------------------------------------------------------- placing
 
         // the cars people park: plain ones often, the lowrider and the taxi now and then
-        static readonly string[] StreetCars = { "sedan", "sedan-clean", "coupe", "pickup", "suv", "sedan", "van", "sedan-clean", "lowrider", "suv", "pickup", "taxi", "coupe" };
+        static readonly string[] StreetCars = { "sedan", "sedan-clean", "coupe", "pickup", "hatchback", "suv", "sedan", "van", "minivan", "sedan-clean", "lowrider", "suv", "luxury-sedan", "pickup", "taxi", "coupe", "hatchback", "minivan" };
         static string StreetCar(int deal) => StreetCars[((deal % StreetCars.Length) + StreetCars.Length) % StreetCars.Length];
 
         // one merged mesh pair for each kind of car, shared by all its paints
@@ -493,7 +500,9 @@ namespace StreetEmpire.EditorTools
 
         static void Car(string kind, BlockInfo b, Vector3 at, Quaternion rot, Transform parent, float jitter = 0f, float lean = 0f)
         {
-            if (Blocked(at, lean > 0f ? 2f : 4f) || InLandmark(at, 3f)) return;
+            // a long vehicle keeps clear over its whole length
+            float reach = lean > 0f ? 2f : Mathf.Max(4f, VehicleBuilder.V2Length(kind) * 0.5f + 0.5f);
+            if (Blocked(at, reach) || InLandmark(at, Mathf.Max(3f, reach - 1f))) return;
             // v75u: the paint is dealt from where the car stands, so a street is not five of one color
             string color = VehicleBuilder.PaintName(kind, Mathf.Abs(Mathf.RoundToInt(at.x * 3.1f + at.z * 1.7f)) + b.id);
             string key = color == null ? $"car-{kind}" : $"car-{kind}-{color}";
