@@ -460,11 +460,22 @@ namespace StreetEmpire.EditorTools
                         m.SetTexture("_BumpMap", null); m.DisableKeyword("_NORMALMAP");
                         m.SetTexture("_MetallicGlossMap", null); m.DisableKeyword("_METALLICSPECGLOSSMAP");
                     }
+                    // the file's own window maps, from extracted copies (tools/extract_window_maps.mjs): left embedded in
+                    // the GLB they went into the build uncompressed, 4 MB a building
+                    else
+                    {
+                        var wb = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{part}_basecolor.jpg");
+                        var we = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{part}_emission.jpg");
+                        if (wb != null && m.GetTexture("_BaseMap") != null) m.SetTexture("_BaseMap", wb);
+                        if (we != null && m.GetTexture("_EmissionMap") != null) m.SetTexture("_EmissionMap", we);
+                    }
                     m.SetFloat("_Metallic", 0f);
                     EditorUtility.SetDirty(m); continue;
                 }
                 bool keepGlow = finished && part == "sign_lit";
                 var ke = m.GetTexture("_EmissionMap"); var kc = m.GetColor("_EmissionColor");
+                // a sign's glow map from its extracted copy too
+                if (keepGlow && ke != null) { var se = AssetDatabase.LoadAssetAtPath<Texture2D>($"{BuildingTextures}/{name}__{part}_emission.jpg"); if (se != null) ke = se; }
                 // buildings are never metal
                 m.SetFloat("_Metallic", 0f); m.SetTexture("_MetallicGlossMap", null); m.DisableKeyword("_METALLICSPECGLOSSMAP");
                 m.SetTexture("_EmissionMap", null); m.SetColor("_EmissionColor", Color.black); m.DisableKeyword("_EMISSION");
