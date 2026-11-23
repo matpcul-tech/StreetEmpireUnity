@@ -12,6 +12,13 @@ using UnityEngine.TestTools;
 
 namespace StreetEmpire.Tests
 {
+    [DefaultExecutionOrder(20000)]
+    public class LateSnap : MonoBehaviour
+    {
+        public Camera cam; public RenderTexture rt; public bool done;
+        void LateUpdate() { if (done) return; cam.targetTexture = rt; cam.Render(); cam.targetTexture = null; done = true; }
+    }
+
     [PrebuildSetup(typeof(SceneSetup))]
     public class LookShots
     {
@@ -48,8 +55,12 @@ namespace StreetEmpire.Tests
                     foreach (var p in FindSide(c, t, side, len))
                     {
                         cam.transform.position = p; cam.transform.LookAt(c + Vector3.up * 0.1f);
+                        // the instanced props (cars included) are queued in PropInstancer.LateUpdate for that frame only,
+                        // so the frame is taken by a late LateUpdate of the same frame
                         yield return null;
-                        cam.targetTexture = rt; cam.Render(); cam.targetTexture = null;
+                        var snap = cam.gameObject.AddComponent<LateSnap>(); snap.cam = cam; snap.rt = rt;
+                        while (!snap.done) yield return null;
+                        Object.Destroy(snap);
                         var prev = RenderTexture.active; RenderTexture.active = rt;
                         tex.ReadPixels(new Rect(0, 0, 640, 360), 0, 0); tex.Apply(); RenderTexture.active = prev;
                         string b64 = System.Convert.ToBase64String(tex.EncodeToJPG(72));
