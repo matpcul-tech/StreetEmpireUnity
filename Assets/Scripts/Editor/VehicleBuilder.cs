@@ -63,7 +63,9 @@ namespace StreetEmpire.EditorTools
                         // dark tinted glass: the map carries the tint and nothing glows, so a window is not a lit
                         // panel at night (the limo, build 7d05e48). A sharp sun glint only, no sky reflection: on the
                         // phone that showed as gray blotches on the lowrider and the SUV (build 14652fa).
-                        m.SetColor("_BaseColor", Color.white); m.SetFloat("_Smoothness", 0.9f);
+                        // No sun glint either: the panes are not flat, and a glint lit them facet by facet (garbage truck cab).
+                        m.SetColor("_BaseColor", Color.white); m.SetFloat("_Smoothness", 0.5f);
+                        m.SetFloat("_SpecularHighlights", 0f); m.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
                         m.SetTexture("_EmissionMap", null); m.SetColor("_EmissionColor", Color.black);
                         m.DisableKeyword("_EMISSION"); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
                         m.SetFloat("_EnvironmentReflections", 0f); m.EnableKeyword("_ENVIRONMENTREFLECTIONS_OFF");
