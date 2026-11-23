@@ -120,6 +120,17 @@ namespace StreetEmpire.Tests
             var painted = carMats.Where(m => m.name.EndsWith("_body") || m.name.EndsWith("_wheel")).ToArray();
             Assert.GreaterOrEqual(painted.Length, 16, "body and wheel materials for the parked cars");
             Assert.IsTrue(painted.All(m => m.GetTexture("_BaseMap") != null), "every body and wheel has its color map");
+            // v75u: the cruiser and the taxi carry lettering, and every car's glass has the glass map
+            foreach (var kind in new[] { "police", "taxi" })
+            {
+                var decal = carMats.FirstOrDefault(m => m.name == $"v2-{kind}_decal");
+                Assert.IsNotNull(decal, $"{kind} has a lettering panel");
+                Assert.AreEqual($"{kind}_decal", decal.GetTexture("_BaseMap")?.name, $"{kind} lettering map");
+                Assert.IsTrue(decal.IsKeywordEnabled("_ALPHATEST_ON"), $"{kind} lettering is cut out");
+            }
+            var glass = carMats.Where(m => m.name.EndsWith("_glass")).ToArray();
+            Assert.GreaterOrEqual(glass.Length, 8, "glass on the parked cars");
+            Assert.IsTrue(glass.All(m => m.GetTexture("_BaseMap") != null && m.GetTexture("_BaseMap").name == "glass"), "every car's glass has the glass map");
             Assert.IsTrue(carBatches.Any(b => b.name.StartsWith("car-cruiser") || b.name.StartsWith("car-dirt-bike") || b.name.StartsWith("car-sport-bike")), "motorcycles at the curb");
             for (int i = 0; i < 3; i++) yield return null;
             if (SystemInfo.supportsInstancing) Assert.Greater(inst.LastDraws, 0, "the instancer draws");
