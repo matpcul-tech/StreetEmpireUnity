@@ -113,3 +113,5 @@ Assets/Art/Textures/Buildings/warehouse-* -filter -diff -merge binary
 docs/sovereign-assets/v75t/*.jpg -filter -diff -merge binary
 Assets/Art/Textures/Cars/V2/** -filter -diff -merge binary
 docs/sovereign-assets/vehicles-wave-c/*.jpg -filter -diff -merge binary
+Assets/Art/Textures/Buildings/*__windows_* -filter -diff -merge binary
+Assets/Art/Textures/Buildings/*__sign_lit_emission.jpg -filter -diff -merge binary
