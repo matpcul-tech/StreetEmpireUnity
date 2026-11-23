@@ -43,11 +43,15 @@ namespace StreetEmpire.Player
                 float d = (c.transform.position - transform.position).sqrMagnitude;
                 if (d < bd) { bd = d; best = c; }
             }
+            // no car that already drives in reach: take a parked one (ParkedCars swaps it for a car that drives)
+            if (best == null) { var parked = ParkedCars.Nearest(transform.position, enterRange * 0.6f); if (parked != null) best = ParkedCars.Take(parked); }
             if (best == null) return false;
             Car = best; Car.hasDriver = true;
             motor.enabled = false; cc.enabled = false;
             foreach (var r in renderers) r.enabled = false;
-            SetCamera(Car.cameraTarget != null ? Car.cameraTarget : Car.transform, carRadius);
+            // the camera backs off for a long vehicle
+            var body = Car.GetComponent<BoxCollider>();
+            SetCamera(Car.cameraTarget != null ? Car.cameraTarget : Car.transform, Mathf.Max(carRadius, body != null ? body.size.z * 1.25f + 2f : carRadius));
             return true;
         }
 

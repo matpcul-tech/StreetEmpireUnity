@@ -12,6 +12,37 @@ namespace StreetEmpire.Tests
     [PrebuildSetup(typeof(SceneSetup))]
     public class CarTests
     {
+        // every parked vehicle can be taken: its drawn copy leaves the instancer and the same body drives
+        [UnityTest]
+        public IEnumerator ParkedVehiclesCanBeDriven()
+        {
+            StreetEmpire.Game.MuggerOpening.AutoStart = false; SceneManager.LoadScene("Eastside");
+            yield return null; yield return null;
+            var player = Object.FindFirstObjectByType<PlayerMotor>();
+            var user = player.GetComponent<VehicleUser>();
+            var inst = Object.FindFirstObjectByType<StreetEmpire.City.PropInstancer>();
+            int Copies() { int n = 0; foreach (var b in inst.batches) if (b != null && b.name != null && b.name.StartsWith("car-") && b.matrices != null) n += b.matrices.Length; return n; }
+            foreach (string kind in new[] { "hatchback", "city-bus" })
+            {
+                StreetEmpire.City.PropMarker mark = null;
+                foreach (var m in Object.FindObjectsByType<StreetEmpire.City.PropMarker>(FindObjectsSortMode.None)) if (m.kind == "parked car" && m.model == kind) { mark = m; break; }
+                if (mark == null) continue;
+                int before = Copies(); var go = mark.gameObject; Vector3 start = go.transform.position;
+                var side = go.GetComponent<BoxCollider>();
+                player.Teleport(start + go.transform.right * (side.size.x * 0.5f + 1.2f), 0f);
+                yield return null;
+                Assert.IsTrue(user.TryEnter(), "took the parked " + kind);
+                Assert.AreSame(go, user.Car.gameObject, "the parked " + kind + " is the car");
+                Assert.AreEqual(before - 1, Copies(), "its drawn copy left the instancer");
+                Assert.IsNotNull(go.GetComponentInChildren<MeshRenderer>(), "it has a body of its own");
+                user.Car.scriptThrottle = 1f; user.Car.scriptSteer = 0f;
+                for (int i = 0; i < 90; i++) yield return new WaitForFixedUpdate();
+                Assert.Greater(Vector3.Distance(go.transform.position, start), 1.5f, "the " + kind + " drives");
+                user.Car.scriptThrottle = 0f; user.Exit();
+                yield return null;
+            }
+        }
+
         [UnityTest]
         public IEnumerator EnterDriveSteerAndExitSedan()
         {
