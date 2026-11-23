@@ -148,6 +148,8 @@ for (const k of kinds) {
   for (const e of d.getRoot().listExtensionsUsed()) e.dispose();
   if (d.getRoot().listTextures().length > 1) console.log('  note:', k, 'had', d.getRoot().listTextures().length, 'images; only the first was written');
   await d.transform(prune(keep));
+  // the city bus's 14 "marking" triangles are a gray zigzag lying across its window band: dropped
+  if (k === 'city-bus') for (const m of d.getRoot().listMeshes()) for (const p of m.listPrimitives()) if (p.getMaterial().getName() === 'marking') { m.removePrimitive(p); p.dispose(); }
   if (SKIN.includes(k)) console.log('  glass turned outward', k, faceGlassOut(d), 'triangles');
   if (SKIN.includes(k)) console.log('  skin under glass', k, skinUnderGlass(d), 'triangles');
   if (k === 'armored-truck') smoothNormals(d);
