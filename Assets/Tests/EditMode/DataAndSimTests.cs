@@ -35,6 +35,17 @@ namespace StreetEmpire.Tests
             Assert.AreEqual("Bag Back", data.Jobs.missions[0].title);
         }
 
+        // phone driving: GAS and REV pedals set the throttle and the stick only steers; keys and a pad stick still drive
+        [Test]
+        public void PedalsSetTheThrottle()
+        {
+            Assert.AreEqual(1f, StreetEmpire.Vehicles.CarController.Throttle(0f, true, false, true), "gas");
+            Assert.AreEqual(-1f, StreetEmpire.Vehicles.CarController.Throttle(0f, false, true, true), "reverse");
+            Assert.AreEqual(0f, StreetEmpire.Vehicles.CarController.Throttle(0.8f, false, false, true), "on a phone the stick does not drive");
+            Assert.AreEqual(1f, StreetEmpire.Vehicles.CarController.Throttle(-1f, true, false, false), "a pedal beats the stick");
+            Assert.AreEqual(0.8f, StreetEmpire.Vehicles.CarController.Throttle(0.8f, false, false, false), "keys and a pad stick still drive");
+        }
+
         [Test]
         public void RngMatchesJs()
         {

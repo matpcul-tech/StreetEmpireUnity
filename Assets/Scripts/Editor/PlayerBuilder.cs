@@ -172,10 +172,17 @@ namespace StreetEmpire.EditorTools
             var si = stick.gameObject.AddComponent<Image>(); si.sprite = knob; si.color = new Color(1f, 0.54f, 0.1f, 0.75f);
             var os = stick.gameObject.AddComponent<OnScreenStick>(); os.controlPath = "<Gamepad>/leftStick"; os.movementRange = 95;
 
-            Button(touch, "Jump", "<Gamepad>/buttonSouth", new Vector2(-170, 150), 150, font, knob);
-            Button(touch, "Sprint", "<Gamepad>/leftShoulder", new Vector2(-350, 120), 130, font, knob);
-            Button(touch, "Use", "<Gamepad>/buttonNorth", new Vector2(-170, 330), 130, font, knob);
-            Button(touch, "Hit", "<Gamepad>/buttonWest", new Vector2(-340, 300), 120, font, knob);
+            // on foot: jump, sprint, hit. In a car they give way to the pedals, and the stick only steers.
+            var foot = Rect("FootButtons", touch, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            Button(foot, "Jump", "<Gamepad>/buttonSouth", new Vector2(-170, 150), 150, font, knob);
+            Button(foot, "Sprint", "<Gamepad>/leftShoulder", new Vector2(-350, 120), 130, font, knob);
+            Button(foot, "Hit", "<Gamepad>/buttonWest", new Vector2(-340, 300), 120, font, knob);
+            var drive = Rect("DriveButtons", touch, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            Button(drive, "Gas", "<Gamepad>/rightTrigger", new Vector2(-180, 160), 190, font, knob);
+            Button(drive, "Rev", "<Gamepad>/leftTrigger", new Vector2(-400, 130), 150, font, knob);
+            Button(drive, "Drift", "<Gamepad>/leftShoulder", new Vector2(-380, 310), 120, font, knob);
+            drive.gameObject.SetActive(false);
+            Button(touch, "Use", "<Gamepad>/buttonNorth", new Vector2(-170, 350), 130, font, knob);
 
             var hints = Rect("KeyHints", canvasGo.transform, Vector2.zero, Vector2.zero, new Vector2(24, 20), new Vector2(900, 40));
             hints.pivot = Vector2.zero;
@@ -183,6 +190,7 @@ namespace StreetEmpire.EditorTools
             ht.text = "WASD move   Mouse look (click to lock, Esc to free)   Shift sprint   Space jump   E use   F or click hit";
 
             hud.touchControls = touch.gameObject; hud.keyHints = hints.gameObject;
+            hud.footButtons = foot.gameObject; hud.driveButtons = drive.gameObject;
         }
 
         static void Button(RectTransform parent, string label, string path, Vector2 fromBottomRight, float size, Font font, Sprite sprite)
