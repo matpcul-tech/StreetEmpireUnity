@@ -21,8 +21,22 @@ namespace StreetEmpire.EditorTools
         // Cars v2 (release meshy-cars-v2-2026-11-22, docs/sovereign-assets/cars-v2): nine cars in real meters, body,
         // glass and wheel materials, four wheel nodes pivoting at the hub. Prepared by tools/car_v2.mjs.
         // Motorcycles v2 (release meshy-bikes-v2-2026-11-22): the last three. Parked only for now.
-        public static readonly string[] V2Kinds = { "sedan-clean", "sedan", "police", "coupe", "lowrider", "pickup", "suv", "taxi", "van", "cruiser", "dirt-bike", "sport-bike" };
-        static readonly float[] V2Lengths = { 4.75f, 5.00f, 5.25f, 4.50f, 5.35f, 5.30f, 4.85f, 5.20f, 5.30f, 2.40f, 2.18f, 2.10f };
+        // Vehicles wave C (release meshy-vehicles-wave-c-2026-11-23, tools/car_wavec.mjs): sixteen more, from the hatchback
+        // to the semi trailer. Parked only. The box truck is held back (its cab is still torn).
+        public static readonly string[] V2Kinds =
+        {
+            "sedan-clean", "sedan", "police", "coupe", "lowrider", "pickup", "suv", "taxi", "van", "cruiser", "dirt-bike", "sport-bike",
+            "hatchback", "minivan", "luxury-sedan", "limo", "tow-truck", "ambulance", "ice-cream-truck", "armored-truck", "swat-van",
+            "school-bus", "city-bus", "fire-engine", "garbage-truck", "dump-truck", "semi-tractor", "semi-trailer",
+        };
+        static readonly float[] V2Lengths =
+        {
+            4.75f, 5.00f, 5.25f, 4.50f, 5.35f, 5.30f, 4.85f, 5.20f, 5.30f, 2.40f, 2.18f, 2.10f,
+            4.05f, 4.85f, 5.25f, 9.40f, 8.80f, 6.70f, 6.70f, 6.80f, 6.90f,
+            11.80f, 12.20f, 10.00f, 9.80f, 8.60f, 6.50f, 16.15f,
+        };
+        // wave C: the ones too long for a car's spot at the curb; they take a side of their own
+        public static readonly string[] V2Big = { "city-bus", "tow-truck", "ambulance", "garbage-truck", "school-bus", "ice-cream-truck", "limo", "armored-truck", "dump-truck", "fire-engine", "swat-van", "semi-tractor", "semi-trailer" };
         public static readonly string[] V2Bikes = { "cruiser", "dirt-bike", "sport-bike" };
         public static string V2Glb(string kind, bool far = false) => $"Assets/Art/Models/Cars/V2/{(far ? "LOD1/" : "")}{kind}.glb";
         /// <summary>Puts a v2 vehicle's color maps on its body and wheel materials. The maps are files under
@@ -34,7 +48,9 @@ namespace StreetEmpire.EditorTools
                 foreach (var m in r.sharedMaterials)
                 {
                     if (m == null) continue;
-                    string part = m.name.EndsWith("_body") ? "body" : m.name.EndsWith("_wheel") ? "wheel" : m.name.EndsWith("_glass") ? "glass" : m.name.EndsWith("_decal") ? "decal" : null;
+                    // wave C names its painted parts paint, trim, marking and lights; all four read the one body map
+                    bool waveC = m.name.EndsWith("_paint") || m.name.EndsWith("_trim") || m.name.EndsWith("_marking") || m.name.EndsWith("_lights");
+                    string part = m.name.EndsWith("_body") || waveC ? "body" : m.name.EndsWith("_wheel") ? "wheel" : m.name.EndsWith("_glass") ? "glass" : m.name.EndsWith("_decal") ? "decal" : null;
                     if (part == null) continue;
                     // v75u: every car's glass shares one map; the cruiser and the taxi carry their lettering on a cut-out panel
                     string file = part == "glass" ? "glass.png" : part == "decal" ? $"{kind}_decal.png" : $"{kind}_{part}.jpg";
