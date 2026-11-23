@@ -179,8 +179,8 @@ namespace StreetEmpire.EditorTools
             // wave C: a bus, a truck or the like along some of the sides that are still empty, one to a side
             else if (deal % 2 == 0)
             {
-                int n = VehicleBuilder.V2Big.Length;
-                string big = VehicleBuilder.V2Big[((deal / 2 + b.id * 3 + k) % n + n) % n];
+                int bigs = VehicleBuilder.V2Big.Length;
+                string big = VehicleBuilder.V2Big[((deal / 2 + b.id * 3 + k) % bigs + bigs) % bigs];
                 Car(big, b, At(b, k, ParkLine + 0.35f, 0, 0), Face(deal % 4 == 0 ? t : -t), parent);
             }
         }
