@@ -1,5 +1,6 @@
 // M3: the kit sedan (M5: painted like makeKitCar), parked where createState() parks the first car (east curb of block 0), with the
 // sedan numbers from Assets/Data/vehicles.json.
+using System.Collections.Generic;
 using System.Linq;
 using StreetEmpire.Sim;
 using StreetEmpire.Sim.Data;
@@ -59,6 +60,40 @@ namespace StreetEmpire.EditorTools
                     }
                     EditorUtility.SetDirty(m);
                 }
+        }
+
+        // v75u paint colors (tools/car_paint.mjs): four more for each of six cars. The van, the taxi and the cruiser
+        // keep their one paint. Paint 0 is the car's own color.
+        static readonly Dictionary<string, string[]> V2Paints = new()
+        {
+            ["sedan-clean"] = new[] { "black", "silver", "maroon", "white" },
+            ["sedan"] = new[] { "navy", "tan", "green", "red" },
+            ["coupe"] = new[] { "red", "silver", "white", "green" },
+            ["lowrider"] = new[] { "purple", "teal", "black", "gold" },
+            ["pickup"] = new[] { "blue", "white", "green", "tan" },
+            ["suv"] = new[] { "black", "navy", "maroon", "silver" },
+        };
+        /// <summary>The name of a car's paint: null for its own color (paint 0, or a car with one paint).</summary>
+        public static string PaintName(string kind, int paint)
+        {
+            if (!V2Paints.TryGetValue(kind, out var p)) return null;
+            int i = ((paint % (p.Length + 1)) + p.Length + 1) % (p.Length + 1);
+            return i == 0 ? null : p[i - 1];
+        }
+        /// <summary>A copy of a car's body material wearing another paint (its own recolored body map).</summary>
+        public static Material Painted(Material body, string kind, string color)
+        {
+            var t = AssetDatabase.LoadAssetAtPath<Texture2D>($"Assets/Art/Textures/Cars/V2/{kind}_body_{color}.jpg");
+            if (t == null) { Debug.LogError($"[VehicleBuilder] no {color} paint for {kind}"); return body; }
+            string own = AssetDatabase.GetAssetPath(body);
+            if (string.IsNullOrEmpty(own)) return body;
+            string path = own.Substring(0, own.LastIndexOf('/') + 1) + $"{body.name}-{color}.mat";
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m == null) { m = new Material(body); AssetDatabase.CreateAsset(m, path); }
+            else { m.shader = body.shader; m.CopyPropertiesFromMaterial(body); }
+            m.SetTexture("_BaseMap", t); m.SetTexture("_MainTex", t); m.enableInstancing = true;
+            EditorUtility.SetDirty(m);
+            return m;
         }
 
         public static float V2Length(string kind) { int i = System.Array.IndexOf(V2Kinds, kind); return i < 0 ? 4.75f : V2Lengths[i]; }

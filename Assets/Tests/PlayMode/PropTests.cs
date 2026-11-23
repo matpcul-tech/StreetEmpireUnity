@@ -117,7 +117,7 @@ namespace StreetEmpire.Tests
             // which Android reads wrongly; the cars carry no normal map now and their color maps are texture files.
             var carMats = carBatches.SelectMany(b => b.materials).Where(m => m != null).Distinct().ToArray();
             Assert.IsTrue(carMats.All(m => m.GetTexture("_BumpMap") == null && !m.IsKeywordEnabled("_NORMALMAP")), "no car material has a normal map");
-            var painted = carMats.Where(m => m.name.EndsWith("_body") || m.name.EndsWith("_wheel")).ToArray();
+            var painted = carMats.Where(m => m.name.Contains("_body") || m.name.EndsWith("_wheel")).ToArray();
             Assert.GreaterOrEqual(painted.Length, 16, "body and wheel materials for the parked cars");
             Assert.IsTrue(painted.All(m => m.GetTexture("_BaseMap") != null), "every body and wheel has its color map");
             // v75u: the cruiser and the taxi carry lettering, and every car's glass has the glass map
@@ -128,6 +128,11 @@ namespace StreetEmpire.Tests
                 Assert.AreEqual($"{kind}_decal", decal.GetTexture("_BaseMap")?.name, $"{kind} lettering map");
                 Assert.IsTrue(decal.IsKeywordEnabled("_ALPHATEST_ON"), $"{kind} lettering is cut out");
             }
+            // v75u paint colors: the same cars in more than their own paint, each paint its own body map
+            var repaints = carMats.Where(m => m.name.Contains("_body-")).ToArray();
+            Assert.GreaterOrEqual(repaints.Length, 12, "repainted cars at the curbs");
+            Assert.IsTrue(repaints.All(m => m.GetTexture("_BaseMap") != null && m.GetTexture("_BaseMap").name.Contains("_body_") && m.GetTexture("_BumpMap") == null), "each repaint has its own body map and no normal map");
+            Assert.IsFalse(carMats.Any(m => m.name.StartsWith("v2-police_body-") || m.name.StartsWith("v2-taxi_body-") || m.name.StartsWith("v2-van_body-")), "the cruiser, the taxi and the van keep their one paint");
             var glass = carMats.Where(m => m.name.EndsWith("_glass")).ToArray();
             Assert.GreaterOrEqual(glass.Length, 8, "glass on the parked cars");
             Assert.IsTrue(glass.All(m => m.GetTexture("_BaseMap") != null && m.GetTexture("_BaseMap").name == "glass"), "every car's glass has the glass map");
