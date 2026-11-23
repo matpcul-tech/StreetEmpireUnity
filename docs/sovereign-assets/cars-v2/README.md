@@ -93,3 +93,19 @@ Not done: the taxi's roof sign is still blank, every cruiser carries the same le
 paint colors yet.
 
 Not checked from here: any of this on a phone.
+
+# v75u: paint colors (Nov 22, 2026)
+
+tools/car_paint.mjs writes four more paints for each of six cars (sedan-clean, sedan, coupe, lowrider, pickup,
+suv) as recolored copies of the body map, <kind>_body_<color>.jpg. paint-colors.jpg shows one repaint of each.
+
+- The body maps have no paint mask, so the paint is found by color: a texel is paint when it points the same way
+  as the car's own paint color and is near its brightness. Trim, tires, chrome and lights are left. Painted texels
+  keep the brightness they had, so the baked shading stays.
+- The SUV keeps its silver lower body. The sedan's own paint is close to gray, so its grille takes the new color
+  with the body; its lights do not.
+- The van (white, and its white lights and trim would take the color too), the taxi and the cruiser keep one paint.
+- In the game: a parked car's paint is dealt from where it stands. All paints of a car share one mesh; each paint
+  is one more body material and one more 1024 map (24 maps in all). The car you drive keeps its own color.
+
+Not checked from here: the colors on a phone.

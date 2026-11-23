@@ -64,7 +64,7 @@ namespace StreetEmpire.EditorTools
         public static void Build(IList<BlockInfo> blocks, float[] streetX, float[] streetZ, Transform parent)
         {
             LoadManifest(); mats.Clear(); counts.Clear(); tris = 0; rng = new System.Random(1931); LampSpots.Clear(); EmissiveMaterials.Clear();
-            batches.Clear(); placed.Clear();
+            batches.Clear(); placed.Clear(); carMeshes.Clear();
             KeepClear(); LandmarkBoxes();
             var root = new GameObject("Props").transform; root.SetParent(parent, false);
             var cycle = new GameObject("Traffic Signals"); cycle.transform.SetParent(root, false);
@@ -488,25 +488,36 @@ namespace StreetEmpire.EditorTools
         static readonly string[] StreetCars = { "sedan", "sedan-clean", "coupe", "pickup", "suv", "sedan", "van", "sedan-clean", "lowrider", "suv", "pickup", "taxi", "coupe" };
         static string StreetCar(int deal) => StreetCars[((deal % StreetCars.Length) + StreetCars.Length) % StreetCars.Length];
 
+        // one merged mesh pair for each kind of car, shared by all its paints
+        static readonly Dictionary<string, (Mesh lod0, Mesh lod1, List<Material> order)> carMeshes = new();
+
         static void Car(string kind, BlockInfo b, Vector3 at, Quaternion rot, Transform parent, float jitter = 0f, float lean = 0f)
         {
             if (Blocked(at, lean > 0f ? 2f : 4f) || InLandmark(at, 3f)) return;
-            string key = $"car-{kind}";
+            // v75u: the paint is dealt from where the car stands, so a street is not five of one color
+            string color = VehicleBuilder.PaintName(kind, Mathf.Abs(Mathf.RoundToInt(at.x * 3.1f + at.z * 1.7f)) + b.id);
+            string key = color == null ? $"car-{kind}" : $"car-{kind}-{color}";
             if (!batches.TryGetValue(key, out var batch))
             {
-                // the full car up close and its far version (Models/Cars/V2/LOD1) past 15 m, fitted the same way
-                var near = VehicleBuilder.ParkedCar(kind);
-                var order = new List<Material>();
-                var lod0 = MeshMerge.Merge(near, m => m, order, false, $"{MeshDir}/Props/{key}.asset");
-                Mesh lod1 = null;
-                if (AssetDatabase.LoadAssetAtPath<GameObject>(VehicleBuilder.V2Glb(kind, true)) != null)
+                if (!carMeshes.TryGetValue(kind, out var cm))
                 {
-                    var far = VehicleBuilder.ParkedCar(kind, true);
-                    lod1 = MeshMerge.Merge(far, m => m, order, false, $"{MeshDir}/Props/{key}-lod1.asset");
-                    Object.DestroyImmediate(far);
+                    // the full car up close and its far version (Models/Cars/V2/LOD1) past 15 m, fitted the same way
+                    var near = VehicleBuilder.ParkedCar(kind);
+                    var order = new List<Material>();
+                    var lod0 = MeshMerge.Merge(near, m => m, order, false, $"{MeshDir}/Props/car-{kind}.asset");
+                    Mesh lod1 = null;
+                    if (AssetDatabase.LoadAssetAtPath<GameObject>(VehicleBuilder.V2Glb(kind, true)) != null)
+                    {
+                        var far = VehicleBuilder.ParkedCar(kind, true);
+                        lod1 = MeshMerge.Merge(far, m => m, order, false, $"{MeshDir}/Props/car-{kind}-lod1.asset");
+                        Object.DestroyImmediate(far);
+                    }
+                    Object.DestroyImmediate(near);
+                    carMeshes[kind] = cm = (lod0, lod1, order);
                 }
-                Object.DestroyImmediate(near);
-                batch = NewBatch(key, lod0, lod1, order, 15f, 150f, true);
+                var mats = color == null ? cm.order
+                    : cm.order.Select(m => m != null && m.name.EndsWith("_body") ? VehicleBuilder.Painted(m, kind, color) : m).ToList();
+                batch = NewBatch(key, cm.lod0, cm.lod1, mats, 15f, 150f, true);
                 batch.shadowDistance = 40f;
             }
             var car = new GameObject($"Parked {kind}");
