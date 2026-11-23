@@ -36,7 +36,7 @@ namespace StreetEmpire.EditorTools
             11.80f, 12.20f, 10.00f, 9.80f, 8.60f, 6.50f, 16.15f,
         };
         // wave C: the ones too long for a car's spot at the curb; they take a side of their own
-        public static readonly string[] V2Big = { "city-bus", "tow-truck", "ambulance", "garbage-truck", "school-bus", "ice-cream-truck", "limo", "armored-truck", "dump-truck", "fire-engine", "swat-van", "semi-tractor", "semi-trailer" };
+        public static readonly string[] V2Big = { "city-bus", "tow-truck", "ambulance", "garbage-truck", "school-bus", "limo", "armored-truck", "dump-truck", "fire-engine", "swat-van", "semi-tractor", "semi-trailer" };
         public static readonly string[] V2Bikes = { "cruiser", "dirt-bike", "sport-bike" };
         public static string V2Glb(string kind, bool far = false) => $"Assets/Art/Models/Cars/V2/{(far ? "LOD1/" : "")}{kind}.glb";
         /// <summary>Puts a v2 vehicle's color maps on its body and wheel materials. The maps are files under
@@ -60,14 +60,17 @@ namespace StreetEmpire.EditorTools
                     m.SetTexture("_BumpMap", null); m.DisableKeyword("_NORMALMAP");
                     if (part == "glass")
                     {
-                        // the map carries the glass color; a little of it glows so a window still reads at night
-                        m.SetColor("_BaseColor", Color.white); m.SetFloat("_Smoothness", 0.6f);
-                        m.SetTexture("_EmissionMap", t); m.SetColor("_EmissionColor", new Color(0.22f, 0.22f, 0.22f));
-                        m.EnableKeyword("_EMISSION"); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
-                        // no sky reflection on the glass: on the phone it showed as gray blotches on the lowrider and the
-                        // SUV (build 14652fa). The map already carries the look of a reflected sky.
+                        // dark tinted glass: the map carries the tint and nothing glows, so a window is not a lit
+                        // panel at night (the limo, build 7d05e48). A sharp sun glint only, no sky reflection: on the
+                        // phone that showed as gray blotches on the lowrider and the SUV (build 14652fa).
+                        m.SetColor("_BaseColor", Color.white); m.SetFloat("_Smoothness", 0.9f);
+                        m.SetTexture("_EmissionMap", null); m.SetColor("_EmissionColor", Color.black);
+                        m.DisableKeyword("_EMISSION"); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
                         m.SetFloat("_EnvironmentReflections", 0f); m.EnableKeyword("_ENVIRONMENTREFLECTIONS_OFF");
                     }
+                    // paint with a shine: the cars read as matte primer on the phone (build 7d05e48). Tires stay dull.
+                    if (part == "body") { m.SetFloat("_Smoothness", 0.74f); m.SetFloat("_Metallic", 0f); m.SetFloat("_SpecularHighlights", 1f); m.DisableKeyword("_SPECULARHIGHLIGHTS_OFF"); m.SetFloat("_EnvironmentReflections", 1f); m.DisableKeyword("_ENVIRONMENTREFLECTIONS_OFF"); }
+                    if (part == "wheel") m.SetFloat("_Smoothness", 0.3f);
                     if (part == "decal")
                     {
                         m.SetColor("_BaseColor", Color.white); m.SetFloat("_Smoothness", 0.4f);

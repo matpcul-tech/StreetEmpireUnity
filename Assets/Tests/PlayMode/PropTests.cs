@@ -136,9 +136,9 @@ namespace StreetEmpire.Tests
             // wave C: the three new cars are in the curb mix, and some of the long vehicles have a side to themselves
             var carKinds = carBatches.Select(b => b.name.Split('@', '#')[0]).Distinct().ToArray();
             foreach (var car in new[] { "car-hatchback", "car-minivan", "car-luxury-sedan" }) Assert.Contains(car, carKinds, "wave C car at the curb");
-            var big = new[] { "city-bus", "tow-truck", "ambulance", "garbage-truck", "school-bus", "ice-cream-truck", "limo", "armored-truck", "dump-truck", "fire-engine", "swat-van", "semi-tractor", "semi-trailer" };
+            var big = new[] { "city-bus", "tow-truck", "ambulance", "garbage-truck", "school-bus", "limo", "armored-truck", "dump-truck", "fire-engine", "swat-van", "semi-tractor", "semi-trailer" };
             Assert.GreaterOrEqual(big.Count(b => carKinds.Contains("car-" + b)), 4, "long wave C vehicles parked");
-            Assert.IsFalse(carKinds.Contains("car-box-truck"), "the box truck is held back");
+            Assert.IsFalse(carKinds.Contains("car-box-truck") || carKinds.Contains("car-ice-cream-truck"), "the box truck and the ice cream truck are held back");
             var waveC = carMats.Where(m => m.name.EndsWith("_paint") || m.name.EndsWith("_trim")).ToArray();
             Assert.Greater(waveC.Length, 6); Assert.IsTrue(waveC.All(m => m.GetTexture("_BaseMap") != null && m.GetTexture("_BaseMap").name.EndsWith("_body")), "wave C paint and trim read the body map");
             var glass = carMats.Where(m => m.name.EndsWith("_glass")).ToArray();
