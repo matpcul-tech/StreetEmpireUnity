@@ -98,15 +98,14 @@ function addLettering(d, rect) {
     .setIndices(d.createAccessor().setType('SCALAR').setArray(new Uint32Array(I)).setBuffer(buf)));
   return I.length / 3;
 }
-// Glass: one small shared map (glass.png, lighter at the top like a reflected sky, two soft streaks) and UVs laid
-// by height and length, so a window reads as glass in any light instead of a flat black panel.
+// Glass: one small shared map (glass.png), dark tinted glass a little lighter at the top, and UVs laid by height.
+// No streaks: on the phone they read as stripes painted on the windows (build 7d05e48), and a light top showed
+// every facet of a flat pane.
 async function glassPng(file) {
-  const W = 256, H = 256, px = Buffer.alloc(W * H * 3);
+  const W = 64, H = 256, px = Buffer.alloc(W * H * 3);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    const h = 1 - y / (H - 1);                                    // 1 at the top of the glass
-    const band = (c, w) => { let dd = ((x / W + h * 0.55 - c) % 1 + 1) % 1; dd = Math.min(dd, 1 - dd); return Math.max(0, 1 - dd / w); };
-    const k = Math.pow(h, 1.6) * 0.75 + 0.22 * band(0.3, 0.07) + 0.12 * band(0.62, 0.035);
-    const o = (y * W + x) * 3; px[o] = Math.min(255, 14 + 92 * k); px[o + 1] = Math.min(255, 19 + 112 * k); px[o + 2] = Math.min(255, 26 + 130 * k);
+    const h = 1 - y / (H - 1), k = h * h * (3 - 2 * h);           // 1 at the top of the glass, eased
+    const o = (y * W + x) * 3; px[o] = 9 + 20 * k; px[o + 1] = 12 + 26 * k; px[o + 2] = 17 + 33 * k;
   }
   await sharp(px, { raw: { width: W, height: H, channels: 3 } }).png().toFile(file);
 }
