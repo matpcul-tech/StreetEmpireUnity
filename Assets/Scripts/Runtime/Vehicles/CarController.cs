@@ -67,8 +67,9 @@ namespace StreetEmpire.Vehicles
             {
                 var other = hits[i];
                 if (other == box || other.transform.IsChildOf(transform)) continue;
-                // parked vehicles are solid too (they only have a collider and a PropMarker until someone takes one)
-                var prop = other.GetComponent<PropMarker>();
+                // parked vehicles are solid to the player's car (they only have a collider and a PropMarker until
+                // someone takes one). Police cruisers pass them as before: held up at a curb they never reach the player.
+                var prop = aiDriven ? null : other.GetComponent<PropMarker>();
                 bool wall = other.GetComponent<BuildingMarker>() != null || other.GetComponentInParent<CarController>() != null || (prop != null && prop.kind == "parked car");
                 if (!wall) continue;
                 if (Physics.ComputePenetration(box, pos, rot, other, other.transform.position, other.transform.rotation, out var dir, out var dist))
