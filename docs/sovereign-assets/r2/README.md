@@ -16,10 +16,16 @@ Split method (per Matthew's Nov 23 instructions): the as delivered file is split
 | job-pool-hall | 23,923 (88,972) | 1.89 | whole remesh |
 | job-loading-lot | 20,695 (101,064) | 1.92 | whole remesh |
 | dock-pier-warehouse | 45,437 (84,618) | 3.72 | split |
+| job-chop-shop | 79,452 (93,874) | 5.66 | split |
+| warehouse-sawtooth | 65,178 (92,761) | 4.46 | split |
+| civic-school | 65,713 (86,872) | 5.14 | split |
 
 Flags:
 - copper mansard is just under the 60k band and over the 4 MB target (its vertex data alone is about 3.5 MB). Wall textures are a little softer up close than the 4K originals.
 - dock-pier-warehouse: split method, 45,437 tris, over the 20k to 40k box band only because of as delivered fill at the cut seams. Clapboard relief slightly softer.
+- job-chop-shop: split method, 79,452 tris, over the 20k to 40k box band because the as delivered roll up doors and wall fill under the cut seams are kept (the lighter fill left black slits on the doors). One faint dark line on the back wall; walls a little softer.
+- warehouse-sawtooth: split method, 65,178 tris, over the 50k cap because the as delivered glass, door and frames alone are about 30k. Brick slightly softer, faint creases under the parapet.
+- civic-school: split method, 65,713 tris, over the 20k to 40k box band because the as delivered frames and frame ring alone are about 46k. Brick courses noticeably softer up close.
 
 MANIFEST.txt lists bytes, triangles and SHA-256 for every file. r2-views-front-back-side.jpg has front 3/4, back 3/4 and side views with triangle counts. as-delivered-vs-r2.jpg compares day, night and close views.
 
