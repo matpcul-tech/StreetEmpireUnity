@@ -8,6 +8,8 @@
 // - a far version, same UVs
 // - the buses: the painted skin that lies under the glass pokes through it as light shards (phone and CI frames,
 //   build 7d05e48), so body triangles hugging the glass are drawn with the glass material instead
+// - the buses: glass wound into the bus is turned to face out, and its normals are made to follow (they pointed
+//   in, so both faced panes were lit from inside and read as a gray zigzag across the city bus's windows)
 // - the armored truck: its map's small islands were baked in mismatched grays and its plates are shaded facet by
 //   facet, which reads as crumpled panels; the islands level to the panel gray and normals are shared across a
 //   plate (faces within 40 degrees)
@@ -28,10 +30,16 @@ const SKIN = ['school-bus', 'city-bus'];
 // (the city bus's zigzag): they are rewound to face out from the middle of the bus
 function faceGlassOut(d) {
   let turned = 0; const a = [0, 0, 0], b = [0, 0, 0], c = [0, 0, 0];
+  // the middle along the bus, from the panes (not the skin moved onto the glass, which may lie at one end)
+  let zc = 0, zn = 0;
+  for (const m of d.getRoot().listMeshes()) for (const p of m.listPrimitives()) {
+    if (p.getMaterial().getName() !== 'glass' || p.getExtras().skin) continue;
+    const pos = p.getAttribute('POSITION'); for (let i = 0; i < pos.getCount(); i++) { pos.getElement(i, a); zc += a[2]; zn++; }
+  }
+  zc /= Math.max(1, zn);
   for (const m of d.getRoot().listMeshes()) for (const p of m.listPrimitives()) {
     if (p.getMaterial().getName() !== 'glass') continue;
     const pos = p.getAttribute('POSITION'), idx = p.getIndices(), arr = Uint32Array.from(idx.getArray());
-    let zc = 0; for (let i = 0; i < pos.getCount(); i++) { pos.getElement(i, a); zc += a[2]; } zc /= pos.getCount();
     for (let i = 0; i < arr.length; i += 3) {
       pos.getElement(arr[i], a); pos.getElement(arr[i + 1], b); pos.getElement(arr[i + 2], c);
       const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], w = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
@@ -100,9 +108,9 @@ function skinUnderGlass(d) {
   return moved;
 }
 // one normal per plate: every vertex takes the faces that meet at its position and lie within 40 degrees of its own
-function smoothNormals(d) {
+function smoothNormals(d, mats = ['paint', 'trim', 'marking']) {
   for (const m of d.getRoot().listMeshes()) for (const p of m.listPrimitives()) {
-    if (!['paint', 'trim', 'marking'].includes(p.getMaterial().getName())) continue;
+    if (!mats.includes(p.getMaterial().getName())) continue;
     const pos = p.getAttribute('POSITION'), idx = p.getIndices(), n = pos.getCount(); const a = [0, 0, 0], b = [0, 0, 0], c = [0, 0, 0];
     const own = new Float32Array(n * 3), at = new Map(), faces = [];
     const K = (v) => `${Math.round(v[0] * 500)},${Math.round(v[1] * 500)},${Math.round(v[2] * 500)}`;
@@ -121,6 +129,20 @@ function smoothNormals(d) {
       const l = Math.hypot(...s) || 1; out[v * 3] = s[0] / l; out[v * 3 + 1] = s[1] / l; out[v * 3 + 2] = s[2] / l;
     }
     p.setAttribute('NORMAL', d.createAccessor().setType('VEC3').setArray(out).setBuffer(d.getRoot().listBuffers()[0]));
+  }
+}
+// every glass triangle gets corners of its own, so a corner shared with a turned face does not average to nothing
+function unweldGlass(d) {
+  const buf = d.getRoot().listBuffers()[0];
+  for (const m of d.getRoot().listMeshes()) for (const p of m.listPrimitives()) {
+    if (p.getMaterial().getName() !== 'glass') continue;
+    const idx = p.getIndices(), n = idx.getCount();
+    for (const sem of p.listSemantics()) {
+      const at = p.getAttribute(sem), w = at.getElementSize(), src = at.getArray(), out = new Float32Array(n * w);
+      for (let i = 0; i < n; i++) { const v = idx.getScalar(i); for (let j = 0; j < w; j++) out[i * w + j] = src[v * w + j]; }
+      p.setAttribute(sem, d.createAccessor().setType(at.getType()).setArray(out).setBuffer(buf));
+    }
+    p.setIndices(d.createAccessor().setType('SCALAR').setArray(Uint32Array.from({ length: n }, (_, i) => i)).setBuffer(buf));
   }
 }
 // the armored truck's small map islands (the left half of the atlas) level to the panel gray; dark parts stay dark
@@ -150,8 +172,13 @@ for (const k of kinds) {
   await d.transform(prune(keep));
   // the city bus's 14 "marking" triangles are a gray zigzag lying across its window band: dropped
   if (k === 'city-bus') for (const m of d.getRoot().listMeshes()) for (const p of m.listPrimitives()) if (p.getMaterial().getName() === 'marking') { m.removePrimitive(p); p.dispose(); }
-  if (SKIN.includes(k)) console.log('  glass turned outward', k, faceGlassOut(d), 'triangles');
   if (SKIN.includes(k)) console.log('  skin under glass', k, skinUnderGlass(d), 'triangles');
+  // after the skin moved onto the glass, so the skin is turned out too
+  if (SKIN.includes(k)) console.log('  glass turned outward', k, faceGlassOut(d), 'triangles');
+  // the turned glass kept its normals, which still pointed into the bus; the car materials draw both faces and
+  // URP Lit shades a face by its stored normal, so those panes caught the light as the gray zigzag across the city
+  // bus's windows (phone, v75w). The glass normals now follow the turned faces, shared across a pane.
+  if (SKIN.includes(k)) { unweldGlass(d); smoothNormals(d, ['glass']); await d.transform(weld()); }
   if (k === 'armored-truck') smoothNormals(d);
   if (k === 'armored-truck') console.log('  leveled', await levelArmored(`${tex}/${k}_body.jpg`), 'texels');
   for (const m of d.getRoot().listMeshes()) for (const p of m.listPrimitives()) {
