@@ -85,7 +85,7 @@ namespace StreetEmpire.Tests
             foreach (var d in spots)
             {
                 Vector3 p = c + d.normalized * back + Vector3.up * 1.5f;
-                if (!Physics.Linecast(p, c + Vector3.up * 0.6f, out var hit) || hit.collider.transform == t) { yield return p; yield break; }
+                if (!Physics.CheckSphere(p, 0.6f) && (!Physics.Linecast(p, c + Vector3.up * 0.6f, out var hit) || hit.collider.transform == t)) { yield return p; yield break; }
             }
             yield return c + spots[0].normalized * back + Vector3.up * 1.5f;
         }
