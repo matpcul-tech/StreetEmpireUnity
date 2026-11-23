@@ -47,6 +47,9 @@ namespace StreetEmpire.EditorTools
                         m.SetColor("_BaseColor", Color.white); m.SetFloat("_Smoothness", 0.6f);
                         m.SetTexture("_EmissionMap", t); m.SetColor("_EmissionColor", new Color(0.22f, 0.22f, 0.22f));
                         m.EnableKeyword("_EMISSION"); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                        // no sky reflection on the glass: on the phone it showed as gray blotches on the lowrider and the
+                        // SUV (build 14652fa). The map already carries the look of a reflected sky.
+                        m.SetFloat("_EnvironmentReflections", 0f); m.EnableKeyword("_ENVIRONMENTREFLECTIONS_OFF");
                     }
                     if (part == "decal")
                     {
