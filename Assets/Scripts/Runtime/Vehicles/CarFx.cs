@@ -16,8 +16,8 @@ namespace StreetEmpire.Vehicles
         public bool Smoking => smoke != null && smoke.emission.enabled;
 
         CarController car; BoxCollider box; DayCycle day;
-        GameObject[] heads, tails; Light beam; ParticleSystem smoke, fire; bool charred;
-        static Material headMat, tailMat, brakeMat; static Mesh quad;
+        GameObject[] heads, tails; GameObject pool; Light beam; ParticleSystem smoke, fire; bool charred;
+        static Material headMat, tailMat, brakeMat, poolMat; static Mesh quad;
 
         void Start()
         {
@@ -28,23 +28,55 @@ namespace StreetEmpire.Vehicles
         // lamps sit on the ends of the body box, a little in from its sides
         bool Build()
         {
-            var fx = CombatFx.Instance; if (fx == null || fx.particleMat == null) return false;
-            if (headMat == null)
-            {
-                headMat = Glow(fx.particleMat, new Color(1f, 0.95f, 0.8f, 0.95f) * 1.6f);
-                tailMat = Glow(fx.particleMat, new Color(1f, 0.08f, 0.05f, 0.55f));
-                brakeMat = Glow(fx.particleMat, new Color(1f, 0.1f, 0.06f, 1f) * 2.2f);
-                quad = Quad();
-            }
+            if (!Shared()) return false;
             Vector3 c = box.center, s = box.size; float bottom = c.y - s.y * 0.5f, y = bottom + Mathf.Clamp(s.y * 0.42f, 0.55f, 0.95f), x = s.x * 0.33f;
             float front = c.z + s.z * 0.5f + 0.03f, back = c.z - s.z * 0.5f - 0.03f;
-            heads = new[] { Lamp("Headlamp L", new Vector3(c.x - x, y, front), 0.5f, headMat, false), Lamp("Headlamp R", new Vector3(c.x + x, y, front), 0.5f, headMat, false) };
-            tails = new[] { Lamp("Tail lamp L", new Vector3(c.x - x, y + 0.08f, back), 0.38f, tailMat, true), Lamp("Tail lamp R", new Vector3(c.x + x, y + 0.08f, back), 0.38f, tailMat, true) };
+            heads = new[] { Lamp(transform, "Headlamp L", new Vector3(c.x - x, y, front), 0.5f, headMat, false), Lamp(transform, "Headlamp R", new Vector3(c.x + x, y, front), 0.5f, headMat, false) };
+            tails = new[] { Lamp(transform, "Tail lamp L", new Vector3(c.x - x, y + 0.08f, back), 0.38f, tailMat, true), Lamp(transform, "Tail lamp R", new Vector3(c.x + x, y + 0.08f, back), 0.38f, tailMat, true) };
+            pool = Pool(transform, c, s);
             var b = new GameObject("Headlight beam"); b.transform.SetParent(transform, false);
             b.transform.localPosition = new Vector3(c.x, y + 0.1f, front); b.transform.localRotation = Quaternion.Euler(9f, 0f, 0f);
             beam = b.AddComponent<Light>(); beam.type = LightType.Spot; beam.range = 26f; beam.spotAngle = 72f; beam.innerSpotAngle = 38f;
             beam.color = new Color(1f, 0.95f, 0.82f); beam.intensity = 9f; beam.shadows = LightShadows.None; beam.enabled = false;
             return true;
+        }
+
+        /// <summary>The lamp materials and quad every car shares; false until CombatFx is up.</summary>
+        static bool Shared()
+        {
+            if (headMat != null) return true;
+            var fx = CombatFx.Instance; if (fx == null || fx.particleMat == null) return false;
+            headMat = Glow(fx.particleMat, new Color(1f, 0.95f, 0.8f, 0.95f) * 1.6f);
+            tailMat = Glow(fx.particleMat, new Color(1f, 0.08f, 0.05f, 0.55f));
+            brakeMat = Glow(fx.particleMat, new Color(1f, 0.1f, 0.06f, 1f) * 2.2f);
+            poolMat = Glow(fx.particleMat, new Color(1f, 0.93f, 0.75f, 0.2f));
+            quad = Quad();
+            return true;
+        }
+
+        /// <summary>A soft patch of light lying on the road ahead of the car: the headlights of every car that has
+        /// no real beam (a real light per car is too dear on a phone).</summary>
+        static GameObject Pool(Transform parent, Vector3 c, Vector3 s)
+        {
+            var go = Lamp(parent, "Headlight pool", new Vector3(c.x, c.y - s.y * 0.5f + 0.06f, c.z + s.z * 0.5f + 3.3f), 1f, poolMat, false);
+            go.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f); go.transform.localScale = new Vector3(s.x * 2.3f, 6.4f, 1f);
+            return go;
+        }
+
+        /// <summary>Head and tail glows and a road pool for a car with no CarController (traffic, job cars), under
+        /// one object that CarLamps switches with the night. Null until CombatFx is up.</summary>
+        public static GameObject StreetLamps(Transform car, BoxCollider box)
+        {
+            if (car == null || box == null || !Shared()) return null;
+            var root = new GameObject("Lamps"); root.transform.SetParent(car, false);
+            Vector3 c = box.center, s = box.size; float bottom = c.y - s.y * 0.5f, y = bottom + Mathf.Clamp(s.y * 0.42f, 0.55f, 0.95f), x = s.x * 0.33f;
+            float front = c.z + s.z * 0.5f + 0.03f, back = c.z - s.z * 0.5f - 0.03f;
+            Lamp(root.transform, "Headlamp L", new Vector3(c.x - x, y, front), 0.5f, headMat, false).SetActive(true);
+            Lamp(root.transform, "Headlamp R", new Vector3(c.x + x, y, front), 0.5f, headMat, false).SetActive(true);
+            Lamp(root.transform, "Tail lamp L", new Vector3(c.x - x, y + 0.08f, back), 0.38f, tailMat, true).SetActive(true);
+            Lamp(root.transform, "Tail lamp R", new Vector3(c.x + x, y + 0.08f, back), 0.38f, tailMat, true).SetActive(true);
+            Pool(root.transform, c, s).SetActive(true);
+            return root;
         }
 
         static Material Glow(Material from, Color c) { var m = new Material(from) { name = "Car lamp" }; m.SetColor("_BaseColor", c); return m; }
@@ -57,9 +89,9 @@ namespace StreetEmpire.Vehicles
             m.triangles = new[] { 0, 2, 1, 0, 3, 2 }; m.RecalculateBounds(); return m;
         }
 
-        GameObject Lamp(string name, Vector3 at, float size, Material mat, bool rear)
+        static GameObject Lamp(Transform parent, string name, Vector3 at, float size, Material mat, bool rear)
         {
-            var go = new GameObject(name); go.transform.SetParent(transform, false);
+            var go = new GameObject(name); go.transform.SetParent(parent, false);
             go.transform.localPosition = at; go.transform.localRotation = Quaternion.Euler(0f, rear ? 180f : 0f, 0f); go.transform.localScale = Vector3.one * size;
             go.AddComponent<MeshFilter>().sharedMesh = quad;
             var r = go.AddComponent<MeshRenderer>(); r.sharedMaterial = mat; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; r.receiveShadows = false;
@@ -76,6 +108,7 @@ namespace StreetEmpire.Vehicles
             foreach (var h in heads) if (h.activeSelf != HeadlightsOn) h.SetActive(HeadlightsOn);
             // one real beam, for the car the player drives: lights are dear on a phone
             bool beamOn = HeadlightsOn && car.hasDriver; if (beam.enabled != beamOn) beam.enabled = beamOn;
+            bool poolOn = HeadlightsOn && !beamOn; if (pool != null && pool.activeSelf != poolOn) pool.SetActive(poolOn);
             bool tailOn = engine && (dark || car.Braking);
             foreach (var t in tails)
             {
@@ -100,7 +133,7 @@ namespace StreetEmpire.Vehicles
             var fe = fire.emission; fe.enabled = true; fe.rateOverTime = 14f;
             // the body chars
             var block = new MaterialPropertyBlock(); block.SetColor("_BaseColor", new Color(0.22f, 0.2f, 0.19f));
-            foreach (var r in GetComponentsInChildren<MeshRenderer>()) if (r.GetComponent<ParticleSystem>() == null && !r.name.Contains("lamp")) r.SetPropertyBlock(block);
+            foreach (var r in GetComponentsInChildren<MeshRenderer>()) if (r.GetComponent<ParticleSystem>() == null && !r.name.Contains("lamp") && !r.name.Contains("pool")) r.SetPropertyBlock(block);
         }
 
         ParticleSystem Puffs(string name, Vector3 at, float life, float size, float rise)

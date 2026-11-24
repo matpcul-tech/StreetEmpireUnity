@@ -24,6 +24,7 @@ namespace StreetEmpire.EditorTools
         public const string HighPath = "Assets/Settings/URP-High.asset";
         public const string HighRendererPath = "Assets/Settings/URP-High-Renderer.asset";
         public const string VolumePath = "Assets/Settings/Eastside-Post.asset";
+        public const string NightVolumePath = "Assets/Settings/Eastside-Night.asset";
 
         public static UniversalRenderPipelineAsset Ultra => AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(UltraPath);
         public static UniversalRenderPipelineAsset High => AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(HighPath);
@@ -178,6 +179,27 @@ namespace StreetEmpire.EditorTools
             split.balance.Override(-10f);
             var lift = Add<LiftGammaGain>(); lift.lift.Override(new Vector4(1f, 0.96f, 0.92f, 0.015f)); lift.gain.Override(new Vector4(1.02f, 1f, 0.95f, 0f));
             var vig = Add<Vignette>(); vig.intensity.Override(0.36f); vig.smoothness.Override(0.55f); vig.color.Override(new Color(0.12f, 0.06f, 0.03f));
+            EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssets();
+            return profile;
+        }
+
+        /// <summary>Night look: what the night adds on top of PostProfile, blended in by NightLook with the clock.
+        /// More bloom from a lower threshold (lamps, signs, headlights and windows halo), deeper color, cool blue
+        /// shadows under warm lights, a darker cooler vignette.</summary>
+        public static VolumeProfile NightProfile()
+        {
+            if (AssetDatabase.LoadAssetAtPath<VolumeProfile>(NightVolumePath) != null) AssetDatabase.DeleteAsset(NightVolumePath);
+            var profile = ScriptableObject.CreateInstance<VolumeProfile>();
+            AssetDatabase.CreateAsset(profile, NightVolumePath);
+            T Add<T>() where T : VolumeComponent { var c = profile.Add<T>(true); c.name = typeof(T).Name; AssetDatabase.AddObjectToAsset(c, profile); return c; }
+            var bloom = Add<Bloom>(); bloom.threshold.Override(0.8f); bloom.intensity.Override(0.9f); bloom.scatter.Override(0.72f);
+            bloom.tint.Override(new Color(1f, 0.95f, 0.95f));
+            var grade = Add<ColorAdjustments>(); grade.postExposure.Override(0.15f); grade.contrast.Override(24f); grade.saturation.Override(24f);
+            var wb = Add<WhiteBalance>(); wb.temperature.Override(-4f); wb.tint.Override(3f);
+            var split = Add<SplitToning>(); split.highlights.Override(new Color(1f, 0.86f, 0.75f)); split.shadows.Override(new Color(0.42f, 0.42f, 0.62f));
+            split.balance.Override(-20f);
+            var vig = Add<Vignette>(); vig.intensity.Override(0.42f); vig.smoothness.Override(0.55f); vig.color.Override(new Color(0.03f, 0.03f, 0.08f));
             EditorUtility.SetDirty(profile);
             AssetDatabase.SaveAssets();
             return profile;
