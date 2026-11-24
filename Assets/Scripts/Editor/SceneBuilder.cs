@@ -378,18 +378,19 @@ namespace StreetEmpire.EditorTools
             if (spot.kind == "house" && !landmark) { marker.wash = n % HouseTint.Length; if (!Finished.Contains(name)) Wash(inst, name, HouseTint[marker.wash], HouseWall[marker.wash % HouseWall.Length]); }
             // v75j: no lettered board over the pawn shop's own sign_lit (it covered it and glowed itself)
             if (name == "store-pawn") StorefrontLight(inst, holder);
-            if (name == "store-liquor-blank") LiquorSign(inst, holder);
+            if (name == "store-liquor-blank") { LiquorSign(inst, holder); StorefrontLight(inst, holder, new Color(1f, 0.22f, 0.3f)); }
             // v75p: lettered sign_lit boards on the stores already in the game (hung props, no mesh edit)
-            if (name == "store-laundromat") HangBoard(inst, holder, "laundromat-sign", -0.055f, 3.268f, 6.13f, 0.72f);
-            if (name == "store-takeout") HangBoard(inst, holder, "takeout-sign", 0.004f, 4.48f, 6.05f, 0.88f);
-            if (name == "store-check-cashing") HangBoard(inst, holder, "check-cashing-sign", 0.055f, 3.50f, 8.20f, 0.72f);
-            if (name == "store-barber") HangBoard(inst, holder, "barber-sign", -0.114f, 3.522f, 3.85f, 0.45f);
-            if (name == "shop-auto-garage") HangBoard(inst, holder, "auto-sign", -0.085f, 3.885f, 9.85f, 0.66f);
+            if (name == "store-laundromat") { HangBoard(inst, holder, "laundromat-sign", -0.055f, 3.268f, 6.13f, 0.72f); StorefrontLight(inst, holder, new Color(0.25f, 0.75f, 1f)); }
+            if (name == "store-takeout") { HangBoard(inst, holder, "takeout-sign", 0.004f, 4.48f, 6.05f, 0.88f); StorefrontLight(inst, holder, new Color(1f, 0.35f, 0.15f)); }
+            if (name == "store-check-cashing") { HangBoard(inst, holder, "check-cashing-sign", 0.055f, 3.50f, 8.20f, 0.72f); StorefrontLight(inst, holder, new Color(0.3f, 1f, 0.45f)); }
+            if (name == "store-barber") { HangBoard(inst, holder, "barber-sign", -0.114f, 3.522f, 3.85f, 0.45f); StorefrontLight(inst, holder, new Color(0.85f, 0.9f, 1f)); }
+            if (name == "shop-auto-garage") { HangBoard(inst, holder, "auto-sign", -0.085f, 3.885f, 9.85f, 0.66f); StorefrontLight(inst, holder, new Color(1f, 0.7f, 0.2f)); }
             if (name == "shop-gas-station")
             {
                 // v75q: hang GAS FOOD on the canopy's street fascia, not the recessed kiosk band
                 HangBoard(inst, holder, "gas-store-sign", 0f, 4.68f, 5.60f, 0.78f);
                 HangTotem(inst, holder, "gas-price-sign", 0.90f, 2.20f);
+                StorefrontLight(inst, holder, new Color(0.9f, 0.95f, 1f));
             }
             var near = inst.GetComponentsInChildren<Renderer>();
             foreach (var r in near) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
@@ -526,13 +527,13 @@ namespace StreetEmpire.EditorTools
 
         /// <summary>v75e: a warm spill in front of the pawn shop's lit storefront (Matthew: the front read black at
         /// 22:00). A small point light 1.3 m out from the glass, on the night ramp only (DayCycle.nightLights).</summary>
-        static void StorefrontLight(GameObject inst, GameObject holder)
+        static void StorefrontLight(GameObject inst, GameObject holder, Color? tint = null)
         {
             var b = WorldBounds(inst);
             var l = new GameObject("Storefront Light").AddComponent<Light>();
             l.transform.SetParent(holder.transform, false);
             l.transform.position = new Vector3(b.center.x, 2.1f, b.max.z + 1.3f);
-            l.type = LightType.Point; l.color = new Color(1f, 0.72f, 0.45f); l.range = 6.5f; l.intensity = 0f;
+            l.type = LightType.Point; l.color = tint ?? new Color(1f, 0.72f, 0.45f); l.range = tint.HasValue ? 8f : 6.5f; l.intensity = 0f;
             l.shadows = LightShadows.None; l.renderMode = LightRenderMode.ForcePixel; l.enabled = false;
         }
 
@@ -691,6 +692,15 @@ namespace StreetEmpire.EditorTools
                 data.renderShadows = true;
                 cam.allowHDR = true; cam.allowMSAA = true;
             }
+            // night look: a second global volume on top (more bloom, deeper color, cool shadows) that NightLook fades
+            // in with the night, and the road's sheen with it
+            var nv = new GameObject("Night Volume"); nv.transform.SetParent(root, false);
+            var night = nv.AddComponent<Volume>(); night.isGlobal = true; night.priority = 1; night.weight = 0f; night.sharedProfile = GraphicsSetup.NightProfile();
+            var look = nv.AddComponent<StreetEmpire.City.NightLook>(); look.night = night;
+            look.cycle = Object.FindFirstObjectByType<StreetEmpire.City.DayCycle>();
+            var tiles = GameObject.Find("Ground Tiles");
+            look.road = tiles == null ? null : tiles.GetComponentInChildren<MeshRenderer>()?.sharedMaterial;
+            if (look.road == null) Debug.LogWarning("[SceneBuilder] night look: no road material");
             var gq = new GameObject("Graphics Quality").AddComponent<StreetEmpire.UI.GraphicsQuality>();
             gq.transform.SetParent(root, false);
             gq.ultra = GraphicsSetup.Ultra; gq.high = GraphicsSetup.High;

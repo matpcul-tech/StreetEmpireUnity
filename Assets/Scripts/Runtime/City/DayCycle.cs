@@ -30,6 +30,10 @@ namespace StreetEmpire.City
         /// <summary>v75e: small warm spills in front of lit storefronts (the pawn shop), on the window ramp only.</summary>
         public Light[] nightLights = new Light[0];
         public const float StorefrontIntensity = 2.6f;
+        /// <summary>Night look: every signed store has a spill now, so only the nearest few to the camera are lit
+        /// (URP's visible light cap, shared with the street lamps).</summary>
+        public const int MaxStorefronts = 3;
+        float nextStore; bool storeOn; int[] storeOrder = new int[0]; float[] storeDist = new float[0];
         /// <summary>v75e: wall materials whose base color goes down with the night (the white house's stucco), to
         /// NightDim of the day color at full night.</summary>
         public Material[] nightDimMaterials = new Material[0];
@@ -83,7 +87,8 @@ namespace StreetEmpire.City
         {
             Key K(float h, float sunI, Color sunC, Color sky, Color eq, Color gr, Vector3 w, float exp, float moonI, float lamps, float skyline, float refl, float fillI, float fs, float fe)
                 => new Key { h = h, sunI = sunI, sunC = sunC, aSky = sky, aEq = eq, aGround = gr, w = w, exposure = exp, moonI = moonI, lamps = lamps, skyline = skyline, refl = refl, fill = fillI, fogStart = fs, fogEnd = fe };
-            Color nSky = new(0.13f, 0.15f, 0.22f), nEq = new(0.10f, 0.11f, 0.15f), nGr = new(0.08f, 0.07f, 0.07f);
+            // night look: the night ambient a step up and bluer, so cars and people between lamps keep their shape
+            Color nSky = new(0.16f, 0.18f, 0.29f), nEq = new(0.13f, 0.135f, 0.20f), nGr = new(0.10f, 0.085f, 0.10f);
             Color bSky = new(0.22f, 0.26f, 0.38f), bEq = new(0.17f, 0.18f, 0.25f), bGr = new(0.12f, 0.10f, 0.10f);
             Color dSky = new(0.60f, 0.68f, 0.85f), dEq = new(0.58f, 0.60f, 0.62f), dGr = new(0.38f, 0.35f, 0.31f);
             Color daySun = new(1f, 0.96f, 0.90f), lateSun = new(1f, 0.87f, 0.70f);
@@ -176,7 +181,20 @@ namespace StreetEmpire.City
             if (dimBase == null || dimBase.Length != nightDimMaterials.Length) { dimBase = new Color[nightDimMaterials.Length]; for (int k = 0; k < dimBase.Length; k++) dimBase[k] = nightDimMaterials[k] ? nightDimMaterials[k].GetColor("_BaseColor") : Color.white; }
             float dim = Mathf.Lerp(1f, NightDim, Mathf.Max(Night, glow * 0.8f));
             if (Mathf.Abs(dim - lastDim) > 0.005f) { lastDim = dim; for (int k = 0; k < nightDimMaterials.Length; k++) if (nightDimMaterials[k]) { var c = dimBase[k] * dim; c.a = dimBase[k].a; nightDimMaterials[k].SetColor("_BaseColor", c); } }
-            foreach (var l in nightLights) if (l) { l.intensity = StorefrontIntensity * glow; l.enabled = glow > 0.01f; }
+            if (glow <= 0.01f) { if (storeOn) { storeOn = false; foreach (var l in nightLights) if (l) l.enabled = false; } }
+            else
+            {
+                foreach (var l in nightLights) if (l) l.intensity = StorefrontIntensity * glow;
+                if (!storeOn || Time.unscaledTime >= nextStore)
+                {
+                    storeOn = true; nextStore = Time.unscaledTime + 0.3f;
+                    var cam = Camera.main; var at = cam ? cam.transform.position : Vector3.zero;
+                    if (storeOrder.Length != nightLights.Length) { storeOrder = new int[nightLights.Length]; storeDist = new float[nightLights.Length]; }
+                    for (int k = 0; k < nightLights.Length; k++) { storeOrder[k] = k; storeDist[k] = nightLights[k] ? (nightLights[k].transform.position - at).sqrMagnitude : float.MaxValue; }
+                    System.Array.Sort(storeDist, storeOrder);
+                    for (int k = 0; k < storeOrder.Length; k++) { var l = nightLights[storeOrder[k]]; if (l) l.enabled = k < MaxStorefronts; }
+                }
+            }
             if (Mathf.Abs(glow + sky2 * 2f - lastGlow) > 0.01f || (glow == 0f) != (lastGlow == 0f))
             {
                 lastGlow = glow + sky2 * 2f;

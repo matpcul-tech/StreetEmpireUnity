@@ -56,6 +56,7 @@ namespace StreetEmpire.Game
                 box.center = new Vector3(0, 0.75f, 0); box.size = new Vector3(1.8f, 1.4f, 4.4f);
             }
             var car = go.AddComponent<JobCar>(); car.speed = speed;
+            go.AddComponent<StreetEmpire.Vehicles.CarLamps>();
             float nx = Nearest(s.streetX, at.x), nz = Nearest(s.streetZ, at.z);
             car.alongZ = Mathf.Abs(at.x - nx) <= Mathf.Abs(at.z - nz);
             car.line = car.alongZ ? nx : nz; car.along = car.alongZ ? at.z : at.x;

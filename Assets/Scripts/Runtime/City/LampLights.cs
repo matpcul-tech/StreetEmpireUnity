@@ -16,7 +16,7 @@ namespace StreetEmpire.City
         public Light[] lights = new Light[0];
         public DayCycle cycle;
         public float intensity = 45f;   // v75b raised 34 to 80 for faint pools; v75c: the faint pools were per vertex lighting (GraphicsSetup), 45 per pixel
-        public int maxOn = 12;
+        public int maxOn = 11;   // night look: one fewer, the storefront spills share the cap
         /// <summary>The street lamp globe material (PropBuilder); a run-time copy glows with the lamp level.</summary>
         public Material globe;
         public PropInstancer instancer;
