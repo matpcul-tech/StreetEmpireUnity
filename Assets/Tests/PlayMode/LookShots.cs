@@ -76,6 +76,29 @@ namespace StreetEmpire.Tests
                     }
                 }
             }
+            // the neon at night: the first few different signs, from the street in front of each
+            var seen = new System.Collections.Generic.HashSet<string>();
+            foreach (var sign in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None).Where(r => r.name.StartsWith("Neon ")).OrderBy(r => r.name))
+            {
+                if (seen.Count >= 6 || !seen.Add(sign.name)) continue;
+                var st = sign.transform; Vector3 at = st.position;
+                foreach (float back in new[] { 16f, 24f })
+                {
+                    Vector3 p = at + st.forward * back; p.y = 1.7f;
+                    cam.transform.position = p; cam.transform.LookAt(Vector3.Lerp(at, new Vector3(at.x, 2f, at.z), 0.45f));
+                    yield return null;
+                    var snap = cam.gameObject.AddComponent<LateSnap>(); snap.cam = cam; snap.rt = rt;
+                    while (!snap.done) yield return null;
+                    Object.Destroy(snap);
+                    var prev = RenderTexture.active; RenderTexture.active = rt;
+                    tex.ReadPixels(new Rect(0, 0, 640, 360), 0, 0); tex.Apply(); RenderTexture.active = prev;
+                    string b64 = System.Convert.ToBase64String(tex.EncodeToJPG(72));
+                    int parts = (b64.Length + 5999) / 6000;
+                    for (int i = 0; i < parts; i++)
+                        Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, "[LookShot] neon-{0}-{1}m {2}/{3} {4}", sign.name.Substring(5), back, i + 1, parts, b64.Substring(i * 6000, Mathf.Min(6000, b64.Length - i * 6000)));
+                    shots++;
+                }
+            }
             GameClock.Frozen = wasFrozen; GameClock.FrozenHour = wasHour; BuildingCuller.On = true;
             Object.Destroy(rt); Object.Destroy(tex);
             Assert.Greater(shots, 8, "frames of parked cars");

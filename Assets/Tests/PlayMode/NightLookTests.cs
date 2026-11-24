@@ -27,15 +27,23 @@ namespace StreetEmpire.Tests
             var cycle = Object.FindFirstObjectByType<DayCycle>();
             Assert.Greater(cycle.nightLights.Length, DayCycle.MaxStorefronts, "a spill for every signed store");
 
+            var neon = Object.FindFirstObjectByType<NeonGlow>(); Assert.IsNotNull(neon, "the neon glow");
+            Assert.IsNotNull(neon.steady, "the neon material"); Assert.IsNotNull(neon.steady.GetTexture("_BaseMap"), "the neon atlas");
+            var signs = Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(r => r.name.StartsWith("Neon ")).ToArray();
+            Assert.GreaterOrEqual(signs.Length, 14, "neon on the towers, clubs, stores and apartments");
+            Assert.IsTrue(signs.Any(r => r.name == "Neon CalderGrand"), "the Calder Grand's sign");
+
             GameClock.Frozen = true; GameClock.FrozenHour = 14f;
             for (int i = 0; i < 5; i++) yield return null;
             float daySheen = look.road.GetFloat("_Smoothness");
             Assert.AreEqual(0f, look.Level, 1e-3f, "no night look at 14:00"); Assert.AreEqual(0f, look.Weight, 1e-3f);
             Assert.AreEqual(0, cycle.nightLights.Count(l => l != null && l.enabled), "storefront spills off by day");
+            Assert.Less(neon.Level, 0.2f, "neon barely lit by day");
 
             GameClock.FrozenHour = 22f;
             yield return new WaitForSeconds(9f);
             Assert.Greater(look.Weight, 0.95f, "the night volume is in at 22:00");
+            Assert.Greater(neon.Level, 1.5f, "neon full at night"); Assert.Greater(neon.steady.GetColor("_BaseColor").maxColorComponent, 1.5f, "bright enough to bloom");
             Assert.Greater(look.road.GetFloat("_Smoothness"), daySheen + 0.2f, "the road takes a sheen at night");
             int lit = cycle.nightLights.Count(l => l != null && l.enabled);
             Assert.That(lit, Is.InRange(1, DayCycle.MaxStorefronts), "only the nearest storefront spills are lit");
