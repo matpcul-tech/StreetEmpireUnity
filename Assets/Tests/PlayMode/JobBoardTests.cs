@@ -46,7 +46,8 @@ namespace StreetEmpire.Tests
             }
             Assert.AreEqual(MissionRunner.State.ReturnBag, runner.Stage, "every drop picked up");
             player.Teleport(runner.giver.position + runner.giver.forward * 2f, 0); yield return new WaitForSeconds(0.25f);
-            Assert.AreEqual(1, board.Done, "back to Unc"); Assert.AreEqual(cash0 + 200, s.cash, 0.01f);
+            Assert.AreEqual(1, board.Done, "back to Unc"); // the home block earns a little while the job runs, so the reward is a floor
+            Assert.That(s.cash - cash0, Is.InRange(200f, 230f), "the reward from jobs.json");
             StringAssert.Contains("Job done: Corner Collection", s.Message);
             Assert.AreEqual("Chop Job", board.Current.title, "the next job is on offer");
 
