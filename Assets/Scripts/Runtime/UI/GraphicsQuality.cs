@@ -15,7 +15,13 @@ namespace StreetEmpire.UI
         public const int High = 0, Ultra = 1;
         public static int Tier { get; private set; } = Ultra;
 
-        void Awake() => Apply(PlayerPrefs.GetInt(Key, Ultra));
+        void Awake()
+        {
+            // a phone build runs at 30 frames a second unless told otherwise (Unity's default on Android and iOS);
+            // the HUD read a flat 30 on build dc46ea1. Ask for 60 and let the phone give what it can.
+            QualitySettings.vSyncCount = 0; Application.targetFrameRate = 60;
+            Apply(PlayerPrefs.GetInt(Key, Ultra));
+        }
 
         public void Toggle() => Apply(Tier == Ultra ? High : Ultra);
 
