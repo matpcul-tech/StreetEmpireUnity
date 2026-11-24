@@ -57,8 +57,11 @@ namespace StreetEmpire.Tests
             Assert.Greater(Flat(runner.giver.position, board.contactNodes[0].position), 30f, "Dee is not at Unc's");
             board.scriptTalk = true; yield return null; yield return null;
             Assert.IsNotNull(board.Mark, "a marked car to follow");
-            Vector3 was = board.Mark.Position; yield return new WaitForSeconds(1f);
-            Assert.Greater(Vector3.Distance(was, board.Mark.Position), 3f, "it drives");
+            // the road it covers, not how far it ends from where it began: it may turn back at the edge of town or
+            // take a corner inside the second (main's build c59a8ab caught it 1.8 m from its start)
+            Vector3 was = board.Mark.Position; float driven = 0f;
+            for (float t = 0f; t < 1f; t += Time.deltaTime) { yield return null; driven += Vector3.Distance(was, board.Mark.Position); was = board.Mark.Position; }
+            Assert.Greater(driven, 3f, "it drives");
 
             // Rook: lose the police
             board.SkipTo(12); yield return null; board.scriptTalk = true; yield return null; yield return null;
