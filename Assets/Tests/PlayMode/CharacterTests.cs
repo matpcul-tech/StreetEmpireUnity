@@ -134,7 +134,8 @@ namespace StreetEmpire.Tests
                 }
             }
             foreach (var b in bs)
-                foreach (var m in b.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials))
+                // the neon signs hung on a building are unlit tubes with no metallic value at all; the walls are what is checked
+                foreach (var m in b.GetComponentsInChildren<Renderer>().Where(r => !r.name.StartsWith("Neon ")).SelectMany(r => r.sharedMaterials))
                     Assert.AreEqual(0f, m.GetFloat("_Metallic"), 1e-4f, $"{b.model} is not metallic");
             // v75i (Matthew): no LODs or simplified meshes for the Sovereign Asset buildings, the finished file at every distance
             Assert.IsTrue(bs.All(b => b.GetComponent<LODGroup>() == null && b.transform.Find("Far") == null && b.transform.Find("Low") == null && b.transform.Find("Shadow") == null), "buildings draw their finished mesh at every distance");

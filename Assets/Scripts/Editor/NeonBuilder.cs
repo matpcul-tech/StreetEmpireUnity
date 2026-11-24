@@ -61,7 +61,8 @@ namespace StreetEmpire.EditorTools
                     : name == "tower-copper-mansard" ? (Wide.HarborRoom, Tall.Jazz) : (Wide.Nightowl, Tall.Bar);
                 float width = Mathf.Min(b.size.x * 0.8f, 11f);
                 NeonFace(inst, holder, (int)w, false, 0f, 5.6f, width, width / 4f, true);
-                NeonFace(inst, holder, (int)t, true, edge, 12f, 3.2f, 6.4f, false);
+                // the blade low and in from the corner: the towers step back above their base
+                NeonFace(inst, holder, (int)t, true, b.extents.x * 0.5f, 10.5f, 2.6f, 5.2f, false);
             }
             else if (name == "job-pool-hall") NeonFace(inst, holder, (int)Wide.PoolHall, false, 0f, Mathf.Min(b.size.y - 0.9f, 4.4f), Mathf.Min(b.size.x * 0.6f, 7f), Mathf.Min(b.size.x * 0.6f, 7f) / 4f, true);
             else if (name == "job-car-wash") NeonRoof(inst, holder, (int)Wide.CarWash, Mathf.Min(b.size.x * 0.6f, 7f));
@@ -116,7 +117,8 @@ namespace StreetEmpire.EditorTools
             else { u0 = (cell % 2) * 0.5f; u1 = u0 + 0.5f; v1 = 1f - (cell / 2) * 0.125f; v0 = v1 - 0.125f; }
             var m = new Mesh { name = $"Neon cell {key}" };
             m.vertices = new[] { new Vector3(-0.5f, -0.5f, 0), new Vector3(0.5f, -0.5f, 0), new Vector3(0.5f, 0.5f, 0), new Vector3(-0.5f, 0.5f, 0) };
-            m.uv = new[] { new Vector2(u0, v0), new Vector2(u1, v0), new Vector2(u1, v1), new Vector2(u0, v1) };
+            // read from the street (looking back along -Z), the quad's +X is on the left, so U runs the other way
+            m.uv = new[] { new Vector2(u1, v0), new Vector2(u0, v0), new Vector2(u0, v1), new Vector2(u1, v1) };
             m.triangles = new[] { 0, 2, 1, 0, 3, 2 }; m.RecalculateBounds();
             m = MeshMerge.Save(m, $"Assets/Art/Meshes/Neon/Neon-{key}.asset", compress: false);
             neonMeshes[key] = m; return m;
