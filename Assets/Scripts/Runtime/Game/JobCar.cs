@@ -2,6 +2,7 @@
 // ("Repo"). It keeps to the street center lines the session knows (a lane to the right of the line), turns at some
 // crossings and turns round at the edge of town. No physics: it is a marked car to follow or ram, and the player's
 // car treats it as solid (CarController).
+using System.Linq;
 using StreetEmpire.City;
 using UnityEngine;
 
@@ -13,16 +14,23 @@ namespace StreetEmpire.Game
         public bool stopped;
         public Vector3 Position => alongZ ? new Vector3(line, 0, along) : new Vector3(along, 0, line);
 
-        bool alongZ; int dir = 1; float line, along, slow;
-        const float Lane = 2.2f;
+        /// <summary>Traffic (TrafficFlow) keeps the rules of the road; a job's marked car does not.</summary>
+        public bool obeyLights;
+        public float Speed => v;
+        public static readonly System.Collections.Generic.List<JobCar> All = new();
+
+        bool alongZ; int dir = 1; float line, along, slow, v, signAt = float.NaN, signT, waitT, pushT;
+        const float Lane = 2.2f, StopNear = 11.5f, StopFar = 14.5f;
+        static TrafficSignalCycle lights;
 
         /// <summary>A marked car on the street nearest to a point, wearing a parked sedan's body.</summary>
-        public static JobCar Spawn(Vector3 at, float speed)
+        public static JobCar Spawn(Vector3 at, float speed, PropBatch body = null)
         {
             var s = GameSession.Instance; if (s == null || s.streetX == null || s.streetX.Length == 0 || s.streetZ.Length == 0) return null;
             var go = new GameObject("Job car");
             Mesh mesh = null; Material[] mats = null;
-            var inst = Object.FindFirstObjectByType<PropInstancer>();
+            if (body != null && body.lod0 != null) { mesh = body.lod0; mats = body.materials; }
+            var inst = mesh == null ? Object.FindFirstObjectByType<PropInstancer>() : null;
             if (inst != null && inst.batches != null)
             {
                 PropBatch pick = null;
@@ -61,11 +69,22 @@ namespace StreetEmpire.Game
         /// <summary>Rammed: it crawls for a moment.</summary>
         public void Bump() => slow = 1.6f;
 
+        void OnEnable() => All.Add(this);
+        void OnDisable() => All.Remove(this);
+
         void Update()
         {
-            var s = GameSession.Instance; if (s == null || stopped) return;
+            var s = GameSession.Instance; if (s == null) return;
             float dt = Time.deltaTime; if (slow > 0) slow -= dt;
-            float v = speed * (slow > 0 ? 0.3f : 1f);
+            float want = stopped ? 0f : speed * (slow > 0 ? 0.3f : 1f);
+            if (obeyLights)
+            {
+                // traffic waits at lights and stop signs and behind whatever is in its lane, and eases on and off
+                if (!stopped && (Held(s, dt) || Blocked(s, dt))) want = 0f;
+                v = Mathf.MoveTowards(v, want, (want < v ? 14f : 5f) * dt);
+            }
+            else v = want;
+            if (v <= 0.001f) { Place(false); return; }
             var span = alongZ ? s.spanZ : s.spanX; float lo = Mathf.Min(span.x, span.y) + 3f, hi = Mathf.Max(span.x, span.y) - 3f;
             float next = along + dir * v * dt;
             if (next > hi || next < lo) { dir = -dir; next = Mathf.Clamp(next, lo, hi); }
@@ -84,12 +103,43 @@ namespace StreetEmpire.Game
             Place(false);
         }
 
+        /// <summary>Stopped short of the next crossing: a light that is not green for this street, or a stop sign's pause.</summary>
+        bool Held(GameSession s, float dt)
+        {
+            var cross = alongZ ? s.streetZ : s.streetX; var own = alongZ ? s.streetX : s.streetZ;
+            float c = 0f, d = float.MaxValue;
+            foreach (var x in cross) { float dx = (x - along) * dir; if (dx > 0f && dx < d) { d = dx; c = x; } }
+            if (d < StopNear || d > StopFar) return false;
+            // lights hang over the crossings inside the town; the ones round its edge have stop signs (PropBuilder)
+            bool Inner(float[] lines, float val) => Mathf.Abs(val - lines.Min()) > 1f && Mathf.Abs(val - lines.Max()) > 1f;
+            if (lights == null) lights = Object.FindFirstObjectByType<TrafficSignalCycle>();
+            if (lights != null && Inner(cross, c) && Inner(own, line)) return lights.Phase(Time.time) != (alongZ ? 0 : 3);
+            if (!Mathf.Approximately(signAt, c)) { signAt = c; signT = 1.2f; }
+            if (signT > 0f) { signT -= dt; return true; }
+            return false;
+        }
+
+        /// <summary>Something in the lane just ahead: another marked or traffic car, or the player. It will not wait for ever.</summary>
+        bool Blocked(GameSession s, float dt)
+        {
+            if (pushT > 0f) { pushT -= dt; return false; }
+            Vector3 h = alongZ ? new Vector3(0, 0, dir) : new Vector3(dir, 0, 0), right = Vector3.Cross(Vector3.up, h), at = transform.position;
+            bool Ahead(Vector3 q, float reach) { var rel = q - at; float f = Vector3.Dot(rel, h); return f > 0.5f && f < reach && Mathf.Abs(Vector3.Dot(rel, right)) < 2.1f; }
+            bool hit = s.player != null && Ahead(s.player.transform.position, 8f);
+            for (int i = 0; i < All.Count && !hit; i++) if (All[i] != this && Ahead(All[i].transform.position, 9f)) hit = true;
+            if (!hit) { waitT = 0f; return false; }
+            waitT += dt; if (waitT > 6f) { waitT = 0f; pushT = 2.5f; return false; }
+            return true;
+        }
+
         void Place(bool snap)
         {
             // heading, and a lane to the right of the center line
             Vector3 h = alongZ ? new Vector3(0, 0, dir) : new Vector3(dir, 0, 0);
             Vector3 right = Vector3.Cross(Vector3.up, h);
-            transform.position = Position + right * Lane;
+            // the body glides to its lane, so a turn at a crossing is a swing and not a jump
+            var to = Position + right * Lane;
+            transform.position = snap ? to : Vector3.MoveTowards(transform.position, to, Mathf.Max(v, 3f) * 1.8f * Time.deltaTime);
             var want = Quaternion.LookRotation(h);
             transform.rotation = snap ? want : Quaternion.RotateTowards(transform.rotation, want, 240f * Time.deltaTime);
         }
