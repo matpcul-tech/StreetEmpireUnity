@@ -24,6 +24,10 @@ namespace StreetEmpire.Vehicles
 
         public readonly CarState state = new CarState();
         public float Speed => state.v;
+        /// <summary>Slowing with the pedal or the handbrake: the tail lamps brighten (CarFx).</summary>
+        public bool Braking { get; private set; }
+        /// <summary>Out of hp: the engine is dead. Only the player's cars wreck; a cruiser keeps coming.</summary>
+        public bool Wrecked => hp <= 0f && !aiDriven;
 
         BoxCollider box;
         Transform[] wheels;
@@ -37,6 +41,7 @@ namespace StreetEmpire.Vehicles
             state.x = transform.position.x; state.z = transform.position.z; state.yaw = transform.eulerAngles.y * Mathf.Deg2Rad;
             var all = GetComponentsInChildren<Transform>();
             wheels = System.Array.FindAll(all, t => t != transform && Wheel.IsMatch(t.name) && t.GetComponentInChildren<Renderer>() != null);
+            if (GetComponent<CarFx>() == null) gameObject.AddComponent<CarFx>();
         }
 
         void FixedUpdate()
@@ -50,6 +55,8 @@ namespace StreetEmpire.Vehicles
                 throttle = scriptThrottle ?? Throttle(m.y, c.Gas, c.Reverse, PlayerControls.TouchPedals); steer = scriptSteer ?? m.x; hb = scriptHandbrake || c.Sprint;
             }
             else if (aiDriven) { throttle = aiThrottle; steer = aiSteer; }
+            if (Wrecked) throttle = 0f;
+            Braking = hb || (throttle < -0.1f && state.v > 0.5f) || (throttle > 0.1f && state.v < -0.5f);
             CarPhysics.Drive(state, stats, throttle, steer, hb, dt);
             Collide();
             float y = GroundY(new Vector3(state.x, transform.position.y, state.z));

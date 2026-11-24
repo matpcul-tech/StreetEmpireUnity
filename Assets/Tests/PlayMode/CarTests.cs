@@ -12,6 +12,37 @@ namespace StreetEmpire.Tests
     [PrebuildSetup(typeof(SceneSetup))]
     public class CarTests
     {
+        // lights at night while someone drives, tail lamps under braking, smoke and a dead engine when wrecked
+        [UnityTest]
+        public IEnumerator CarsHaveLightsAndDamage()
+        {
+            StreetEmpire.Game.MuggerOpening.AutoStart = false; SceneManager.LoadScene("Eastside");
+            yield return null; yield return null;
+            bool wasFrozen = StreetEmpire.Game.GameClock.Frozen; float wasHour = StreetEmpire.Game.GameClock.FrozenHour;
+            StreetEmpire.Game.GameClock.Frozen = true; StreetEmpire.Game.GameClock.FrozenHour = 23f;
+            CarController sedan = null; foreach (var c in Object.FindObjectsByType<CarController>(FindObjectsSortMode.None)) if (c.name == "Sedan") sedan = c;
+            Assert.IsNotNull(sedan, "the sedan");
+            var fx = sedan.GetComponent<CarFx>(); Assert.IsNotNull(fx, "every car has lights and damage");
+            for (int i = 0; i < 5; i++) yield return null;
+            Assert.IsFalse(fx.HeadlightsOn, "a parked car is dark");
+            sedan.hasDriver = true; sedan.scriptThrottle = 0f; sedan.scriptSteer = 0f;
+            for (int i = 0; i < 5; i++) yield return null;
+            Assert.IsTrue(fx.HeadlightsOn, "headlights at night while someone drives");
+            Assert.IsNotNull(sedan.transform.Find("Headlamp L"), "headlamps"); Assert.IsNotNull(sedan.transform.Find("Tail lamp L"), "tail lamps");
+            Assert.IsTrue(sedan.transform.Find("Tail lamp L").gameObject.activeSelf, "tail lamps at night");
+            StreetEmpire.Game.GameClock.FrozenHour = 13f;
+            for (int i = 0; i < 5; i++) yield return null;
+            Assert.IsFalse(fx.HeadlightsOn, "no headlights at midday");
+            Assert.IsFalse(fx.Smoking, "a sound car does not smoke");
+            sedan.hp = 0f; Vector3 at = sedan.transform.position; sedan.scriptThrottle = 1f;
+            for (int i = 0; i < 60; i++) yield return new WaitForFixedUpdate();
+            yield return null;
+            Assert.IsTrue(sedan.Wrecked, "out of hp"); Assert.IsTrue(fx.Smoking, "a wreck smokes");
+            Assert.Less(Vector3.Distance(sedan.transform.position, at), 0.5f, "a wreck does not drive");
+            sedan.hasDriver = false; sedan.scriptThrottle = null; sedan.scriptSteer = null;
+            StreetEmpire.Game.GameClock.Frozen = wasFrozen; StreetEmpire.Game.GameClock.FrozenHour = wasHour;
+        }
+
         // every parked vehicle can be taken: its drawn copy leaves the instancer and the same body drives
         [UnityTest]
         public IEnumerator ParkedVehiclesCanBeDriven()
