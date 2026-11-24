@@ -23,19 +23,19 @@ namespace StreetEmpire.Tests
             Time.timeScale = 1f; MuggerOpening.AutoStart = false; TrafficFlow.AutoStart = true; SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
             var look = Object.FindFirstObjectByType<NightLook>(); Assert.IsNotNull(look, "the night look");
-            Assert.IsNotNull(look.night, "its post volume"); Assert.IsNotNull(look.night.sharedProfile, "the night profile"); Assert.IsNotNull(look.road, "the road material");
+            Assert.IsTrue(look.Ready, "its post volume and night profile"); Assert.IsNotNull(look.road, "the road material");
             var cycle = Object.FindFirstObjectByType<DayCycle>();
             Assert.Greater(cycle.nightLights.Length, DayCycle.MaxStorefronts, "a spill for every signed store");
 
             GameClock.Frozen = true; GameClock.FrozenHour = 14f;
             for (int i = 0; i < 5; i++) yield return null;
             float daySheen = look.road.GetFloat("_Smoothness");
-            Assert.AreEqual(0f, look.Level, 1e-3f, "no night look at 14:00"); Assert.AreEqual(0f, look.night.weight, 1e-3f);
+            Assert.AreEqual(0f, look.Level, 1e-3f, "no night look at 14:00"); Assert.AreEqual(0f, look.Weight, 1e-3f);
             Assert.AreEqual(0, cycle.nightLights.Count(l => l != null && l.enabled), "storefront spills off by day");
 
             GameClock.FrozenHour = 22f;
             yield return new WaitForSeconds(9f);
-            Assert.Greater(look.night.weight, 0.95f, "the night volume is in at 22:00");
+            Assert.Greater(look.Weight, 0.95f, "the night volume is in at 22:00");
             Assert.Greater(look.road.GetFloat("_Smoothness"), daySheen + 0.2f, "the road takes a sheen at night");
             int lit = cycle.nightLights.Count(l => l != null && l.enabled);
             Assert.That(lit, Is.InRange(1, DayCycle.MaxStorefronts), "only the nearest storefront spills are lit");

@@ -15,6 +15,9 @@ namespace StreetEmpire.City
         public const float NightSheen = 0.42f;
         /// <summary>0 by day, 1 at full night.</summary>
         public float Level { get; private set; }
+        /// <summary>The night volume's weight and whether it has a profile (the tests read these).</summary>
+        public float Weight => night != null ? night.weight : 0f;
+        public bool Ready => night != null && night.sharedProfile != null;
         float last = -1f, daySheen = -1f;
 
         // the road material is a shared asset: put its day value back (play mode in the editor and the tests)
