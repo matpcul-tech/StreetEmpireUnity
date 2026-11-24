@@ -97,6 +97,7 @@ namespace StreetEmpire.Game
             var s = GameSession.Instance;
             State = Turf.Create(world, blockIds, RivalStarts(), seed, s != null ? s.cash : 150);
             PlayerPrefs.DeleteKey(SaveKey); Paint();
+            if (JobBoard.Instance != null) JobBoard.Instance.NewGame();
         }
 
         TurfState Load()
@@ -342,10 +343,31 @@ namespace StreetEmpire.Game
             bodies.Add(body);
         }
 
+        /// <summary>A rival went down (a guard, a raider, or a man a job put on the street): crew id and the body.</summary>
+        public event System.Action<string, GameObject> CrewDown;
+
+        /// <summary>A rival for a job (JobBoard): a man who comes for the player, or a boss who holds a spot until
+        /// the player is close. He is no part of the turf sim: nobody's guard count changes when he falls.</summary>
+        public Health SpawnHostile(string crew, Vector3 at, bool boss, string name, bool posted)
+        {
+            int k = System.Array.IndexOf(crewTemplateIds, crew);
+            var forced = boss && k >= 0 && k < crewBossTemplates.Length ? crewBossTemplates[k] : null;
+            var s = GameSession.Instance; var face = s != null && s.player != null ? s.player.transform.position - at : Vector3.forward;
+            var go = Make(at, face, boss ? bossHp : 60f, false, name, crew, forced);
+            if (go == null) return null;
+            var br = go.GetComponent<Brawler>();
+            if (br != null) { br.posted = posted; br.post = at; br.bat = false; br.style = Brawler.Style.Rush; }
+            go.SetActive(true);
+            var h = go.GetComponent<Health>();
+            h.KnockedOut += _ => CrewDown?.Invoke(crew, go);
+            return h;
+        }
+
         void Down(Body x)
         {
             if (x.gone || State == null) return;
             x.gone = true;   // he is on the ground now; the sim hears about it once
+            if (!x.friendly) CrewDown?.Invoke(x.crew, x.go);
             if (x.raider) Turf.RaiderDown(State, x.block);
             else if (x.friendly) { var b = State.Block(x.block); if (b != null && b.guards > 0) b.guards--; }
             else Turf.GuardDown(State, x.block);

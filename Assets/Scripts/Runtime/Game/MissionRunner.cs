@@ -28,6 +28,33 @@ namespace StreetEmpire.Game
         public bool scriptTalk;
         string objective = "";
         public string Objective => objective;
+        /// <summary>What the arrow calls the place you are sent to ("BAG 40 m").</summary>
+        public string TargetName { get; private set; } = "BAG";
+        /// <summary>True once the job board runs the later jobs through this runner (JobBoard.Present).</summary>
+        public bool External { get; private set; }
+        public static MissionRunner Instance { get; private set; }
+
+        void Awake() => Instance = this;
+        void OnDestroy() { if (Instance == this) Instance = null; }
+
+        /// <summary>The job board shows a later job through this runner: the stage the HUD, arrow and radar read,
+        /// where the yellow marker stands, and the objective line.</summary>
+        public void Present(State stage, Vector3 at, string text, string name, bool showMarker)
+        {
+            External = true; Stage = stage; Target = at; objective = text; TargetName = name;
+            if (marker) { marker.gameObject.SetActive(showMarker); marker.position = new Vector3(at.x, 0, at.z); }
+            if (bag) bag.gameObject.SetActive(false);
+        }
+
+        /// <summary>Bag Back is behind you (a saved game past it, or every job done).</summary>
+        public void ForcePassed() { Stage = State.Passed; Show(false); objective = ""; }
+
+        /// <summary>A contact is waiting to be spoken to within reach: Use talks, it does not open a car door.</summary>
+        public static bool TalkNear(Vector3 p)
+        {
+            var r = Instance; if (r == null || r.Stage != State.Offered || r.giver == null) return false;
+            return Vector2.Distance(new Vector2(p.x, p.z), new Vector2(r.giver.position.x, r.giver.position.z)) < r.talkRange;
+        }
 
         // hookDrop() offsets in source space; x is mirrored into Unity space
         static readonly Vector2[] Spots = { new(18, -6), new(-16, 14), new(22, 10), new(8, -22), new(20, 16), new(-18, -10), new(28, -2), new(-8, 22) };
@@ -36,6 +63,7 @@ namespace StreetEmpire.Game
 
         void Update()
         {
+            if (External) return;
             var s = GameSession.Instance; if (s == null || s.player == null) return;
             var p = s.player.transform.position;
             var user = s.player.GetComponent<VehicleUser>();
