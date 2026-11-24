@@ -21,6 +21,7 @@ namespace StreetEmpire.EditorTools
             var go = new GameObject("Game");
             var session = go.AddComponent<GameSession>();
             go.AddComponent<ShotDirector>();
+            go.AddComponent<TrafficFlow>();
             go.AddComponent<BlockLife>();
             session.police = data.Police;
             session.cash = s.crews["player"].cash;
