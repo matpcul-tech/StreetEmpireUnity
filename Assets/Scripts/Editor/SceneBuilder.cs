@@ -15,7 +15,7 @@ using UnityEngine.SceneManagement;
 
 namespace StreetEmpire.EditorTools
 {
-    public static class SceneBuilder
+    public static partial class SceneBuilder
     {
         public const string EastsideScene = "Assets/Scenes/Eastside.unity";
         const string Mats = "Assets/Art/Materials";
@@ -257,7 +257,7 @@ namespace StreetEmpire.EditorTools
                     }
             }
 
-            int placed = 0; dealt.Clear(); compressed.Clear();
+            int placed = 0; dealt.Clear(); compressed.Clear(); NeonReset();
             var blockInfo = new List<PropBuilder.BlockInfo>();
             foreach (int id in TownBlocks)
             {
@@ -392,6 +392,7 @@ namespace StreetEmpire.EditorTools
                 HangTotem(inst, holder, "gas-price-sign", 0.90f, 2.20f);
                 StorefrontLight(inst, holder, new Color(0.9f, 0.95f, 1f));
             }
+            Neon(inst, holder, name, spot.kind, mid, landmark);
             var near = inst.GetComponentsInChildren<Renderer>();
             foreach (var r in near) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
             Compress(inst, name, "Near");
@@ -698,6 +699,7 @@ namespace StreetEmpire.EditorTools
             var night = nv.AddComponent<Volume>(); night.isGlobal = true; night.priority = 1; night.weight = 0f; night.sharedProfile = GraphicsSetup.NightProfile();
             var look = nv.AddComponent<StreetEmpire.City.NightLook>(); look.night = night;
             look.cycle = Object.FindFirstObjectByType<StreetEmpire.City.DayCycle>();
+            var neon = nv.AddComponent<StreetEmpire.City.NeonGlow>(); neon.cycle = look.cycle; neon.steady = NeonSteady; neon.flicker = NeonFlicker;
             var tiles = GameObject.Find("Ground Tiles");
             look.road = tiles == null ? null : tiles.GetComponentInChildren<MeshRenderer>()?.sharedMaterial;
             if (look.road == null) Debug.LogWarning("[SceneBuilder] night look: no road material");
