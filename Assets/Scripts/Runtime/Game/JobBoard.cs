@@ -44,6 +44,8 @@ namespace StreetEmpire.Game
         /// <summary>Index in missions of the job on offer or running. Bag Back is 0 and belongs to MissionRunner.</summary>
         public int Next { get; private set; } = 1;
         public bool Running { get; private set; }
+        /// <summary>Bag Back is done and the board has the HUD line, marker and arrow.</summary>
+        public bool Owns => owns;
         public int Done { get; private set; }
         public int Fails { get; private set; }
         public bool scriptTalk;
@@ -81,6 +83,8 @@ namespace StreetEmpire.Game
             if (!owns) { if (runner.Stage != MissionRunner.State.Passed) return; owns = true; Offer(); return; }
             var m = Current; if (m == null) return;
             var p = s.player.transform.position; var user = s.player.GetComponent<VehicleUser>();
+            // a race, a fare or a courier run has the marker for now
+            if (!Running && SideHustles.Instance != null && SideHustles.Instance.Busy) return;
             if (!Running)
             {
                 var giver = runner.giver; if (giver == null) return;
@@ -334,7 +338,7 @@ namespace StreetEmpire.Game
         }
 
         /// <summary>The spot on a street center line nearest to a place (a block's middle, a building).</summary>
-        static Vector3 NearestStreet(Vector3 q)
+        public static Vector3 NearestStreet(Vector3 q)
         {
             var s = GameSession.Instance; if (s == null || s.streetX == null || s.streetX.Length == 0 || s.streetZ.Length == 0) return q;
             float nx = s.streetX.OrderBy(x => Mathf.Abs(x - q.x)).First(), nz = s.streetZ.OrderBy(z => Mathf.Abs(z - q.z)).First();

@@ -71,6 +71,29 @@ namespace StreetEmpire.EditorTools
                 return who.transform;
             }).ToArray();
 
+            // The side money (SideHustles): stashes, races, taxi fares and courier runs from jobs.json. The web map is
+            // nine blocks a side and this town is five, so only the stashes that fall in the town are placed, and a
+            // race that runs outside it is moved whole blocks until it fits.
+            var side = new GameObject("Side Hustles").AddComponent<SideHustles>();
+            side.runner = runner; side.fare = data.Jobs.fare; side.courier = data.Jobs.courier; side.racePay = data.Jobs.racePay; side.stashPay = data.Jobs.stashPay;
+            float tlo = CityLayout.LineCoord(w, 0), thi = CityLayout.LineCoord(w, SceneBuilder.Town);
+            var inTown = data.Jobs.stashes.Where(q => q.x >= tlo && q.x <= thi && q.z >= tlo && q.z <= thi).ToList();
+            side.stashAll = data.Jobs.stashes.Count > 0 ? Mathf.RoundToInt(data.Jobs.stashAll * (float)inTown.Count / data.Jobs.stashes.Count) : 0;
+            side.stashes = inTown.Select(q => { var t = Bag(side.transform); var (qx, qz) = WorldSpace.FromSource(q.x, q.z); t.position = new Vector3(qx, 0.25f, qz); t.name = "Stash"; return t; }).ToArray();
+            float Fit(IEnumerable<float> v)
+            {
+                float mx = v.Max(), mn = v.Min(), sh = mx > thi ? -Mathf.Ceil((mx - thi) / w.pitch) * w.pitch : 0f;
+                if (mn + sh < tlo) sh += Mathf.Ceil((tlo - mn - sh) / w.pitch) * w.pitch;
+                return sh;
+            }
+            side.races = data.Jobs.races.Select(r =>
+            {
+                var all = r.points.Prepend(r.start).ToList(); float sx = Fit(all.Select(q => q.x)), sz = Fit(all.Select(q => q.z));
+                Vector3 U(Point q) { var (qx, qz) = WorldSpace.FromSource(q.x + sx, q.z + sz); return new Vector3(qx, 0, qz); }
+                return new SideHustles.Race { name = r.name, start = U(r.start), points = r.points.Select(U).ToArray(), gold = r.gold, silver = r.silver, bronze = r.bronze };
+            }).ToArray();
+            side.raceStarts = side.races.Select(r => { var t = Marker(side.transform); t.position = r.start; t.name = "Race start: " + r.name; return t; }).ToArray();
+
             // a few people on the sidewalks around the start
             var (bx, bz) = WorldSpace.FromSource(cx, cz);
             float edge = w.block / 2 + 1f;
