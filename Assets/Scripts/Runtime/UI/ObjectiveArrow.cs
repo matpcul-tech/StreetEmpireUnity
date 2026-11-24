@@ -29,7 +29,7 @@ namespace StreetEmpire.UI
             Vector3 at = Vector3.zero; string name = "";
             if (show)
             {
-                if (job.Stage == MissionRunner.State.GetBag) { at = job.Target + Vector3.up * 1.2f; name = "BAG"; }
+                if (job.Stage == MissionRunner.State.GetBag) { at = job.Target + Vector3.up * 1.2f; name = job.TargetName; }
                 else { at = job.giver.position + Vector3.up * 2.3f; name = job.contact != null ? job.contact.name.ToUpperInvariant() : "UNC"; }
                 float d = Vector2.Distance(new Vector2(at.x, at.z), new Vector2(s.player.transform.position.x, s.player.transform.position.z));
                 show = d > hideWithin;

@@ -24,8 +24,11 @@ namespace StreetEmpire.Player
 
         void Update()
         {
+            bool scripted = scriptUse;
             bool use = scriptUse || PlayerControls.Instance.UsePressed; scriptUse = false;
             if (!use) return;
+            // beside a contact with a job to give, Use talks to them
+            if (Car == null && !scripted && StreetEmpire.Game.MissionRunner.TalkNear(transform.position)) return;
             if (Car != null) Exit(); else TryEnter();
         }
 

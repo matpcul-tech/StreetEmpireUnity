@@ -1,5 +1,6 @@
 // M4: the session (cash, heat, police), Unc and his first job "Bag Back", a few pedestrians, the officer
 // template the police dispatch copies, and the top-of-screen HUD. Numbers are baked from Assets/Data.
+using System.Collections.Generic;
 using System.Linq;
 using StreetEmpire.Game;
 using StreetEmpire.Player;
@@ -51,6 +52,24 @@ namespace StreetEmpire.EditorTools
             runner.giver = unc.transform;
             runner.marker = Marker(job.transform);
             runner.bag = Bag(job.transform);
+
+            // Dee, Rook and Sal stand in the town too (the web game had them a district each; this is one district),
+            // on the inner edge of the sidewalk of three blocks away from home and from the rivals' corners. They wear
+            // bodies the game already has until they get their own.
+            var board = job.AddComponent<JobBoard>();
+            board.runner = runner; board.missions = data.Jobs.missions; board.contacts = data.Jobs.contacts;
+            var stand = new Dictionary<string, (int block, Look look)> { { "Dee", (7, PedLooks[3]) }, { "Rook", (12, PedLooks[6]) }, { "Sal", (17, Fence) } };
+            board.contactNodes = data.Jobs.contacts.Select(c =>
+            {
+                if (c.name == "Unc" || !stand.TryGetValue(c.name, out var at)) return unc.transform;
+                int tid = SceneBuilder.TownBlocks[Mathf.Min(at.block, SceneBuilder.TownBlocks.Length - 1)];
+                var blk = s.blocks.First(b => b.id == tid); var (kx, kz) = Simulation.BlockCenter(w, blk);
+                var (px, pz) = WorldSpace.FromSource(kx, kz + w.block / 2 + 0.2f); var (ox, oz) = WorldSpace.FromSource(kx, kz);
+                var out2 = new Vector3(px - ox, 0, pz - oz);
+                var who = Character(c.name, new Vector3(px, 0.3f, pz), Quaternion.LookRotation(out2).eulerAngles.y, at.look, true);
+                who.GetComponent<CharacterController>().radius = 0.55f; who.AddComponent<UncIdle>();
+                return who.transform;
+            }).ToArray();
 
             // a few people on the sidewalks around the start
             var (bx, bz) = WorldSpace.FromSource(cx, cz);
