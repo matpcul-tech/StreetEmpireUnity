@@ -98,6 +98,7 @@ namespace StreetEmpire.Game
             State = Turf.Create(world, blockIds, RivalStarts(), seed, s != null ? s.cash : 150);
             PlayerPrefs.DeleteKey(SaveKey); Paint();
             if (JobBoard.Instance != null) JobBoard.Instance.NewGame();
+            if (SideHustles.Instance != null) SideHustles.Instance.NewGame();
         }
 
         TurfState Load()

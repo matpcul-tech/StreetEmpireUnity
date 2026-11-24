@@ -24,6 +24,12 @@ namespace StreetEmpire.Vehicles
 
         public readonly CarState state = new CarState();
         public float Speed => state.v;
+        /// <summary>Put the car somewhere, stopped (tests, and anything that has to set a car down).</summary>
+        public void Place(Vector3 at, float yawDegrees)
+        {
+            transform.SetPositionAndRotation(at, Quaternion.Euler(0f, yawDegrees, 0f));
+            state.x = at.x; state.z = at.z; state.yaw = yawDegrees * Mathf.Deg2Rad; state.heading = state.yaw; state.v = 0f; state.steer = 0f; state.slip = 0f;
+        }
         /// <summary>Slowing with the pedal or the handbrake: the tail lamps brighten (CarFx).</summary>
         public bool Braking { get; private set; }
         /// <summary>Out of hp: the engine is dead. Only the player's cars wreck; a cruiser keeps coming.</summary>
