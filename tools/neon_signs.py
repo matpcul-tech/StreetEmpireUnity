@@ -28,8 +28,8 @@ def tube(mask, color, scale=1.0):
     """A lit tube from a white-on-black mask: halo + glow + hot core, RGB on black."""
     w, h = mask.size
     def tint(m, c, k): return Image.merge("RGB", [m.point(lambda v, cc=cc: int(v * cc / 255 * k)) for cc in c])
-    halo = tint(mask.filter(ImageFilter.GaussianBlur(22 * scale)), color, 1.5)
-    glow = tint(mask.filter(ImageFilter.GaussianBlur(7 * scale)), color, 1.25)
+    halo = tint(mask.filter(ImageFilter.GaussianBlur(22 * scale)), color, 0.9)
+    glow = tint(mask.filter(ImageFilter.GaussianBlur(7 * scale)), color, 0.9)
     body = tint(mask.filter(ImageFilter.GaussianBlur(1.2)), color, 1.0)
     core = mask.filter(ImageFilter.MinFilter(5)).filter(ImageFilter.GaussianBlur(1.5))
     hot = tint(core, tuple(int(c + (255 - c) * 0.75) for c in color), 0.9)
@@ -74,8 +74,9 @@ def tall(text, color):
         d.text(((W - (r - l)) / 2 - l, 40 + cell * i + (cell - (b - t)) / 2 - t), ch, font=f, fill=255)
     img = tube(m, color)
     fm = Image.new("L", (W, H), 0)
-    ImageDraw.Draw(fm).rounded_rectangle((22, 14, W - 22, H - 14), radius=30, outline=255, width=6)
-    return ImageChops.add(img, tube(fm, WHITE if color != WHITE else CYAN, 0.6))
+    ImageDraw.Draw(fm).rounded_rectangle((26, 18, W - 26, H - 18), radius=30, outline=255, width=3)
+    # a thin frame in the sign's own color with a small halo (a white frame's halo filled the cell: a white box on a phone)
+    return ImageChops.add(img, tube(fm, color, 0.25))
 
 
 atlas = Image.new("RGB", (2048, 2048), (0, 0, 0))

@@ -59,7 +59,7 @@ namespace StreetEmpire.EditorTools
             {
                 var (w, t) = name == "tower-terracotta" ? (Wide.CalderGrand, Tall.Hotel) : name == "tower-deco-setback" ? (Wide.Lucky9, Tall.Club)
                     : name == "tower-copper-mansard" ? (Wide.HarborRoom, Tall.Jazz) : (Wide.Nightowl, Tall.Bar);
-                float width = Mathf.Min(b.size.x * 0.8f, 11f);
+                float width = Mathf.Min(b.size.x * 0.6f, 8f);   // 11 m wide was a wall of light on the phone
                 NeonFace(inst, holder, (int)w, false, 0f, 5.6f, width, width / 4f, true);
                 // the blade low and in from the corner: the towers step back above their base
                 NeonFace(inst, holder, (int)t, true, b.extents.x * 0.5f, 10.5f, 2.6f, 5.2f, false);
@@ -70,9 +70,7 @@ namespace StreetEmpire.EditorTools
             else if (landmark) return;   // the police station, bank, school, clinic, docks and warehouses stay plain
             else if (mid && kind == "apt") { var t = AptBlade[neonApts++ % AptBlade.Length]; float h = Mathf.Clamp(b.size.y * 0.42f, 2.6f, 4.6f); NeonFace(inst, holder, (int)t, true, edge, Mathf.Min(b.size.y * 0.62f, 6.2f), h / 2f, h, true); }
             else if (mid && kind == "store") NeonRoof(inst, holder, (int)StoreRoof[neonStores++ % StoreRoof.Length], Mathf.Min(b.size.x * 0.66f, 6.5f));
-            else if (name == "store-pawn") NeonFace(inst, holder, (int)Tall.Pawn, true, edge, 2.9f, 1.1f, 2.2f, true);
-            else if (name == "store-check-cashing") NeonFace(inst, holder, (int)Tall.Loans, true, edge, 2.9f, 1.1f, 2.2f, false);
-            else if (name == "store-takeout") NeonFace(inst, holder, (int)Tall.Eats, true, edge, 3.1f, 1.1f, 2.2f, false);
+            // no blades on the Eastside stores: on the phone the pawn one sat across the lettered board
         }
 
         /// <summary>A sign flat on the front, on whatever part of the wall is nearest the street in its band.</summary>
