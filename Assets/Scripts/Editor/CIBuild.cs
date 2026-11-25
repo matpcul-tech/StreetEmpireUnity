@@ -9,9 +9,24 @@ namespace StreetEmpire.EditorTools
 {
     public static class CIBuild
     {
+        /// <summary>Generating the scenes leaves the editor holding every model and texture it touched. The memory
+        /// watch on PR 39 measured Unity at 10 to 12.5 GB of the runner's 15 GB going into the player build, with 10 GB
+        /// swapped out by the time Gradle ran, which is where four Android builds lost their runner. The scenes are
+        /// saved by now, so open an empty one and drop what nothing references before the player build starts.</summary>
+        static void ReleaseBuilderMemory()
+        {
+            long before = UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong();
+            UnityEditor.SceneManagement.EditorSceneManager.NewScene(UnityEditor.SceneManagement.NewSceneSetup.EmptyScene, UnityEditor.SceneManagement.NewSceneMode.Single);
+            EditorUtility.UnloadUnusedAssetsImmediate(true);
+            GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+            long after = UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong();
+            Debug.Log($"[CIBuild] released builder memory before the player build: {before >> 20} MB to {after >> 20} MB allocated");
+        }
+
         public static void Build()
         {
             ProjectBootstrap.Ensure();
+            ReleaseBuilderMemory();
             var target = Enum.TryParse(Arg("-customBuildTarget") ?? "", out BuildTarget t) ? t : EditorUserBuildSettings.activeBuildTarget;
             var path = Arg("-customBuildPath") ?? $"build/{target}/StreetEmpire";
             var options = new BuildPlayerOptions
