@@ -8,7 +8,7 @@ namespace StreetEmpire.City
     {
         public DayCycle cycle;
         public Material steady, flicker;
-        public const float DayLevel = 0.12f, NightLevel = 2.1f;
+        public const float DayLevel = 0.12f, NightLevel = 1.45f;
         /// <summary>The steady signs' brightness right now (DayLevel to NightLevel).</summary>
         public float Level { get; private set; } = DayLevel;
         static readonly int Base = Shader.PropertyToID("_BaseColor");

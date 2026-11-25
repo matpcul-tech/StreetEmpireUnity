@@ -79,7 +79,28 @@ namespace StreetEmpire.Vehicles
             return root;
         }
 
-        static Material Glow(Material from, Color c) { var m = new Material(from) { name = "Car lamp" }; m.SetColor("_BaseColor", c); return m; }
+        static Material Glow(Material from, Color c)
+        {
+            var m = new Material(from) { name = "Car lamp" }; m.SetColor("_BaseColor", c);
+            // the particle material carries the dust speckle; a lamp is one soft round glow
+            m.SetTexture("_BaseMap", Soft()); return m;
+        }
+
+        static Texture2D soft;
+        /// <summary>A soft round falloff, white in the middle to clear at the rim.</summary>
+        static Texture2D Soft()
+        {
+            if (soft != null) return soft;
+            const int n = 64; soft = new Texture2D(n, n, TextureFormat.RGBA32, true) { name = "Car lamp glow", wrapMode = TextureWrapMode.Clamp };
+            var px = new Color32[n * n];
+            for (int y = 0; y < n; y++)
+                for (int x = 0; x < n; x++)
+                {
+                    float dx = (x + 0.5f) / n * 2f - 1f, dy = (y + 0.5f) / n * 2f - 1f, a = Mathf.Clamp01(1f - Mathf.Sqrt(dx * dx + dy * dy));
+                    px[y * n + x] = new Color(1f, 1f, 1f, a * a * (3f - 2f * a));
+                }
+            soft.SetPixels32(px); soft.Apply(true, true); return soft;
+        }
 
         static Mesh Quad()
         {
