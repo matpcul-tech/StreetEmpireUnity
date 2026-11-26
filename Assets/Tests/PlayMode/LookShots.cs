@@ -28,7 +28,7 @@ namespace StreetEmpire.Tests
         [UnityTest, Timeout(900000)]
         public IEnumerator ParkedCarsOnCamera()
         {
-            MuggerOpening.AutoStart = false; SceneManager.LoadScene("Eastside");
+            MuggerOpening.AutoStart = false; BlockLife.AutoStart = true; SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
             bool wasFrozen = GameClock.Frozen; float wasHour = GameClock.FrozenHour;
             GameClock.Frozen = true; GameClock.FrozenHour = 14f;
@@ -99,6 +99,33 @@ namespace StreetEmpire.Tests
                     shots++;
                 }
             }
+            // the people on the corners by day, from the front and the side: how they hold their heads
+            GameClock.FrozenHour = 14f;
+            for (int f = 0; f < 30; f++) yield return null;
+            int people = 0;
+            foreach (var who in Object.FindObjectsByType<Loiterer>(FindObjectsSortMode.None).OrderBy(l => l.name))
+            {
+                if (people >= 6) break;
+                var wt = who.transform; Vector3 eye = wt.position + Vector3.up * 1.45f;
+                foreach (var side in new[] { "front", "side" })
+                {
+                    Vector3 dir = side == "front" ? wt.forward : wt.right;
+                    cam.transform.position = eye + dir * 2.4f; cam.transform.LookAt(eye - Vector3.up * 0.25f);
+                    yield return null;
+                    var snap = cam.gameObject.AddComponent<LateSnap>(); snap.cam = cam; snap.rt = rt;
+                    while (!snap.done) yield return null;
+                    Object.Destroy(snap);
+                    var prev = RenderTexture.active; RenderTexture.active = rt;
+                    tex.ReadPixels(new Rect(0, 0, 640, 360), 0, 0); tex.Apply(); RenderTexture.active = prev;
+                    string b64 = System.Convert.ToBase64String(tex.EncodeToJPG(72));
+                    int parts = (b64.Length + 5999) / 6000;
+                    for (int i = 0; i < parts; i++)
+                        Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, "[LookShot] person-{0}-{1} {2}/{3} {4}", who.name.Replace(' ', '_'), side, i + 1, parts, b64.Substring(i * 6000, Mathf.Min(6000, b64.Length - i * 6000)));
+                    shots++;
+                }
+                people++;
+            }
+            BlockLife.AutoStart = false;
             GameClock.Frozen = wasFrozen; GameClock.FrozenHour = wasHour; BuildingCuller.On = true;
             Object.Destroy(rt); Object.Destroy(tex);
             Assert.Greater(shots, 8, "frames of parked cars");
