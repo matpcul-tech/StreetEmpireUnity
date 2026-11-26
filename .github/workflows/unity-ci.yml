@@ -19,6 +19,7 @@ on:
 permissions:
   contents: read
   checks: write # unity-test-runner posts the EditMode results as a check run
+  issues: write # the Android build posts its memory samples to issue #38 (see Watch memory)
 
 concurrency:
   group: unity-ci-${{ github.ref }}-${{ inputs.variant || 'main' }}
@@ -113,6 +114,32 @@ jobs:
           D=/mnt; [ -d /mnt ] && [ "$(df --output=avail -BG /mnt | tail -1 | tr -dc 0-9)" -gt 30 ] || D=/
           sudo fallocate -l 16G $D/se-swapfile && sudo chmod 600 $D/se-swapfile && sudo mkswap $D/se-swapfile && sudo swapon $D/se-swapfile || echo "no swap added"
           free -h; df -h /
+      # Four Android builds in two days lost their runner at the start of the IL2CPP step, and a dead runner takes
+      # its log with it. This keeps one comment on issue #38 updated every minute with memory, swap, disk and the
+      # biggest processes, so the last reading before a drop survives. It must outlive this step, hence the
+      # cleared RUNNER_TRACKING_ID and setsid.
+      - name: Watch memory (Android)
+        if: matrix.targetPlatform == 'Android'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > "$RUNNER_TEMP/memwatch.sh" <<'WATCH'
+          #!/usr/bin/env bash
+          head="Run $GITHUB_RUN_ID attempt $GITHUB_RUN_ATTEMPT, commit ${GITHUB_SHA::7} ($GITHUB_REF_NAME)"
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/38/comments" -f body="$head: started" --jq .id) || exit 0
+          log=""
+          while true; do
+            m=$(free -m | awk '/Mem:/{printf "mem used %d free %d avail %d MB", $3, $4, $7} /Swap:/{printf ", swap used %d MB", $3}')
+            d=$(df -BG --output=avail / /mnt 2>/dev/null | tail -n +2 | tr -d ' \n' | sed 's/G/G /g')
+            l=$(cut -d' ' -f1 /proc/loadavg)
+            t=$(ps -eo rss,comm --sort=-rss | awk 'NR>1 && NR<5 {printf "%s %dMB; ", $2, $1/1024}')
+            log="$(printf '%s\n%s | %s | disk free %s| load %s | %s' "$log" "$(date -u +%H:%M:%S)" "$m" "$d" "$l" "$t" | tail -n 45)"
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -f body="$(printf '%s\n```\n%s\n```' "$head" "$log")" >/dev/null 2>&1 || true
+            sleep 30
+          done
+          WATCH
+          chmod +x "$RUNNER_TEMP/memwatch.sh"
+          RUNNER_TRACKING_ID="" setsid nohup "$RUNNER_TEMP/memwatch.sh" >/dev/null 2>&1 &
       - uses: game-ci/unity-builder@v6
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
@@ -120,7 +147,11 @@ jobs:
           # pinned: resolving "latest" calls the GitHub API unauthenticated and can hit a 403 rate limit
           cliVersion: v0.1.76
           buildName: StreetEmpire
-          customParameters: -seVariant ${{ inputs.variant || 'none' }}
+          # -nographics: the build makes no pictures, but with a graphics device every building model the scene
+          # builder loads has its 4096 maps uploaded to the runner's software OpenGL, which lives in RAM. The memory
+          # watch (issue #38) measured the editor at 12.4 GB resident while Unity itself accounted for 3.6 GB; that
+          # gap is what pushed the runner into 10 GB of swap and dropped it.
+          customParameters: -nographics -seVariant ${{ inputs.variant || 'none' }}
           versioning: Semantic
           # one persistent release key (kept off the repo), so each APK installs over the last; the version
           # code is the workflow run number, which only goes up
