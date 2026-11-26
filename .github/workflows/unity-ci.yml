@@ -147,7 +147,11 @@ jobs:
           # pinned: resolving "latest" calls the GitHub API unauthenticated and can hit a 403 rate limit
           cliVersion: v0.1.76
           buildName: StreetEmpire
-          customParameters: -seVariant ${{ inputs.variant || 'none' }}
+          # -nographics: the build makes no pictures, but with a graphics device every building model the scene
+          # builder loads has its 4096 maps uploaded to the runner's software OpenGL, which lives in RAM. The memory
+          # watch (issue #38) measured the editor at 12.4 GB resident while Unity itself accounted for 3.6 GB; that
+          # gap is what pushed the runner into 10 GB of swap and dropped it.
+          customParameters: -nographics -seVariant ${{ inputs.variant || 'none' }}
           versioning: Semantic
           # one persistent release key (kept off the repo), so each APK installs over the last; the version
           # code is the workflow run number, which only goes up
