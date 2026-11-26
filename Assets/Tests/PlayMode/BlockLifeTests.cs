@@ -40,7 +40,7 @@ namespace StreetEmpire.Tests
                 foreach (var who in g.people)
                 {
                     var nb = who.GetComponent<NpcBody>();
-                    Debug.Log($"[BlockLifeTests] {who.name}: head pitch {nb.RawHeadPitch:F1} deg as animated, {nb.HeadPitch:F1} deg shown, spine turned {nb.SpineTurn:F1} deg");
+                    Debug.Log($"[BlockLifeTests] {who.name}: head pitch {nb.RawHeadPitch:F1} deg as animated, {nb.HeadPitch:F1} deg shown, spine turned {nb.SpineTurn:F1} deg, bones {nb.HeadBones}");
                     Assert.That(nb.HeadPitch, Is.InRange(-NpcBody.HeadBack - 2f, NpcBody.HeadDown + 2f), who.name + " head is tipped out of range");
                 }
             // a group far from the player is not out

@@ -30,7 +30,7 @@ namespace StreetEmpire.Game
         {
             if (animator != null && animator.isHuman) spine = animator.GetBoneTransform(HumanBodyBones.Spine);
             if (animator != null && animator.isHuman) { neck = animator.GetBoneTransform(HumanBodyBones.Neck); head = animator.GetBoneTransform(HumanBodyBones.Head); }
-            if (head != null) foreach (Transform c in head) if (c.name.Contains("HeadTop")) headTop = c;
+            if (head != null) foreach (Transform c in head.GetComponentsInChildren<Transform>(true)) if (c != head && c.name.Contains("HeadTop")) headTop = c;
         }
 
         public void Move(Vector3 planarVelocity, float dt)
@@ -75,6 +75,9 @@ namespace StreetEmpire.Game
         /// <summary>Which way the skull points, from the head joint to the top of the head: 0 is upright, positive
         /// is chin down, negative is face to the sky (degrees). As the animation left it, before the guard.</summary>
         public float RawHeadPitch { get; private set; }
+        /// <summary>What the guard found to measure with, for the tests' log.</summary>
+        public string HeadBones => head == null ? "no head bone" : head.name + " -> " + (headTop != null ? headTop.name : "no top bone; children: "
+            + string.Join(", ", System.Linq.Enumerable.Select(System.Linq.Enumerable.Cast<Transform>(head), c => c.name)));
         /// <summary>The same after the guard below.</summary>
         public float HeadPitch => head == null || headTop == null ? 0f
             : Vector3.SignedAngle(Vector3.up, Vector3.ProjectOnPlane(headTop.position - head.position, transform.right), transform.right);
