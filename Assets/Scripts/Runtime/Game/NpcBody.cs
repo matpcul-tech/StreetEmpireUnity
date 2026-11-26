@@ -29,6 +29,7 @@ namespace StreetEmpire.Game
         void Awake()
         {
             if (animator != null && animator.isHuman) spine = animator.GetBoneTransform(HumanBodyBones.Spine);
+            if (animator != null && animator.isHuman) { neck = animator.GetBoneTransform(HumanBodyBones.Neck); head = animator.GetBoneTransform(HumanBodyBones.Head); }
         }
 
         public void Move(Vector3 planarVelocity, float dt)
@@ -66,6 +67,12 @@ namespace StreetEmpire.Game
         /// about 12 degrees of torso tilt on top of the rig's rest lean; the stride's own sway is kept.</summary>
         public float uprightLean = 3f;
         Quaternion corrected; bool hasCorrected, hasAvg; float avgLean;
+        Transform neck, head;
+        /// <summary>How far the spine was turned back this frame to stand the body up (degrees).</summary>
+        public float SpineTurn { get; private set; }
+        /// <summary>How far the head sits behind the neck (degrees from upright, negative is tipped back).</summary>
+        public float HeadTilt => head == null || neck == null ? 0f
+            : Vector3.SignedAngle(Vector3.up, Vector3.ProjectOnPlane(head.position - neck.position, transform.right), transform.right);
 
         void LateUpdate()
         {
@@ -75,6 +82,11 @@ namespace StreetEmpire.Game
             // it again would add up.
             if (spine != null && !IsDown && !(hasCorrected && spine.localRotation == corrected))
             {
+                // Turning the spine back carries the neck and head with it: a body straightened by 30 degrees ended up
+                // staring at the sky (the woman on the corner, build de79b58). The head keeps the direction the
+                // animation gave it and the neck takes half the turn.
+                Quaternion headWas = head != null ? head.rotation : Quaternion.identity, neckWas = neck != null ? neck.rotation : Quaternion.identity;
+                Quaternion spineWas = spine.rotation;
                 float raw = ShotDirector.Lean(animator, transform);
                 avgLean = hasAvg ? Mathf.Lerp(avgLean, raw, 1f - Mathf.Exp(-Time.deltaTime / 0.5f)) : raw; hasAvg = true;
                 float turn = Mathf.Clamp(avgLean - uprightLean, -5f, 35f);
@@ -87,6 +99,9 @@ namespace StreetEmpire.Game
                     if (r > 0.3f && r < 1f)
                         spine.rotation = Quaternion.AngleAxis(-Mathf.Min(turn * (1f / r - 1f), 20f), transform.right) * spine.rotation;
                 }
+                SpineTurn = Quaternion.Angle(spineWas, spine.rotation);
+                if (neck != null) neck.rotation = Quaternion.Slerp(neck.rotation, neckWas, 0.5f);
+                if (head != null) head.rotation = headWas;
                 corrected = spine.localRotation; hasCorrected = true;
             }
             Lean = ShotDirector.Lean(animator, transform);

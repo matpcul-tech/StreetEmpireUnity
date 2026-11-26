@@ -33,6 +33,15 @@ namespace StreetEmpire.Tests
                 Assert.IsNotNull(who.GetComponent<Loiterer>()); Assert.IsNotNull(who.GetComponent<NpcBody>());
                 Assert.Less(Vector3.Distance(who.transform.position, near.at), 2.5f, "standing together");
             }
+            // nobody stares at the sky: standing the body up must not tip the head back with the spine
+            yield return new WaitForSeconds(2f);
+            foreach (var g in life.groups.Where(g => g.on))
+                foreach (var who in g.people)
+                {
+                    var nb = who.GetComponent<NpcBody>();
+                    Debug.Log($"[BlockLifeTests] {who.name}: spine turned {nb.SpineTurn:F1} deg, head tilt {nb.HeadTilt:F1} deg, lean {nb.Lean:F1} deg");
+                    Assert.Greater(nb.HeadTilt, -25f, who.name + " has their head tipped back");
+                }
             // a group far from the player is not out
             var far = life.groups.OrderByDescending(g => Vector3.Distance(g.at, player.transform.position)).First();
             Assert.IsFalse(far.on, "the far side of town sleeps");
