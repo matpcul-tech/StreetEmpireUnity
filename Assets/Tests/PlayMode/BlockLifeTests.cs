@@ -33,15 +33,15 @@ namespace StreetEmpire.Tests
                 Assert.IsNotNull(who.GetComponent<Loiterer>()); Assert.IsNotNull(who.GetComponent<NpcBody>());
                 Assert.Less(Vector3.Distance(who.transform.position, near.at), 2.5f, "standing together");
             }
-            // readings only: the first run showed spine turns of 1 to 5 degrees, so the posture fix is not what tips
-            // heads, and the neck to head angle differs too much between models to hold a limit against. LookShots
-            // photographs the corner people instead.
+            // nobody stares at the sky. The skull's own direction (head joint to top of head) is the same measure on
+            // every model, unlike the neck to head angle tried first.
             yield return new WaitForSeconds(2f);
             foreach (var g in life.groups.Where(g => g.on))
                 foreach (var who in g.people)
                 {
                     var nb = who.GetComponent<NpcBody>();
-                    Debug.Log($"[BlockLifeTests] {who.name}: spine turned {nb.SpineTurn:F1} deg, head tilt {nb.HeadTilt:F1} deg, lean {nb.Lean:F1} deg");
+                    Debug.Log($"[BlockLifeTests] {who.name}: head pitch {nb.RawHeadPitch:F1} deg as animated, {nb.HeadPitch:F1} deg shown, spine turned {nb.SpineTurn:F1} deg");
+                    Assert.That(nb.HeadPitch, Is.InRange(-NpcBody.HeadBack - 2f, NpcBody.HeadDown + 2f), who.name + " head is tipped out of range");
                 }
             // a group far from the player is not out
             var far = life.groups.OrderByDescending(g => Vector3.Distance(g.at, player.transform.position)).First();

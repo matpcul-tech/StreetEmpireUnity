@@ -30,6 +30,7 @@ namespace StreetEmpire.Game
         {
             if (animator != null && animator.isHuman) spine = animator.GetBoneTransform(HumanBodyBones.Spine);
             if (animator != null && animator.isHuman) { neck = animator.GetBoneTransform(HumanBodyBones.Neck); head = animator.GetBoneTransform(HumanBodyBones.Head); }
+            if (head != null) foreach (Transform c in head) if (c.name.Contains("HeadTop")) headTop = c;
         }
 
         public void Move(Vector3 planarVelocity, float dt)
@@ -70,9 +71,17 @@ namespace StreetEmpire.Game
         Transform neck, head;
         /// <summary>How far the spine was turned back this frame to stand the body up (degrees).</summary>
         public float SpineTurn { get; private set; }
-        /// <summary>How far the head sits behind the neck (degrees from upright, negative is tipped back).</summary>
-        public float HeadTilt => head == null || neck == null ? 0f
-            : Vector3.SignedAngle(Vector3.up, Vector3.ProjectOnPlane(head.position - neck.position, transform.right), transform.right);
+        Transform headTop;
+        /// <summary>Which way the skull points, from the head joint to the top of the head: 0 is upright, positive
+        /// is chin down, negative is face to the sky (degrees). As the animation left it, before the guard.</summary>
+        public float RawHeadPitch { get; private set; }
+        /// <summary>The same after the guard below.</summary>
+        public float HeadPitch => head == null || headTop == null ? 0f
+            : Vector3.SignedAngle(Vector3.up, Vector3.ProjectOnPlane(headTop.position - head.position, transform.right), transform.right);
+        /// <summary>How far back and forward a head may tip. The standing animation put ped-f-3 (the woman in teal on
+        /// the corners) face up at the sky: the photographs in LookShots showed it is her alone, whatever the cause
+        /// in her rig, so no head is left tipped back past this.</summary>
+        public const float HeadBack = 10f, HeadDown = 35f;
 
         void LateUpdate()
         {
@@ -103,6 +112,13 @@ namespace StreetEmpire.Game
                 if (neck != null) neck.rotation = Quaternion.Slerp(neck.rotation, neckWas, 0.5f);
                 if (head != null) head.rotation = headWas;
                 corrected = spine.localRotation; hasCorrected = true;
+            }
+            if (headTop != null && !IsDown)
+            {
+                // safe to run on a frame the Animator did not write: a head already inside the limits is left alone
+                float pitch = HeadPitch; RawHeadPitch = pitch;
+                if (pitch < -HeadBack) head.rotation = Quaternion.AngleAxis(-HeadBack - pitch, transform.right) * head.rotation;
+                else if (pitch > HeadDown) head.rotation = Quaternion.AngleAxis(HeadDown - pitch, transform.right) * head.rotation;
             }
             Lean = ShotDirector.Lean(animator, transform);
         }
