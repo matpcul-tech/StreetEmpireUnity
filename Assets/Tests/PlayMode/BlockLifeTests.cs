@@ -31,18 +31,9 @@ namespace StreetEmpire.Tests
             {
                 Assert.IsTrue(who.activeSelf); Assert.IsNull(who.GetComponent<Townie>(), "they stay put");
                 Assert.IsNotNull(who.GetComponent<Loiterer>()); Assert.IsNotNull(who.GetComponent<NpcBody>());
+                Assert.IsFalse(who.GetComponentsInChildren<Renderer>(true).Any(r => r.sharedMaterial != null && r.sharedMaterial.mainTexture != null && r.sharedMaterial.mainTexture.name.Contains("ped-f-3")), "the woman in teal does not stand on corners until she is re-rigged");
                 Assert.Less(Vector3.Distance(who.transform.position, near.at), 2.5f, "standing together");
             }
-            // nobody stares at the sky. The skull's own direction (head joint to top of head) is the same measure on
-            // every model, unlike the neck to head angle tried first.
-            yield return new WaitForSeconds(2f);
-            foreach (var g in life.groups.Where(g => g.on))
-                foreach (var who in g.people)
-                {
-                    var nb = who.GetComponent<NpcBody>();
-                    Debug.Log($"[BlockLifeTests] {who.name}: head pitch {nb.RawHeadPitch:F1} deg as animated, {nb.HeadPitch:F1} deg shown, spine turned {nb.SpineTurn:F1} deg, bones {nb.HeadBones}");
-                    Assert.That(nb.HeadPitch, Is.InRange(-NpcBody.HeadBack - 2f, NpcBody.HeadDown + 2f), who.name + " head is tipped out of range");
-                }
             // a group far from the player is not out
             var far = life.groups.OrderByDescending(g => Vector3.Distance(g.at, player.transform.position)).First();
             Assert.IsFalse(far.on, "the far side of town sleeps");

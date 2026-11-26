@@ -29,8 +29,6 @@ namespace StreetEmpire.Game
         void Awake()
         {
             if (animator != null && animator.isHuman) spine = animator.GetBoneTransform(HumanBodyBones.Spine);
-            if (animator != null && animator.isHuman) { neck = animator.GetBoneTransform(HumanBodyBones.Neck); head = animator.GetBoneTransform(HumanBodyBones.Head); }
-            if (head != null) foreach (Transform c in head.GetComponentsInChildren<Transform>(true)) if (c != head && c.name.Contains("HeadTop")) headTop = c;
         }
 
         public void Move(Vector3 planarVelocity, float dt)
@@ -68,25 +66,6 @@ namespace StreetEmpire.Game
         /// about 12 degrees of torso tilt on top of the rig's rest lean; the stride's own sway is kept.</summary>
         public float uprightLean = 3f;
         Quaternion corrected; bool hasCorrected, hasAvg; float avgLean;
-        Transform neck, head;
-        /// <summary>How far the spine was turned back this frame to stand the body up (degrees).</summary>
-        public float SpineTurn { get; private set; }
-        Transform headTop;
-        /// <summary>Which way the skull points (the head bone's up axis): 0 is upright, positive
-        /// is chin down, negative is face to the sky (degrees). As the animation left it, before the guard.</summary>
-        public float RawHeadPitch { get; private set; }
-        /// <summary>What the guard found to measure with, for the tests' log.</summary>
-        public string HeadBones => head == null ? "no head bone" : head.name + " -> " + (headTop != null ? headTop.name : "no top bone; children: "
-            + string.Join(", ", System.Linq.Enumerable.Select(System.Linq.Enumerable.Cast<Transform>(head), c => c.name)));
-        /// <summary>The same after the guard below.</summary>
-        public float HeadPitch => head == null || headTop == null ? 0f
-            // the head bone's own up axis: these rigs put the top-of-head bone at the head joint itself (zero length), so
-            // the line between the two gives no direction
-            : Vector3.SignedAngle(Vector3.up, Vector3.ProjectOnPlane(head.up, transform.right), transform.right);
-        /// <summary>How far back and forward a head may tip. The standing animation put ped-f-3 (the woman in teal on
-        /// the corners) face up at the sky: the photographs in LookShots showed it is her alone, whatever the cause
-        /// in her rig, so no head is left tipped back past this.</summary>
-        public const float HeadBack = 10f, HeadDown = 35f;
 
         void LateUpdate()
         {
@@ -96,11 +75,6 @@ namespace StreetEmpire.Game
             // it again would add up.
             if (spine != null && !IsDown && !(hasCorrected && spine.localRotation == corrected))
             {
-                // Turning the spine back carries the neck and head with it: a body straightened by 30 degrees ended up
-                // staring at the sky (the woman on the corner, build de79b58). The head keeps the direction the
-                // animation gave it and the neck takes half the turn.
-                Quaternion headWas = head != null ? head.rotation : Quaternion.identity, neckWas = neck != null ? neck.rotation : Quaternion.identity;
-                Quaternion spineWas = spine.rotation;
                 float raw = ShotDirector.Lean(animator, transform);
                 avgLean = hasAvg ? Mathf.Lerp(avgLean, raw, 1f - Mathf.Exp(-Time.deltaTime / 0.5f)) : raw; hasAvg = true;
                 float turn = Mathf.Clamp(avgLean - uprightLean, -5f, 35f);
@@ -113,17 +87,7 @@ namespace StreetEmpire.Game
                     if (r > 0.3f && r < 1f)
                         spine.rotation = Quaternion.AngleAxis(-Mathf.Min(turn * (1f / r - 1f), 20f), transform.right) * spine.rotation;
                 }
-                SpineTurn = Quaternion.Angle(spineWas, spine.rotation);
-                if (neck != null) neck.rotation = Quaternion.Slerp(neck.rotation, neckWas, 0.5f);
-                if (head != null) head.rotation = headWas;
                 corrected = spine.localRotation; hasCorrected = true;
-            }
-            if (headTop != null && !IsDown)
-            {
-                // safe to run on a frame the Animator did not write: a head already inside the limits is left alone
-                float pitch = HeadPitch; RawHeadPitch = pitch;
-                if (pitch < -HeadBack) head.rotation = Quaternion.AngleAxis(-HeadBack - pitch, transform.right) * head.rotation;
-                else if (pitch > HeadDown) head.rotation = Quaternion.AngleAxis(HeadDown - pitch, transform.right) * head.rotation;
             }
             Lean = ShotDirector.Lean(animator, transform);
         }
