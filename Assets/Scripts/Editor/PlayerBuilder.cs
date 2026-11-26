@@ -171,6 +171,12 @@ namespace StreetEmpire.EditorTools
             var stick = Rect("Stick", stickBase, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(130, 130));
             var si = stick.gameObject.AddComponent<Image>(); si.sprite = knob; si.color = new Color(1f, 0.54f, 0.1f, 0.75f);
             var os = stick.gameObject.AddComponent<OnScreenStick>(); os.controlPath = "<Gamepad>/leftStick"; os.movementRange = 95;
+            // the whole lower left takes the thumb (StickZone), not just the knob: the ring and knob are pictures only
+            bi.raycastTarget = false; si.raycastTarget = false;
+            var zone = Rect("StickZone", touch, Vector2.zero, new Vector2(0.45f, 0.58f), Vector2.zero, Vector2.zero);
+            zone.SetSiblingIndex(stickBase.GetSiblingIndex());
+            var zi = zone.gameObject.AddComponent<Image>(); zi.color = new Color(1, 1, 1, 0.001f);
+            var sz = zone.gameObject.AddComponent<StreetEmpire.UI.StickZone>(); sz.stick = os; sz.stickBase = stickBase;
 
             // on foot: jump, sprint, hit. In a car they give way to the pedals, and the stick only steers.
             var foot = Rect("FootButtons", touch, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);

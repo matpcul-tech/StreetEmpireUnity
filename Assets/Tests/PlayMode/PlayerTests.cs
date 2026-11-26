@@ -43,6 +43,13 @@ namespace StreetEmpire.Tests
             Assert.IsTrue(player.Grounded, "standing on the street");
             Assert.IsNotNull(Object.FindFirstObjectByType<CinemachineBrain>(), "cinemachine brain");
             Assert.IsNotNull(Object.FindFirstObjectByType<OnScreenStick>(FindObjectsInactive.Include), "phone stick");
+            // the thumb zone drives the stick; the ring and knob are pictures and must not swallow the touch
+            var zone = Object.FindFirstObjectByType<StreetEmpire.UI.StickZone>(FindObjectsInactive.Include);
+            Assert.IsNotNull(zone, "stick thumb zone"); Assert.IsNotNull(zone.stick, "zone drives the stick"); Assert.IsNotNull(zone.stickBase, "zone moves the ring");
+            Assert.IsFalse(zone.stick.GetComponent<UnityEngine.UI.Image>().raycastTarget, "the knob does not take touches");
+            Assert.IsFalse(zone.stickBase.GetComponent<UnityEngine.UI.Image>().raycastTarget, "the ring does not block touches");
+            var zr = (RectTransform)zone.transform;
+            Assert.Greater(zr.anchorMax.x, 0.4f, "the zone covers the lower left"); Assert.Greater(zr.anchorMax.y, 0.5f);
             Assert.GreaterOrEqual(Object.FindObjectsByType<OnScreenButton>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length, 3, "phone buttons");
         }
 
