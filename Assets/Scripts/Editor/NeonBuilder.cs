@@ -20,16 +20,15 @@ namespace StreetEmpire.EditorTools
             NGreen = new(0.24f, 1f, 0.43f), NViolet = new(0.67f, 0.35f, 1f), NBlue = new(0.24f, 0.43f, 1f);
         static readonly Color[] WideColor = { NAmber, NPink, NCyan, NGreen, NRed, NPink, NViolet, NRed, NBlue, NRed, NCyan, NAmber };
         static readonly Color[] TallColor = { NRed, NPink, NBlue, NAmber, NViolet, NGreen, NAmber, NCyan };
-        static readonly Wide[] StoreRoof = { Wide.Open24, Wide.Eats, Wide.Diner, Wide.Arcade, Wide.Tattoo, Wide.Cocktails };
         static readonly Tall[] AptBlade = { Tall.Rooms, Tall.Hotel, Tall.Bar, Tall.Jazz };
-        static int neonCount, neonStores, neonApts;
+        static int neonCount, neonApts;
         static Material neonSteady, neonFlicker;
         static readonly Dictionary<int, Mesh> neonMeshes = new();
 
         public static Material NeonSteady => neonSteady;
         public static Material NeonFlicker => neonFlicker;
 
-        static void NeonReset() { neonCount = neonStores = neonApts = 0; neonMeshes.Clear(); neonSteady = NeonMat("NeonSteady"); neonFlicker = NeonMat("NeonFlicker"); }
+        static void NeonReset() { neonCount = neonApts = 0; neonMeshes.Clear(); neonSteady = NeonMat("NeonSteady"); neonFlicker = NeonMat("NeonFlicker"); }
 
         static Material NeonMat(string name)
         {
@@ -40,7 +39,7 @@ namespace StreetEmpire.EditorTools
             m.shader = shader;
             m.SetFloat("_Surface", 1f); m.SetFloat("_Blend", 2f);
             m.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha); m.SetFloat("_DstBlend", (float)BlendMode.One);
-            m.SetFloat("_ZWrite", 0f); m.SetFloat("_Cull", 0f); m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m.SetFloat("_ZWrite", 0f); m.SetFloat("_Cull", 2f); m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
             m.renderQueue = (int)RenderQueue.Transparent;
             var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(NeonAtlas);
             if (tex == null) Debug.LogError("[SceneBuilder] missing the neon atlas");
@@ -69,7 +68,14 @@ namespace StreetEmpire.EditorTools
             else if (name.StartsWith("crew-")) NeonFace(inst, holder, (int)(name.Contains("goldline") ? Tall.Bar : Tall.Club), true, edge, Mathf.Min(b.size.y * 0.6f, 5.5f), 1.7f, 3.4f, true);
             else if (landmark) return;   // the police station, bank, school, clinic, docks and warehouses stay plain
             else if (mid && kind == "apt") { var t = AptBlade[neonApts++ % AptBlade.Length]; float h = Mathf.Clamp(b.size.y * 0.42f, 2.6f, 4.6f); NeonFace(inst, holder, (int)t, true, edge, Mathf.Min(b.size.y * 0.62f, 6.2f), h / 2f, h, true); }
-            else if (mid && kind == "store") NeonRoof(inst, holder, (int)StoreRoof[neonStores++ % StoreRoof.Length], Mathf.Min(b.size.x * 0.66f, 6.5f));
+            // a store's roof sign says what the store is, or nothing: dealt round the list they put TATTOO on the
+            // check casher and DINER on the chicken place
+            else if (mid && kind == "store")
+            {
+                int cell = name.Contains("takeout") ? (int)Wide.Eats : name.Contains("liquor") ? (int)Wide.Cocktails
+                    : name.Contains("laundromat") || name.Contains("gas") ? (int)Wide.Open24 : -1;
+                if (cell >= 0) NeonRoof(inst, holder, cell, Mathf.Min(b.size.x * 0.66f, 6.5f));
+            }
             // no blades on the Eastside stores: on the phone the pawn one sat across the lettered board
         }
 
@@ -117,7 +123,9 @@ namespace StreetEmpire.EditorTools
             m.vertices = new[] { new Vector3(-0.5f, -0.5f, 0), new Vector3(0.5f, -0.5f, 0), new Vector3(0.5f, 0.5f, 0), new Vector3(-0.5f, 0.5f, 0) };
             // read from the street (looking back along -Z), the quad's +X is on the left, so U runs the other way
             m.uv = new[] { new Vector2(u1, v0), new Vector2(u0, v0), new Vector2(u0, v1), new Vector2(u1, v1) };
-            m.triangles = new[] { 0, 2, 1, 0, 3, 2 }; m.RecalculateBounds();
+            // the face toward the street (+Z) is the front, and the material draws fronts only: from behind, a roof
+            // sign read backwards
+            m.triangles = new[] { 0, 1, 2, 0, 2, 3 }; m.RecalculateBounds();
             m = MeshMerge.Save(m, $"Assets/Art/Meshes/Neon/Neon-{key}.asset", compress: false);
             neonMeshes[key] = m; return m;
         }

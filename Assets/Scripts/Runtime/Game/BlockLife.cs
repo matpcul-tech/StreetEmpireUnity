@@ -62,6 +62,13 @@ namespace StreetEmpire.Game
             at = default; return false;
         }
 
+        /// <summary>Models that must not stand on a corner yet. Template 6 is ped-f-3, the woman in teal: standing
+        /// still her face points at the sky (LookShots photographs, build de79b58). Her head bone reads level while
+        /// it does, so the fault is in how her head is rigged to the skeleton and no guard on the bones reaches it.
+        /// She stays out of the corner groups until the model is re-rigged; she still walks the blocks.</summary>
+        public static readonly string[] BadStanders = { "Townie Template 6" };
+        public static bool StandsBadly(GameObject template) => template != null && System.Array.Exists(BadStanders, n => template.name.StartsWith(n));
+
         void Spawn(Group g, TownLife life)
         {
             for (int i = 0; i < perGroup; i++)
@@ -69,6 +76,7 @@ namespace StreetEmpire.Game
                 float a = i * Mathf.PI * 2f / perGroup + g.blockId * 0.7f;
                 var off = new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * ring;
                 var tpl = life.templates[look++ % life.templates.Length];
+                for (int k = 0; k < life.templates.Length && StandsBadly(tpl); k++) tpl = life.templates[look++ % life.templates.Length];
                 var who = Instantiate(tpl, g.at + off, Quaternion.LookRotation(-off), transform);
                 who.name = $"Corner {g.blockId}.{i + 1}";
                 // a townie that stays where it is: no errands

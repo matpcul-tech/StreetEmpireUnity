@@ -31,6 +31,7 @@ namespace StreetEmpire.Tests
             {
                 Assert.IsTrue(who.activeSelf); Assert.IsNull(who.GetComponent<Townie>(), "they stay put");
                 Assert.IsNotNull(who.GetComponent<Loiterer>()); Assert.IsNotNull(who.GetComponent<NpcBody>());
+                Assert.IsFalse(who.GetComponentsInChildren<Renderer>(true).Any(r => r.sharedMaterial != null && r.sharedMaterial.mainTexture != null && r.sharedMaterial.mainTexture.name.Contains("ped-f-3")), "the woman in teal does not stand on corners until she is re-rigged");
                 Assert.Less(Vector3.Distance(who.transform.position, near.at), 2.5f, "standing together");
             }
             // a group far from the player is not out
