@@ -94,6 +94,9 @@ namespace StreetEmpire.Game
         static bool Person(Collider c) => c.GetComponentInParent<Loiterer>() != null || c.GetComponentInParent<Health>() != null || c.GetComponentInParent<Townie>() != null
             || c.GetComponentInParent<Ped>() != null || c.GetComponentInParent<PlayerMotor>() != null || c.GetComponentInParent<Animator>() != null;
 
+        /// <summary>Which way a block's corner scene faces: its back along the sidewalk.</summary>
+        public float Yaw(int blockId) => yaws.TryGetValue(blockId, out float y) ? y : blockId * 40f;
+
         void Update()
         {
             var s = GameSession.Instance; var turf = TurfWar.Instance;
@@ -171,7 +174,8 @@ namespace StreetEmpire.Game
         {
             foreach (var b in turf.State.blocks)
             {
-                bool want = template != null && Dice.Runs(b) && b.owner == Turf.You && Spot(b.id, out var at) && Flat(p, at) < 70f;
+                // every dice corner in town has its game laid out, as on the web; only the ones you hold take your bet
+                bool want = template != null && Dice.Runs(b) && Spot(b.id, out var at) && Flat(p, at) < 70f;
                 bool have = games.TryGetValue(b.id, out var g) && g.root != null;
                 if (want && !have)
                 {

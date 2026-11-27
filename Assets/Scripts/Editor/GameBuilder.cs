@@ -67,6 +67,7 @@ namespace StreetEmpire.EditorTools
             }
             // street dice on the corners the player holds (the web build's dice scene)
             job.AddComponent<StreetDice>().template = SceneBuilder.DiceTemplate();
+            var corners = job.AddComponent<CornerScenes>(); corners.cards = SceneBuilder.CardsTemplate(); corners.stoop = SceneBuilder.StoopTemplate();
             board.runner = runner; board.missions = data.Jobs.missions; board.contacts = data.Jobs.contacts;
             var stand = new Dictionary<string, (int block, Look look)> { { "Dee", (7, PedLooks[3]) }, { "Rook", (12, PedLooks[6]) }, { "Sal", (17, Fence) } };
             board.contactNodes = data.Jobs.contacts.Select(c =>

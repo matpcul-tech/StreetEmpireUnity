@@ -93,6 +93,27 @@ namespace StreetEmpire.Tests
             Assert.That(turf.State.Block(0).pot, Is.InRange(potLive + 4.99f, potLive + 5.5f), "the pot keeps the bet");
             Assert.That(s.cash - cashLive, Is.InRange(-0.01f, 6f), "nothing comes back");
             Assert.AreEqual(-1, dice.Table); Assert.IsFalse(dice.Near);
+
+            // the other corners: a card table on block 1, a boombox on block 2, both props only
+            var scenes = CornerScenes.Instance; Assert.IsNotNull(scenes, "corner scenes");
+            Assert.AreEqual(20, scenes.cards.GetComponentsInChildren<MeshRenderer>(true).Length, "a table, four legs, six cards, seven chips and two crates");
+            Assert.AreEqual(7, scenes.stoop.GetComponentsInChildren<MeshRenderer>(true).Length, "a crate, the box with two speakers and a handle, a cooler and its lid");
+            Assert.AreEqual(0, scenes.cards.GetComponentsInChildren<Collider>(true).Length + scenes.stoop.GetComponentsInChildren<Collider>(true).Length, "nothing to trip over");
+            Assert.AreEqual("dice", CornerScenes.Kind(9)); Assert.AreEqual("cards", CornerScenes.Kind(1)); Assert.AreEqual("stoop", CornerScenes.Kind(2));
+            foreach (var (blk, name) in new[] { (1, "Card Game 1"), (2, "Stoop 2") })
+            {
+                Assert.IsTrue(dice.Spot(blk, out var at), $"block {blk} has a corner");
+                Vector3 away = at - turf.Center(blk); away.y = 0f; away.Normalize();
+                player.Teleport(at + away * 2.5f + Vector3.up * 0.3f, 0f);
+                yield return new WaitForSeconds(0.8f);
+                var go = GameObject.Find(name); Assert.IsNotNull(go, name);
+                Assert.Less(Vector3.Distance(go.transform.position, at), 0.05f);
+                Assert.AreEqual(-1, dice.Table, "no bets at a card table or a boombox");
+            }
+            var cone = GameObject.Find("Stoop 2").transform.Find("Boombox/Speaker"); Assert.IsNotNull(cone, "a speaker");
+            float lo = 9f, hi = 0f;
+            for (int f = 0; f < 60; f++) { lo = Mathf.Min(lo, cone.localScale.x); hi = Mathf.Max(hi, cone.localScale.x); yield return null; }
+            Assert.Greater(hi - lo, 0.005f, "the speakers thump");
         }
     }
 }
