@@ -150,34 +150,39 @@ namespace StreetEmpire.Tests
                 }
                 people++;
             }
-            // the dice game on the home corner, with a throw on the ground
+            // the corner scenes: the dice game on the home corner with a throw on the ground, a card table, a boombox
             StreetDice.AutoStart = true;
             var sd = StreetDice.Instance; var pm = Object.FindFirstObjectByType<StreetEmpire.Player.PlayerMotor>();
-            float diceUntil = Time.time + 5f; Vector3 dspot = default;
-            while (sd != null && !sd.Spot(0, out dspot) && Time.time < diceUntil) yield return null;
-            if (sd != null && pm != null && sd.Spot(0, out dspot))
+            int shotAt = -1; Vector3 dspot = default, dout = default, dside = default;
+            foreach (var (shotName, blk, outM, sideM, upM) in new[] { ("dice-corner", 0, 4.4f, 1.6f, 2.3f), ("dice-close", 0, 1.0f, 0.4f, 1.9f), ("cards-corner", 1, 3.2f, 1.2f, 2.1f), ("stoop-corner", 2, 3.2f, 1.2f, 2.1f) })
             {
-                Vector3 dout = dspot - TurfWar.Instance.Center(0); dout.y = 0f; dout.Normalize();
-                Vector3 dside = Vector3.Cross(Vector3.up, dout);
-                pm.Teleport(dspot + dout * 2.4f + Vector3.up * 0.3f, 180f);
-                for (int f = 0; f < 50; f++) yield return null;
-                sd.Tap(5);
-                for (int f = 0; f < 90; f++) yield return null;
-                foreach (var (shotName, eyeOff) in new[] { ("dice-corner", dout * 4.4f + dside * 1.6f + Vector3.up * 2.3f), ("dice-close", dout * 1.0f + dside * 0.4f + Vector3.up * 1.9f) })
+                if (sd == null || pm == null) break;
+                if (blk != shotAt)
                 {
-                    cam.transform.position = dspot + eyeOff; cam.transform.LookAt(dspot + Vector3.up * 0.1f);
-                    yield return null;
-                    var snap = cam.gameObject.AddComponent<LateSnap>(); snap.cam = cam; snap.rt = rt;
-                    while (!snap.done) yield return null;
-                    Object.Destroy(snap);
-                    var prev = RenderTexture.active; RenderTexture.active = rt;
-                    tex.ReadPixels(new Rect(0, 0, 640, 360), 0, 0); tex.Apply(); RenderTexture.active = prev;
-                    string b64 = System.Convert.ToBase64String(tex.EncodeToJPG(72));
-                    int parts = (b64.Length + 5999) / 6000;
-                    for (int i = 0; i < parts; i++)
-                        Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, "[LookShot] {0} {1}/{2} {3}", shotName, i + 1, parts, b64.Substring(i * 6000, Mathf.Min(6000, b64.Length - i * 6000)));
-                    shots++;
+                    shotAt = blk;
+                    // the corner groups only stand near the player, and a block's spot is where its group stands
+                    var mid = TurfWar.Instance.Center(blk); pm.Teleport(new Vector3(mid.x, 0.4f, mid.z + 24f), 180f);
+                    float diceUntil = Time.time + 6f;
+                    while (!sd.Spot(blk, out dspot) && Time.time < diceUntil) yield return null;
+                    if (!sd.Spot(blk, out dspot)) { shotAt = -2; continue; }
+                    dout = dspot - mid; dout.y = 0f; dout.Normalize(); dside = Vector3.Cross(Vector3.up, dout);
+                    pm.Teleport(dspot + dout * 2.4f + Vector3.up * 0.3f, 180f);
+                    for (int f = 0; f < 50; f++) yield return null;
+                    if (blk == 0) { sd.Tap(5); for (int f = 0; f < 90; f++) yield return null; }
                 }
+                if (shotAt != blk) continue;
+                cam.transform.position = dspot + dout * outM + dside * sideM + Vector3.up * upM; cam.transform.LookAt(dspot + Vector3.up * (blk == 0 ? 0.1f : 0.5f));
+                yield return null;
+                var snap = cam.gameObject.AddComponent<LateSnap>(); snap.cam = cam; snap.rt = rt;
+                while (!snap.done) yield return null;
+                Object.Destroy(snap);
+                var prev = RenderTexture.active; RenderTexture.active = rt;
+                tex.ReadPixels(new Rect(0, 0, 640, 360), 0, 0); tex.Apply(); RenderTexture.active = prev;
+                string b64 = System.Convert.ToBase64String(tex.EncodeToJPG(72));
+                int parts = (b64.Length + 5999) / 6000;
+                for (int i = 0; i < parts; i++)
+                    Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, "[LookShot] {0} {1}/{2} {3}", shotName, i + 1, parts, b64.Substring(i * 6000, Mathf.Min(6000, b64.Length - i * 6000)));
+                shots++;
             }
             StreetDice.AutoStart = false;
             BlockLife.AutoStart = false;
