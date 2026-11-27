@@ -98,6 +98,7 @@ namespace StreetEmpire.EditorTools
             float roof = RoofEdgeY(holder, w, b);
             float wall = BandFrontZ(inst, 0f, roof - 0.4f, w, 0.8f); if (float.IsNegativeInfinity(wall)) wall = b.max.z;
             const float lift = 0.4f;
+            Debug.Log($"[SceneBuilder] roof sign {(Wide)cell} on {inst.name}: wall top {roof:F2} m, building top {b.max.y:F2} m, wall front {wall:F2}, lot front {b.max.z:F2}");
             var at = new Vector3(0f, roof + lift + h * 0.5f, wall - 0.3f);
             NeonQuad(holder, cell, false, at, w, h, true);
             // a frame to stand on: two legs down to the roof behind the backing panel
@@ -105,10 +106,12 @@ namespace StreetEmpire.EditorTools
                 NeonBar(holder, "Sign Frame leg", new Vector3(side * w * 0.36f, roof + (lift + h * 0.5f) * 0.5f - 0.1f, at.z - 0.12f), new Vector3(0.09f, lift + h * 0.5f + 0.2f, 0.09f));
         }
 
-        /// <summary>The top of the front wall across a sign's width: the highest point within 1.6 m of the front.</summary>
+        /// <summary>The top of the front wall across a sign's width: the highest point within 3 m of the front.</summary>
         static float RoofEdgeY(GameObject inst, float w, Bounds b)
         {
-            float y = float.NegativeInfinity, z0 = b.max.z - 1.6f, x1 = w * 0.5f;
+            // 3 m back from the front-most point: an awning or a step can stand well out from the wall, and a band that
+            // caught only that seated the sign at awning height behind the store's own board
+            float y = float.NegativeInfinity, z0 = b.max.z - 3f, x1 = w * 0.5f;
             foreach (var f in inst.GetComponentsInChildren<MeshFilter>())
             {
                 var mesh = f.sharedMesh; if (mesh == null) continue;
