@@ -102,7 +102,8 @@ namespace StreetEmpire.Tests
             Assert.IsNotNull(job.GetComponent<JobCar>());
 
             // the fifth driver does not run: he comes for the thief
-            job.jackable = true; Carjack.Count = Carjack.Nerve - 1;
+            // (the heat from the first car is cleared, so the police call does not take the message line)
+            job.jackable = true; Carjack.Count = Carjack.Nerve - 1; s.heat = 0f;
             Assert.IsNull(GameObject.Find("Angry driver"));
             user.scriptUse = true;
             yield return null; yield return null;
