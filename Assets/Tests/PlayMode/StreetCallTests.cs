@@ -42,6 +42,26 @@ namespace StreetEmpire.Tests
             player.Teleport(calls.Spot + new Vector3(4f, 0.2f, 0f), 0); yield return new WaitForSeconds(0.3f);
             Assert.AreEqual(StreetCalls.Phase.Fight, calls.Now, "stepping in starts it");
             Assert.IsTrue(calls.Men.All(m => !m.GetComponent<Brawler>().posted), "and they come for him");
+            // crew that shows up: a guard standing in reach of the corner runs over and fights
+            var turf = TurfWar.Instance; var helper = calls.Backup;
+            Debug.Log($"[StreetCallTests] guards of yours standing: {turf.FriendlyBodies}, backup came: {helper != null}");
+            if (helper != null)
+            {
+                StringAssert.Contains("coming to back you up", s.Message);
+                var tg = helper.GetComponent<TurfGuard>(); Assert.IsNotNull(tg); Assert.IsFalse(tg.enabled, "he has left his post");
+                float d0 = calls.Men.Min(m => Vector3.Distance(m.transform.position, helper.transform.position));
+                float hp0 = calls.Men.Sum(m => m.hp);
+                // the player stands off so only the guard does the hitting
+                float wait = Time.time + 14f;
+                while (helper != null && helper.Hits == 0 && Time.time < wait && calls.Now == StreetCalls.Phase.Fight) { s.playerHealth.Restore(); yield return null; }
+                Assert.Greater(helper.Hits, 0, $"the guard reaches them and swings (he started {d0:F1} m off)");
+                Assert.Less(calls.Men.Sum(m => m.hp), hp0, "and it lands");
+                cash0 = s.cash; rep0 = s.rep;   // the stash paid in while he stood there
+                foreach (var m in calls.Men.ToArray()) m.Damage(999f, player.gameObject);
+                yield return null; yield return null;
+                Assert.IsNull(calls.Backup, "the fight is over"); Assert.IsTrue(tg.enabled, "and he goes back to his post"); Assert.IsNull(tg.GetComponent<CallBackup>());
+            }
+            else Assert.IsNull(turf.BackupFor(calls.Spot, StreetCalls.BackupRange, StreetCalls.BackupNear, out _), "no guard came only because none was in reach");
             foreach (var m in calls.Men.ToArray()) m.Damage(999f, player.gameObject);
             yield return null; yield return null;
             Assert.AreEqual(StreetCalls.Phase.None, calls.Now); Assert.AreEqual("win", calls.LastEnd); Assert.AreEqual(1, calls.Won);
