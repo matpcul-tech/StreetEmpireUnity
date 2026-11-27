@@ -96,6 +96,10 @@ namespace StreetEmpire.EditorTools
             // measured over everything on the lot's front, the lettered board included: on the liquor store the board
             // stands above the wall and hid the lower half of the sign behind it
             float roof = RoofEdgeY(holder, w, b);
+            // a store whose own board stands up above its roofline (the liquor store's MainSign) carries the neon on top of
+            // that board, not behind it
+            foreach (var r in holder.GetComponentsInChildren<Renderer>())
+                if (r.name.Contains("MainSign")) roof = Mathf.Max(roof, r.bounds.max.y);
             float wall = BandFrontZ(inst, 0f, roof - 0.4f, w, 0.8f); if (float.IsNegativeInfinity(wall)) wall = b.max.z;
             const float lift = 0.4f;
             Debug.Log($"[SceneBuilder] roof sign {(Wide)cell} on {inst.name}: wall top {roof:F2} m, building top {b.max.y:F2} m, wall front {wall:F2}, lot front {b.max.z:F2}");
