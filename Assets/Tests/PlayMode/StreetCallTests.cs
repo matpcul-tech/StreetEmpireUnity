@@ -32,6 +32,8 @@ namespace StreetEmpire.Tests
             float until = Time.time + 10f; while (calls.Now == StreetCalls.Phase.None && Time.time < until) yield return null;
             Assert.AreEqual(StreetCalls.Phase.Offer, calls.Now, "a call is offered"); Assert.AreEqual(StreetCalls.Kind.Incursion, calls.Current);
             Assert.AreEqual(3, calls.Men.Count, "three men push the corner");
+            Assert.IsTrue(calls.Men[1].GetComponent<Brawler>().bat, "the second man carries a bat"); Assert.IsFalse(calls.Men[0].GetComponent<Brawler>().bat); Assert.IsFalse(calls.Men[2].GetComponent<Brawler>().bat);
+            Assert.AreEqual(56f, calls.Men[0].max); Assert.AreEqual(60f, calls.Men[1].max); Assert.AreEqual(50f, calls.Men[2].max);
             Assert.GreaterOrEqual(Vector3.Distance(calls.Spot, player.transform.position), calls.minDist, "not on top of the player");
             Assert.IsTrue(calls.Men.All(m => m.GetComponent<Brawler>().posted), "they hold the corner until the player steps in");
 
@@ -51,6 +53,7 @@ namespace StreetEmpire.Tests
             until = Time.time + 10f; while (calls.Now == StreetCalls.Phase.None && Time.time < until) yield return null;
             Assert.AreEqual(StreetCalls.Phase.Offer, calls.Now, "the next call"); Assert.AreEqual(StreetCalls.Kind.Ambush, calls.Current);
             Assert.AreEqual(2, calls.Men.Count, "two lookouts");
+            Assert.IsTrue(calls.Men[1].GetComponent<Brawler>().bat, "one lookout has a bat"); Assert.AreEqual(58f, calls.Men[0].max);
             var lookouts = calls.Men.Select(m => m.gameObject).ToArray();
             Vector3 off = (player.transform.position - calls.Spot); off.y = 0; off = off.sqrMagnitude < 0.01f ? Vector3.forward : off.normalized;
             player.Teleport(calls.Spot + off * (StreetCalls.WalkOff + 6f) + Vector3.up * 0.2f, 0); yield return new WaitForSeconds(0.3f);

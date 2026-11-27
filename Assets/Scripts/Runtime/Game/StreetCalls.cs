@@ -103,14 +103,16 @@ namespace StreetEmpire.Game
                     leaveText = "They settle it and scatter."; skimText = "They settle it and skim $N off the block."; winText = "You took the purse.";
                     break;
             }
-            // who stands where: state.js specs (the web game's bat man and its retreat style have no brawler here yet)
-            Vector2[] places = Current == Kind.Incursion ? new[] { new Vector2(0, 0), new Vector2(1.5f, 0.8f), new Vector2(-1.5f, 0.6f) }
-                : Current == Kind.Ambush ? new[] { new Vector2(0, 0), new Vector2(1.6f, -0.4f) } : new[] { new Vector2(0, 0), new Vector2(1.5f, 0.2f) };
+            // who stands where, with what and how tough: the specs in state.js (x, z, hp, bat). The second man of a push
+            // or an ambush carries a bat and comes round the side. (The web game's retreat style has no brawler here yet.)
+            (float x, float z, float hp, bool bat)[] specs = Current == Kind.Incursion ? new[] { (0f, 0f, 56f, false), (1.5f, 0.8f, 60f, true), (-1.5f, 0.6f, 50f, false) }
+                : Current == Kind.Ambush ? new[] { (0f, 0f, 58f, false), (1.6f, -0.4f, 60f, true) } : new[] { (0f, 0f, 52f, false), (1.5f, 0.2f, 48f, false) };
             men.Clear();
-            for (int i = 0; i < places.Length; i++)
+            for (int i = 0; i < specs.Length; i++)
             {
-                var h = turf.SpawnHostile(crew, at + new Vector3(places[i].x, 0f, places[i].y), false, $"{crewName} ({Current.ToString().ToLowerInvariant()})", true);
+                var h = turf.SpawnHostile(crew, at + new Vector3(specs[i].x, 0f, specs[i].z), false, $"{crewName} ({Current.ToString().ToLowerInvariant()})", true, specs[i].bat);
                 if (h == null) continue;
+                h.max = h.hp = specs[i].hp;
                 var br = h.GetComponent<Brawler>(); if (br != null && i == 1) br.style = Brawler.Style.Flank;
                 men.Add(h);
             }
