@@ -26,6 +26,8 @@ namespace StreetEmpire.Game
         public int AwakeGroups => groups.Count(g => g.on);
 
         bool built; int look; float t;
+        /// <summary>The corners have been picked (StreetDice puts its game where a block's group stands).</summary>
+        public bool Built => built;
 
         void Awake() => Instance = this;
         void OnDestroy() { if (Instance == this) Instance = null; }
@@ -51,7 +53,7 @@ namespace StreetEmpire.Game
         }
 
         /// <summary>A spot just inside a corner of the block that nothing stands on.</summary>
-        static bool Corner(Vector3 c, out Vector3 at)
+        public static bool Corner(Vector3 c, out Vector3 at)
         {
             foreach (var (x, z) in new[] { (18.6f, 18.6f), (-18.6f, -18.6f), (18.6f, -18.6f), (-18.6f, 18.6f), (0f, 19.2f), (19.2f, 0f), (0f, -19.2f), (-19.2f, 0f) })
             {
