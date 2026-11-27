@@ -91,7 +91,45 @@ namespace StreetEmpire.EditorTools
         static void NeonRoof(GameObject inst, GameObject holder, int cell, float w)
         {
             var b = WorldBounds(inst); float h = w / 4f;
-            NeonQuad(holder, cell, false, new Vector3(0f, b.max.y + h * 0.5f + 0.1f, b.max.z - 0.3f), w, h, true);
+            // on the front wall's own top, not the building's tallest point: measured from a chimney or a vent the
+            // sign hung in the air metres above the roof (phone, build 5ef99d5)
+            float roof = RoofEdgeY(inst, w, b);
+            float wall = BandFrontZ(inst, 0f, roof - 0.4f, w, 0.8f); if (float.IsNegativeInfinity(wall)) wall = b.max.z;
+            const float lift = 0.4f;
+            var at = new Vector3(0f, roof + lift + h * 0.5f, wall - 0.3f);
+            NeonQuad(holder, cell, false, at, w, h, true);
+            // a frame to stand on: two legs down to the roof behind the backing panel
+            for (int side = -1; side <= 1; side += 2)
+                NeonBar(holder, "Sign Frame leg", new Vector3(side * w * 0.36f, roof + (lift + h * 0.5f) * 0.5f - 0.1f, at.z - 0.12f), new Vector3(0.09f, lift + h * 0.5f + 0.2f, 0.09f));
+        }
+
+        /// <summary>The top of the front wall across a sign's width: the highest point within 1.6 m of the front.</summary>
+        static float RoofEdgeY(GameObject inst, float w, Bounds b)
+        {
+            float y = float.NegativeInfinity, z0 = b.max.z - 1.6f, x1 = w * 0.5f;
+            foreach (var f in inst.GetComponentsInChildren<MeshFilter>())
+            {
+                var mesh = f.sharedMesh; if (mesh == null) continue;
+                var xf = f.transform;
+                foreach (var v in mesh.vertices)
+                {
+                    var p = xf.TransformPoint(v);
+                    if (p.z >= z0 && p.x >= -x1 && p.x <= x1) y = Mathf.Max(y, p.y);
+                }
+            }
+            return float.IsNegativeInfinity(y) ? b.max.y : y;
+        }
+
+        static Material neonFrameMat;
+        /// <summary>A dark painted steel bar or panel of a sign's frame. Not named "Neon ...": the tests and photographs that look for signs by that name must find only the tubes.
+        /// </summary>
+        static void NeonBar(GameObject holder, string name, Vector3 at, Vector3 size)
+        {
+            if (neonFrameMat == null) neonFrameMat = Mat("NeonFrame", new Color(0.09f, 0.09f, 0.10f), 0.35f);
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube); go.name = name;
+            Object.DestroyImmediate(go.GetComponent<Collider>());
+            go.transform.SetParent(holder.transform, false); go.transform.position = at; go.transform.localScale = size;
+            var r = go.GetComponent<MeshRenderer>(); r.sharedMaterial = neonFrameMat; r.shadowCastingMode = ShadowCastingMode.Off;
         }
 
         static void NeonQuad(GameObject holder, int cell, bool tall, Vector3 at, float w, float h, bool light)
@@ -102,6 +140,8 @@ namespace StreetEmpire.EditorTools
             var r = go.AddComponent<MeshRenderer>(); r.sharedMaterial = neonCount % 5 == 3 ? neonFlicker : neonSteady;
             r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = false;
             neonCount++;
+            // every sign is mounted on a dark backing panel, so the tubes read as fixed to something
+            NeonBar(holder, "Sign Frame panel", at - new Vector3(0f, 0f, 0.07f), new Vector3(w + 0.22f, h + 0.18f, 0.08f));
             if (!light) return;
             var l = new GameObject("Storefront Light").AddComponent<Light>();
             l.transform.SetParent(holder.transform, false);
