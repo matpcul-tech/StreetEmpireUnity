@@ -21,7 +21,7 @@ namespace StreetEmpire.Tests
             var blocks = Object.FindObjectsByType<BlockMarker>(FindObjectsSortMode.None);
             Assert.AreEqual(49, blocks.Length, "the 7 x 7 town");
             Assert.AreEqual(15, blocks.Count(b => b.district == StreetEmpire.Sim.CityLayout.Eastside), "fifteen Eastside blocks");
-            Assert.AreEqual(9, blocks.Count(b => b.district == StreetEmpire.Sim.CityLayout.Midtown), "nine Midtown blocks");
+            Assert.AreEqual(19, blocks.Count(b => b.district == StreetEmpire.Sim.CityLayout.Midtown), "nineteen Midtown blocks");
             Assert.AreEqual(14, blocks.Count(b => b.district == StreetEmpire.Sim.CityLayout.Downtown), "fourteen Downtown blocks toward the far corner");
             Assert.AreEqual(49, blocks.Select(b => b.blockId).Distinct().Count(), "every block once");
             Assert.IsTrue(blocks.All(b => b.gx < 7 && b.gz < 7), "the corner 7 x 7 of the city grid");
