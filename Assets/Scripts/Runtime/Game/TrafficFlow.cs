@@ -43,7 +43,7 @@ namespace StreetEmpire.Game
             foreach (var o in JobCar.All) if (o != null && (o.transform.position - at).sqrMagnitude < 16f * 16f) return;
             var car = JobCar.Spawn(at, Random.Range(7.5f, 10.5f), Body());
             if (car == null) return;
-            car.obeyLights = true; car.name = "Traffic car"; car.transform.SetParent(transform, true);
+            car.obeyLights = true; car.jackable = true; car.name = "Traffic car"; car.transform.SetParent(transform, true);
             cars.Add(car);
         }
 

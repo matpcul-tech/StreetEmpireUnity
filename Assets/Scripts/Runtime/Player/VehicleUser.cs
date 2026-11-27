@@ -1,4 +1,5 @@
-// Enter and exit cars like state.js: Use within 5 m takes the nearest free car; leaving puts you
+// Enter and exit cars like state.js: Use within 5 m takes the nearest free car, or a moving one off its driver
+// (Carjack); leaving puts you
 // 2.4 m out of the driver's door (the left side), or the right side if a wall is in the way.
 using StreetEmpire.City;
 using StreetEmpire.Vehicles;
@@ -48,6 +49,8 @@ namespace StreetEmpire.Player
             }
             // no car that already drives in reach: take a parked one (ParkedCars swaps it for a car that drives)
             if (best == null) { var parked = ParkedCars.Nearest(transform.position, enterRange * 0.6f); if (parked != null) best = ParkedCars.Take(parked); }
+            // nothing free: pull somebody out of the traffic
+            if (best == null) { var theirs = StreetEmpire.Game.Carjack.Nearest(transform.position, enterRange); if (theirs != null) best = StreetEmpire.Game.Carjack.Take(theirs, transform); }
             if (best == null) return false;
             Car = best; Car.hasDriver = true;
             motor.enabled = false; cc.enabled = false;
