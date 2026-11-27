@@ -19,12 +19,12 @@ namespace StreetEmpire.Tests
             yield return null; yield return null;
 
             var blocks = Object.FindObjectsByType<BlockMarker>(FindObjectsSortMode.None);
-            Assert.AreEqual(25, blocks.Length, "the 5 x 5 town");
+            Assert.AreEqual(49, blocks.Length, "the 7 x 7 town");
             Assert.AreEqual(15, blocks.Count(b => b.district == StreetEmpire.Sim.CityLayout.Eastside), "fifteen Eastside blocks");
             Assert.AreEqual(9, blocks.Count(b => b.district == StreetEmpire.Sim.CityLayout.Midtown), "nine Midtown blocks");
-            Assert.AreEqual(1, blocks.Count(b => b.district == StreetEmpire.Sim.CityLayout.Downtown), "one Downtown block, the far corner");
-            Assert.AreEqual(25, blocks.Select(b => b.blockId).Distinct().Count(), "every block once");
-            Assert.IsTrue(blocks.All(b => b.gx < 5 && b.gz < 5), "the corner 5 x 5 of the city grid");
+            Assert.AreEqual(14, blocks.Count(b => b.district == StreetEmpire.Sim.CityLayout.Downtown), "fourteen Downtown blocks toward the far corner");
+            Assert.AreEqual(49, blocks.Select(b => b.blockId).Distinct().Count(), "every block once");
+            Assert.IsTrue(blocks.All(b => b.gx < 7 && b.gz < 7), "the corner 7 x 7 of the city grid");
 
             var buildings = Object.FindObjectsByType<BuildingMarker>(FindObjectsSortMode.None);
             Assert.AreEqual(100, buildings.Length, "four kit buildings per block");

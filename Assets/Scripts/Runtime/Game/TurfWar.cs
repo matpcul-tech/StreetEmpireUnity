@@ -110,7 +110,9 @@ namespace StreetEmpire.Game
             try
             {
                 var st = JsonUtility.FromJson<TurfState>(j);
-                if (st == null || st.blocks == null || st.blocks.Count != blockIds.Length || st.over == "win") return null;
+                if (st == null || st.blocks == null || st.blocks.Count > blockIds.Length || st.over == "win") return null;
+                // a save from the smaller town keeps its turf: the new land joins it
+                if (st.blocks.Count < blockIds.Length && !Turf.Extend(world, st, blockIds)) return null;
                 foreach (int id in blockIds) if (st.Block(id) == null) return null;
                 if (st.Crew(Turf.You) == null) return null;
                 st.events = new List<TurfEvent>();

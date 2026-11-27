@@ -110,12 +110,7 @@ namespace StreetEmpire.Sim
                 string owner = Locals;
                 if (id == blockIds[0]) owner = You;
                 else if (rivalStarts != null) foreach (var kv in rivalStarts) if (kv.Value == id) owner = kv.Key;
-                s.blocks.Add(new TurfBlock
-                {
-                    id = id, gx = id % w.grid, gz = id / w.grid, owner = owner,
-                    hustle = w.hustles[id % w.hustles.Count], rate = 3 + ((id * 7) % 4),
-                    guards = owner == You ? 1 : 2,
-                });
+                s.blocks.Add(NewBlock(w, id, owner));
             }
             s.crews.Add(new TurfCrew { id = Locals });
             s.crews.Add(new TurfCrew { id = You, cash = playerCash });
@@ -125,6 +120,22 @@ namespace StreetEmpire.Sim
         }
 
         /// <summary>The Eastside slice: nine blocks, you on block 0, a rival on each of the other three corners.</summary>
+        static TurfBlock NewBlock(WorldFile w, int id, string owner) => new TurfBlock
+        {
+            id = id, gx = id % w.grid, gz = id / w.grid, owner = owner,
+            hustle = w.hustles[id % w.hustles.Count], rate = 3 + ((id * 7) % 4),
+            guards = owner == You ? 1 : 2,
+        };
+
+        /// <summary>The town grew since this game was saved: the new blocks join it held by the locals, and everything
+        /// already won or lost stays as it was. False when the save has a block the town no longer has.</summary>
+        public static bool Extend(WorldFile w, TurfState s, IList<int> blockIds)
+        {
+            foreach (var b in s.blocks) if (!blockIds.Contains(b.id)) return false;
+            foreach (int id in blockIds) if (s.Block(id) == null) s.blocks.Add(NewBlock(w, id, Locals));
+            return true;
+        }
+
         public static TurfState CreateEastside(WorldFile w, long seed = 1, float playerCash = 150) =>
             Create(w, new[] { 0, 1, 2, 9, 10, 11, 18, 19, 20 }, new Dictionary<string, int> { ["reds"] = 20, ["blues"] = 2, ["golds"] = 18 }, seed, playerCash);
 

@@ -35,10 +35,10 @@ namespace StreetEmpire.EditorTools
         public const float SidewalkTop = 0.22f, YardTop = 0.24f, LotTop = 0.255f;
         public const float CurbLine = 21.75f, InnerLine = 19.6f, ParkLine = 24.1f;
         // street names: the east-west streets (constant z, south to north) and the north-south avenues (constant x)
-        // 25 block town: six streets each way. There are four name blades each way (street-blade-0 to 7), so until
-        // blades for the two new names exist the fifth and sixth posts carry the first and second names again.
-        public static readonly string[] XStreetNames = { "E 31ST ST", "E 33RD ST", "E 35TH ST", "E 37TH ST", "E 39TH ST", "E 41ST ST" };
-        public static readonly string[] ZStreetNames = { "KING AVE", "GARFIELD AVE", "PRAIRIE AVE", "INDIANA AVE", "CALUMET AVE", "WABASH AVE" };
+        // 49 block town: eight streets each way. There are four name blades each way (street-blade-0 to 7), so until
+        // blades for the new names exist the fifth post on carry the first four names again.
+        public static readonly string[] XStreetNames = { "E 31ST ST", "E 33RD ST", "E 35TH ST", "E 37TH ST", "E 39TH ST", "E 41ST ST", "E 43RD ST", "E 45TH ST" };
+        public static readonly string[] ZStreetNames = { "KING AVE", "GARFIELD AVE", "PRAIRIE AVE", "INDIANA AVE", "CALUMET AVE", "WABASH AVE", "HARBOR AVE", "CALDER AVE" };
         const int Blades = 4;
 
         [Serializable] class Entry { public string prop, material, alpha, basecolor, normal, metalsmooth, emission; public float cutoff, metallic, roughness; public float[] color, tiling, emissive; }
