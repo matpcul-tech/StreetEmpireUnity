@@ -29,7 +29,7 @@ namespace StreetEmpire.UI
         static readonly Color Ground = new Color32(0x2a, 0x33, 0x2b, 255), Road = new Color32(0x7a, 0x7a, 0x7a, 255),
             Locals = new Color32(0xaa, 0xaa, 0xaa, 255), You = new Color32(0xff, 0x8a, 0x1a, 255), Edge = new Color32(0xff, 0xc0, 0x78, 255),
             Gold = new Color32(0xff, 0xcc, 0x33, 255), CopRed = new Color32(0xff, 0x22, 0x22, 255), CopBlue = new Color32(0x22, 0x66, 0xff, 255),
-            CallOrange = new Color32(0xff, 0x7a, 0x1a, 255), CallDim = new Color32(0x99, 0x44, 0x10, 255);
+            CallOrange = new Color32(0xff, 0x7a, 0x1a, 255), CallDim = new Color32(0xff, 0xff, 0xff, 255);   // orange to white: your own turf is orange too
 
         void Start()
         {
@@ -127,7 +127,7 @@ namespace StreetEmpire.UI
             if (unc != null && offer) Put(ToRadar(unc.position, p, yaw), Gold, 20f, false, true);
             if (job != null && (job.Stage == MissionRunner.State.GetBag || job.Stage == MissionRunner.State.ReturnBag))
                 Put(ToRadar(job.Target, p, yaw), Gold, 26f, true, true);
-            // a corner call: a flashing orange mark where it is, held on the rim when it is off the map
+            // a corner call: a mark flashing orange and white where it is, held on the rim when it is off the map
             var calls = StreetCalls.Instance;
             if (calls != null && calls.Now != StreetCalls.Phase.None) Put(ToRadar(calls.Spot, p, yaw), flash ? CallOrange : CallDim, 22f, true, true);
             float rim = frame.rect.width / 2f - 14f;
