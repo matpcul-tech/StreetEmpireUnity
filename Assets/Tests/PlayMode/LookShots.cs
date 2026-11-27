@@ -99,6 +99,35 @@ namespace StreetEmpire.Tests
                     shots++;
                 }
             }
+            // the player as the game camera frames him on foot, by day: the old framing and the new one side by side
+            var footGuy = Object.FindFirstObjectByType<StreetEmpire.Player.PlayerMotor>();
+            if (footGuy != null)
+            {
+                float hourWas = GameClock.FrozenHour, fovWas = cam.fieldOfView; GameClock.FrozenHour = 15f;
+                for (int f = 0; f < 20; f++) yield return null;
+                foreach (var (footName, back, pitch, fov, height, offset) in new[] { ("foot-old", 5.2f, 17f, 62f, 1.7f, -0.05f), ("foot-new", StreetEmpire.Player.CameraRig.FootRadius, 12f, 56f, 1.55f, StreetEmpire.Player.CameraRig.FootShoulder) })
+                {
+                    Vector3 aim = footGuy.transform.position + Vector3.up * height; float yaw = footGuy.transform.eulerAngles.y;
+                    cam.fieldOfView = fov;
+                    cam.transform.position = aim + Quaternion.Euler(pitch, yaw, 0f) * Vector3.back * back;
+                    cam.transform.LookAt(aim);
+                    // the composer holds him left of center: turn the view right by that much of the screen
+                    float halfW = Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad) * 16f / 9f;
+                    cam.transform.Rotate(Vector3.up, Mathf.Atan(2f * -offset * halfW) * Mathf.Rad2Deg, Space.World);
+                    yield return null;
+                    var snap = cam.gameObject.AddComponent<LateSnap>(); snap.cam = cam; snap.rt = rt;
+                    while (!snap.done) yield return null;
+                    Object.Destroy(snap);
+                    var prev = RenderTexture.active; RenderTexture.active = rt;
+                    tex.ReadPixels(new Rect(0, 0, 640, 360), 0, 0); tex.Apply(); RenderTexture.active = prev;
+                    string b64 = System.Convert.ToBase64String(tex.EncodeToJPG(72));
+                    int parts = (b64.Length + 5999) / 6000;
+                    for (int i = 0; i < parts; i++)
+                        Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, "[LookShot] {0} {1}/{2} {3}", footName, i + 1, parts, b64.Substring(i * 6000, Mathf.Min(6000, b64.Length - i * 6000)));
+                    shots++;
+                }
+                cam.fieldOfView = fovWas; GameClock.FrozenHour = hourWas;
+            }
             // a traffic car's lights at night: from ahead, from behind and above (where the headlamps must not show
             // as discs past the hood), and from the side
             GameClock.FrozenHour = 22f;
