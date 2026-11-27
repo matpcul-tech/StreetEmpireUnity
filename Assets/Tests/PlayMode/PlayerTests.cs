@@ -54,6 +54,25 @@ namespace StreetEmpire.Tests
         }
 
         [UnityTest]
+        public IEnumerator TheCameraStaysAboveTheStreet()
+        {
+            StreetEmpire.Game.MuggerOpening.AutoStart = false; SceneManager.LoadScene("Eastside");
+            yield return null; yield return null;
+            // a far orbit swung as low as it goes, as behind a bus: the camera went under the road (phone, b53e885)
+            Assert.Greater(CameraRig.FloorAngle(1f, 17f), -2f, "a far camera may not swing far below level");
+            Assert.Less(CameraRig.FloorAngle(1.5f, 5.2f), -6f, "on foot the old limit still decides");
+            var rig = Object.FindFirstObjectByType<CameraRig>(); Assert.IsNotNull(rig, "camera rig");
+            rig.radius = 16f; rig.orbit.VerticalAxis.Value = rig.orbit.VerticalAxis.Range.x;
+            for (float t = 0f; t < 2f; t += Time.deltaTime)
+            {
+                yield return null;
+                rig.orbit.VerticalAxis.Value = rig.orbit.VerticalAxis.Range.x;   // keep pulling it down, as a thumb would
+            }
+            yield return null; yield return null;
+            Assert.Greater(Camera.main.transform.position.y, 0.3f, "the camera stays above the street");
+        }
+
+        [UnityTest]
         public IEnumerator JogSprintAndJump()
         {
             yield return Load();
