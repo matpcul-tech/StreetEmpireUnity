@@ -150,6 +150,36 @@ namespace StreetEmpire.Tests
                 }
                 people++;
             }
+            // the dice game on the home corner, with a throw on the ground
+            StreetDice.AutoStart = true;
+            var sd = StreetDice.Instance; var pm = Object.FindFirstObjectByType<StreetEmpire.Player.PlayerMotor>();
+            float diceUntil = Time.time + 5f; Vector3 dspot = default;
+            while (sd != null && !sd.Spot(0, out dspot) && Time.time < diceUntil) yield return null;
+            if (sd != null && pm != null && sd.Spot(0, out dspot))
+            {
+                Vector3 dout = dspot - TurfWar.Instance.Center(0); dout.y = 0f; dout.Normalize();
+                Vector3 dside = Vector3.Cross(Vector3.up, dout);
+                pm.Teleport(dspot + dout * 2.4f + Vector3.up * 0.3f, 180f);
+                for (int f = 0; f < 50; f++) yield return null;
+                sd.Tap(5);
+                for (int f = 0; f < 90; f++) yield return null;
+                foreach (var (shotName, eyeOff) in new[] { ("dice-corner", dout * 4.4f + dside * 1.6f + Vector3.up * 2.3f), ("dice-close", dout * 1.0f + dside * 0.4f + Vector3.up * 1.9f) })
+                {
+                    cam.transform.position = dspot + eyeOff; cam.transform.LookAt(dspot + Vector3.up * 0.1f);
+                    yield return null;
+                    var snap = cam.gameObject.AddComponent<LateSnap>(); snap.cam = cam; snap.rt = rt;
+                    while (!snap.done) yield return null;
+                    Object.Destroy(snap);
+                    var prev = RenderTexture.active; RenderTexture.active = rt;
+                    tex.ReadPixels(new Rect(0, 0, 640, 360), 0, 0); tex.Apply(); RenderTexture.active = prev;
+                    string b64 = System.Convert.ToBase64String(tex.EncodeToJPG(72));
+                    int parts = (b64.Length + 5999) / 6000;
+                    for (int i = 0; i < parts; i++)
+                        Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, "[LookShot] {0} {1}/{2} {3}", shotName, i + 1, parts, b64.Substring(i * 6000, Mathf.Min(6000, b64.Length - i * 6000)));
+                    shots++;
+                }
+            }
+            StreetDice.AutoStart = false;
             BlockLife.AutoStart = false;
             GameClock.Frozen = wasFrozen; GameClock.FrozenHour = wasHour; BuildingCuller.On = true;
             Object.Destroy(rt); Object.Destroy(tex);

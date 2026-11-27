@@ -100,6 +100,7 @@ namespace StreetEmpire.Game
             if (JobBoard.Instance != null) JobBoard.Instance.NewGame();
             if (SideHustles.Instance != null) SideHustles.Instance.NewGame();
             if (StreetCalls.Instance != null) StreetCalls.Instance.NewGame();
+            if (StreetDice.Instance != null) StreetDice.Instance.NewGame();
         }
 
         TurfState Load()
@@ -218,6 +219,9 @@ namespace StreetEmpire.Game
                 if (user != null) foreach (var c in FindObjectsByType<StreetEmpire.Vehicles.CarController>(FindObjectsSortMode.None)) if (!c.hasDriver && (c.transform.position - p).sqrMagnitude < user.enterRange * user.enterRange) { nearCar = true; break; }
                 if (nearUnc || nearCar) buy = null;
             }
+            // at the corner dice game the USE press and the prompt line are the game's
+            var dice = StreetDice.Instance;
+            if (dice != null && dice.Near) { buy = null; if (text.Length == 0) text = dice.Prompt; }
             if (buy != null)
             {
                 int cost = Turf.Cost(world, buy);

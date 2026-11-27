@@ -37,6 +37,8 @@ namespace StreetEmpire.Sim
         public bool armed;        // bats and more health for this block's guards (upgrade)
         public bool built;        // built up once: earns buildBoost times as much, lost when the block falls
         public float stash;       // hustle cash piled up on the block
+        public float pot;         // the corner dice game's own money (Dice.cs); counts once hasPot is set
+        public bool hasPot;
         public string capBy;      // crew capturing it, or null
         public float capT;
         public float regrowT;     // locals drifting back onto an empty neutral block
@@ -84,7 +86,7 @@ namespace StreetEmpire.Sim
         public const float RaidRest = 75f, RaidRestSpread = 45f, TravelSeconds = 20f, DefenderEdge = 0.6f, BatEdge = 0.1f;
         public static readonly string[] Rivals = { "reds", "blues", "golds" };
 
-        static double R(TurfState s)
+        internal static double R(TurfState s)
         {
             s.rng = (s.rng * 1664525UL + 1013904223UL) % 4294967296UL;
             return s.rng / 4294967296.0;
