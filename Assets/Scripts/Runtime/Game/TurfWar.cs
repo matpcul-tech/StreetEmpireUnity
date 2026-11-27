@@ -99,6 +99,7 @@ namespace StreetEmpire.Game
             PlayerPrefs.DeleteKey(SaveKey); Paint();
             if (JobBoard.Instance != null) JobBoard.Instance.NewGame();
             if (SideHustles.Instance != null) SideHustles.Instance.NewGame();
+            if (StreetCalls.Instance != null) StreetCalls.Instance.NewGame();
         }
 
         TurfState Load()
