@@ -1,6 +1,6 @@
 // Street dice on the corner (rules in Assets/Scripts/Sim/Dice.cs, from the web build's state.js and hustle.js): a
 // block you hold whose corner runs the dice game gets a chalk ring, two dice, a few bills and a cardboard backstop
-// in the middle of the people standing there. Stand at it and bet 5, 10, 25 or 50 against the corner's pot: the bet
+// on the sidewalk beside the people standing there. Stand at it and bet 5, 10, 25 or 50 against the corner's pot: the bet
 // buttons on screen, or USE for the last bet. With a point on, every tap is the next roll. Walk off a live bet, get
 // in a car, go down or lose the block and the pot keeps it. The dice land showing what was thrown.
 using System.Collections.Generic;
@@ -40,6 +40,7 @@ namespace StreetEmpire.Game
         class Game { public GameObject root; public Transform[] dice = new Transform[2]; public Vector3[] from = new Vector3[2], rest = new Vector3[2]; public Quaternion[] end = new Quaternion[2]; public float t = 9f; }
         readonly Dictionary<int, Game> games = new();
         readonly Dictionary<int, Vector3> spots = new();
+        readonly Dictionary<int, float> yaws = new();
         float propT; int tapped;
         GameObject panel, rollButton; readonly List<GameObject> betButtons = new();
 
@@ -67,6 +68,19 @@ namespace StreetEmpire.Game
                 at = g.at;
             }
             else if (!BlockLife.Corner(turf.Center(blockId), out at)) return false;
+            // the group stands on the lot's corner, half on the grass: the game is chalked on the sidewalk beside them,
+            // a step out from the block, if nothing stands there
+            Vector3 outward = at - turf.Center(blockId); outward.y = 0f;
+            if (outward.sqrMagnitude > 0.01f)
+            {
+                outward.Normalize();
+                Vector3 beside = at + outward * 1.4f; bool clear = true;
+                foreach (var c in Physics.OverlapSphere(beside + Vector3.up * 1.0f, 0.8f, ~0, QueryTriggerInteraction.Ignore))
+                    if (c.GetComponentInParent<Animator>() == null) { clear = false; break; }
+                if (clear) at = beside;
+                // the backstop along the sidewalk, not toward the people or the street
+                yaws[blockId] = Quaternion.LookRotation(Vector3.Cross(Vector3.up, outward)).eulerAngles.y;
+            }
             // down onto the sidewalk: the first thing under the spot that is not a person
             float y = at.y - 0.1f, best = float.MaxValue;
             foreach (var h in Physics.RaycastAll(at + Vector3.up * 1.5f, Vector3.down, 4f, ~0, QueryTriggerInteraction.Ignore))
@@ -157,7 +171,7 @@ namespace StreetEmpire.Game
                 if (want && !have)
                 {
                     Spot(b.id, out var at2);
-                    var root = Instantiate(template, at2, Quaternion.Euler(0f, b.id * 40f, 0f), transform);
+                    var root = Instantiate(template, at2, Quaternion.Euler(0f, yaws.TryGetValue(b.id, out float yaw) ? yaw : b.id * 40f, 0f), transform);
                     root.name = $"Dice Game {b.id}"; root.SetActive(true);
                     g = new Game { root = root };
                     for (int i = 0; i < 2; i++) { g.dice[i] = root.transform.Find($"Die {i + 1}"); if (g.dice[i] != null) { g.rest[i] = g.dice[i].localPosition; g.end[i] = g.dice[i].localRotation; } }
