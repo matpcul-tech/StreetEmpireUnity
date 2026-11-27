@@ -12,6 +12,9 @@ namespace StreetEmpire.Vehicles
 
         void Start() { box = GetComponent<BoxCollider>(); day = Object.FindFirstObjectByType<DayCycle>(); }
 
+        /// <summary>The car is the player's now (Carjack): CarFx lights it from here on.</summary>
+        public void Remove() { if (lamps != null) Destroy(lamps); Destroy(this); }
+
         void Update()
         {
             bool dark = day != null && day.Night > 0.3f;

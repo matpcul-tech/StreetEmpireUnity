@@ -16,6 +16,8 @@ namespace StreetEmpire.Game
 
         /// <summary>Traffic (TrafficFlow) keeps the rules of the road; a job's marked car does not.</summary>
         public bool obeyLights;
+        /// <summary>Somebody's car, there to be taken (traffic). A job's own car is not.</summary>
+        public bool jackable;
         public float Speed => v;
         public static readonly System.Collections.Generic.List<JobCar> All = new();
 
