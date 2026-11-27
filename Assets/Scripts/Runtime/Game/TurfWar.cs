@@ -356,15 +356,15 @@ namespace StreetEmpire.Game
 
         /// <summary>A rival for a job (JobBoard): a man who comes for the player, or a boss who holds a spot until
         /// the player is close. He is no part of the turf sim: nobody's guard count changes when he falls.</summary>
-        public Health SpawnHostile(string crew, Vector3 at, bool boss, string name, bool posted)
+        public Health SpawnHostile(string crew, Vector3 at, bool boss, string name, bool posted, bool bat = false)
         {
             int k = System.Array.IndexOf(crewTemplateIds, crew);
             var forced = boss && k >= 0 && k < crewBossTemplates.Length ? crewBossTemplates[k] : null;
             var s = GameSession.Instance; var face = s != null && s.player != null ? s.player.transform.position - at : Vector3.forward;
-            var go = Make(at, face, boss ? bossHp : 60f, false, name, crew, forced);
+            var go = Make(at, face, boss ? bossHp : 60f, bat && !boss, name, crew, forced);
             if (go == null) return null;
             var br = go.GetComponent<Brawler>();
-            if (br != null) { br.posted = posted; br.post = at; br.bat = false; br.style = Brawler.Style.Rush; }
+            if (br != null) { br.posted = posted; br.post = at; br.bat = bat && !boss; br.style = Brawler.Style.Rush; }
             go.SetActive(true);
             var h = go.GetComponent<Health>();
             h.KnockedOut += _ => CrewDown?.Invoke(crew, go);
