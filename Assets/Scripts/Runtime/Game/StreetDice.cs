@@ -69,14 +69,14 @@ namespace StreetEmpire.Game
             }
             else if (!BlockLife.Corner(turf.Center(blockId), out at)) return false;
             // the group stands on the lot's corner, half on the grass: the game is chalked on the sidewalk beside them,
-            // a step out from the block, if nothing stands there
+            // two steps out from the block, if nothing but people stands there
             Vector3 outward = at - turf.Center(blockId); outward.y = 0f;
             if (outward.sqrMagnitude > 0.01f)
             {
                 outward.Normalize();
-                Vector3 beside = at + outward * 1.4f; bool clear = true;
+                Vector3 beside = at + outward * 2.0f; bool clear = true;
                 foreach (var c in Physics.OverlapSphere(beside + Vector3.up * 1.0f, 0.8f, ~0, QueryTriggerInteraction.Ignore))
-                    if (c.GetComponentInParent<Animator>() == null) { clear = false; break; }
+                    if (!Person(c)) { clear = false; break; }
                 if (clear) at = beside;
                 // the backstop along the sidewalk, not toward the people or the street
                 yaws[blockId] = Quaternion.LookRotation(Vector3.Cross(Vector3.up, outward)).eulerAngles.y;
@@ -84,10 +84,15 @@ namespace StreetEmpire.Game
             // down onto the sidewalk: the first thing under the spot that is not a person
             float y = at.y - 0.1f, best = float.MaxValue;
             foreach (var h in Physics.RaycastAll(at + Vector3.up * 1.5f, Vector3.down, 4f, ~0, QueryTriggerInteraction.Ignore))
-                if (h.distance < best && h.collider.GetComponentInParent<Animator>() == null) { best = h.distance; y = h.point.y; }
+                if (h.distance < best && !Person(h.collider)) { best = h.distance; y = h.point.y; }
             at.y = y; spots[blockId] = at;
             return true;
         }
+
+        /// <summary>A body, not a thing: the corner people, walkers, fighters and the player carry their capsule on the
+        /// root and their Animator on a child, so the Animator alone does not find them.</summary>
+        static bool Person(Collider c) => c.GetComponentInParent<Loiterer>() != null || c.GetComponentInParent<Health>() != null || c.GetComponentInParent<Townie>() != null
+            || c.GetComponentInParent<Ped>() != null || c.GetComponentInParent<PlayerMotor>() != null || c.GetComponentInParent<Animator>() != null;
 
         void Update()
         {
