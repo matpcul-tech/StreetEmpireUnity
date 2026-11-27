@@ -83,7 +83,9 @@ namespace StreetEmpire.Vehicles
         {
             var m = new Material(from) { name = "Car lamp" }; m.SetColor("_BaseColor", c);
             // the particle material carries the dust speckle; a lamp is one soft round glow
-            m.SetTexture("_BaseMap", Soft()); return m;
+            // one face only: seen from behind and above, a two-sided headlamp disc stood up past the hood like a light
+            // floating ahead of the car (phone, build b53e885)
+            m.SetTexture("_BaseMap", Soft()); m.SetFloat("_Cull", 2f); return m;
         }
 
         static Texture2D soft;
@@ -107,7 +109,9 @@ namespace StreetEmpire.Vehicles
             var m = new Mesh { name = "Car lamp quad" };
             m.vertices = new[] { new Vector3(-0.5f, -0.5f, 0), new Vector3(0.5f, -0.5f, 0), new Vector3(0.5f, 0.5f, 0), new Vector3(-0.5f, 0.5f, 0) };
             m.uv = new[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(0, 1) };
-            m.triangles = new[] { 0, 2, 1, 0, 3, 2 }; m.RecalculateBounds(); return m;
+            // the face toward +Z is the front and the lamp materials draw fronts only: a headlamp shows from ahead of the
+            // car, a tail lamp (turned round) from behind, the road pool (laid flat) from above
+            m.triangles = new[] { 0, 1, 2, 0, 2, 3 }; m.RecalculateBounds(); return m;
         }
 
         static GameObject Lamp(Transform parent, string name, Vector3 at, float size, Material mat, bool rear)

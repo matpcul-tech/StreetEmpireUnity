@@ -28,7 +28,7 @@ namespace StreetEmpire.Tests
         [UnityTest, Timeout(900000)]
         public IEnumerator ParkedCarsOnCamera()
         {
-            MuggerOpening.AutoStart = false; BlockLife.AutoStart = true; SceneManager.LoadScene("Eastside");
+            MuggerOpening.AutoStart = false; BlockLife.AutoStart = true; TrafficFlow.AutoStart = true; SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
             bool wasFrozen = GameClock.Frozen; float wasHour = GameClock.FrozenHour;
             GameClock.Frozen = true; GameClock.FrozenHour = 14f;
@@ -99,6 +99,31 @@ namespace StreetEmpire.Tests
                     shots++;
                 }
             }
+            // a traffic car's lights at night: from ahead, from behind and above (where the headlamps must not show
+            // as discs past the hood), and from the side
+            GameClock.FrozenHour = 22f;
+            for (int f = 0; f < 30; f++) yield return null;
+            var lit = JobCar.All.FirstOrDefault(c => c != null && c.GetComponent<StreetEmpire.Vehicles.CarLamps>() != null && c.GetComponent<StreetEmpire.Vehicles.CarLamps>().On);
+            if (lit == null) Debug.Log("[LookShot] no traffic car with its lights on to photograph");
+            else
+                foreach (var view in new[] { "ahead", "behind", "side" })
+                {
+                    var ct = lit.transform; Vector3 mid = ct.position + Vector3.up * 0.8f;
+                    cam.transform.position = view == "ahead" ? mid + ct.forward * 8f + Vector3.up * 0.6f : view == "behind" ? mid - ct.forward * 7f + Vector3.up * 4f : mid + ct.right * 7f + Vector3.up * 1f;
+                    cam.transform.LookAt(mid);
+                    yield return null;
+                    var snap = cam.gameObject.AddComponent<LateSnap>(); snap.cam = cam; snap.rt = rt;
+                    while (!snap.done) yield return null;
+                    Object.Destroy(snap);
+                    var prev = RenderTexture.active; RenderTexture.active = rt;
+                    tex.ReadPixels(new Rect(0, 0, 640, 360), 0, 0); tex.Apply(); RenderTexture.active = prev;
+                    string b64 = System.Convert.ToBase64String(tex.EncodeToJPG(72));
+                    int parts = (b64.Length + 5999) / 6000;
+                    for (int i = 0; i < parts; i++)
+                        Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, "[LookShot] lamps-{0} {1}/{2} {3}", view, i + 1, parts, b64.Substring(i * 6000, Mathf.Min(6000, b64.Length - i * 6000)));
+                    shots++;
+                }
+            TrafficFlow.AutoStart = false;
             // the people on the corners by day, from the front and the side: how they hold their heads
             GameClock.FrozenHour = 14f;
             for (int f = 0; f < 30; f++) yield return null;
