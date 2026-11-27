@@ -93,7 +93,9 @@ namespace StreetEmpire.EditorTools
             var b = WorldBounds(inst); float h = w / 4f;
             // on the front wall's own top, not the building's tallest point: measured from a chimney or a vent the
             // sign hung in the air metres above the roof (phone, build 5ef99d5)
-            float roof = RoofEdgeY(inst, w, b);
+            // measured over everything on the lot's front, the lettered board included: on the liquor store the board
+            // stands above the wall and hid the lower half of the sign behind it
+            float roof = RoofEdgeY(holder, w, b);
             float wall = BandFrontZ(inst, 0f, roof - 0.4f, w, 0.8f); if (float.IsNegativeInfinity(wall)) wall = b.max.z;
             const float lift = 0.4f;
             var at = new Vector3(0f, roof + lift + h * 0.5f, wall - 0.3f);
