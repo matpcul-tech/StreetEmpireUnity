@@ -1,6 +1,6 @@
 // Third person orbit: drives the Cinemachine orbital follow from mouse (click to lock the cursor),
 // gamepad right stick, or a drag on the right side of a phone screen. Feels like the web game's camera
-// (main.js): 0.0026 rad a mouse pixel, over the right shoulder on foot, centered behind a car, and pulled in
+// (main.js): 0.0026 rad a mouse pixel, close over the right shoulder on foot, centered behind a car, and pulled in
 // when a building wall is behind (insideBuilding in the web), never by a pole or a palm.
 using Unity.Cinemachine;
 using UnityEngine;
@@ -14,7 +14,14 @@ namespace StreetEmpire.Player
         public CinemachineOrbitalFollow orbit;
         public float mouseSensitivity = 0.149f, stickSpeed = 150f, touchSensitivity = 0.22f;
         public CinemachineRotationComposer composer;
-        public float radius = 5.2f, shoulder = -0.05f;   // orbit radius wanted, and the on foot screen offset
+        /// <summary>On foot the camera sits close behind the right shoulder (3.8 m back, he stands left of center): near
+        /// enough that he reads as a person in the street, not a figure on a map.</summary>
+        public const float FootRadius = 3.8f, FootShoulder = -0.12f;
+        public float radius = FootRadius, shoulder = FootShoulder;   // orbit radius wanted, and the on foot screen offset
+        /// <summary>On foot: the player. While he walks and the view is left alone, the camera eases round behind him.</summary>
+        public Transform footFollow;
+        public float footDelay = 1.6f, footSpeed = 1.1f, footMinSpeed = 1.5f;
+        Vector3 footLast; bool footHas;
         public Transform alignTo;           // while driving: swing back behind the car when the player is not looking around
         public float alignDelay = 1.2f, alignSpeed = 2.5f;
         static Vector2 touchDelta;
@@ -39,6 +46,18 @@ namespace StreetEmpire.Player
             idle = look.sqrMagnitude > 1e-4f ? 0f : idle + Time.deltaTime;
             float h = orbit.HorizontalAxis.Value + look.x;
             if (alignTo != null && idle > alignDelay) h = Mathf.LerpAngle(h, alignTo.eulerAngles.y, 1f - Mathf.Exp(-alignSpeed * Time.deltaTime));
+            if (alignTo == null && footFollow != null)
+            {
+                // on foot it follows only a walk that goes roughly away from it: running back toward the camera keeps the view
+                Vector3 step = footFollow.position - footLast; step.y = 0f; footLast = footFollow.position;
+                float speed = footHas && Time.deltaTime > 0f ? step.magnitude / Time.deltaTime : 0f; footHas = true;
+                if (speed > footMinSpeed && speed < 15f && idle > footDelay)
+                {
+                    float heading = Mathf.Atan2(step.x, step.z) * Mathf.Rad2Deg;
+                    if (Mathf.Abs(Mathf.DeltaAngle(h, heading)) < 120f) h = Mathf.LerpAngle(h, heading, 1f - Mathf.Exp(-footSpeed * Time.deltaTime));
+                }
+            }
+            else footHas = false;
             orbit.HorizontalAxis.Value = Mathf.DeltaAngle(0f, h);
             var range = orbit.VerticalAxis.Range;
             // the lowest the camera may swing depends on how far back it sits: 6 degrees below level is fine at

@@ -47,10 +47,10 @@ namespace StreetEmpire.EditorTools
             motor.animator = anim;
 
             var target = new GameObject("CameraTarget").transform;
-            target.SetParent(root.transform, false); target.localPosition = new Vector3(0, 1.7f, 0);   // the web camera pivot height
+            target.SetParent(root.transform, false); target.localPosition = new Vector3(0, 1.55f, 0);   // his shoulders: the camera looks at him, not over his head
             var follow = Camera(target, root.transform.eulerAngles.y);
             var user = root.AddComponent<VehicleUser>();
-            user.followCamera = follow; user.footCameraTarget = target;
+            user.followCamera = follow; user.footCameraTarget = target; user.footRadius = CameraRig.FootRadius;
             Hud();
             return root;
         }
@@ -66,19 +66,19 @@ namespace StreetEmpire.EditorTools
             var vcam = new GameObject("Follow Camera");
             var cm = vcam.AddComponent<CinemachineCamera>();
             cm.Follow = target; cm.LookAt = target;
-            var lens = cm.Lens; lens.FieldOfView = 62f; lens.NearClipPlane = 0.2f; lens.FarClipPlane = 600f; cm.Lens = lens;
+            var lens = cm.Lens; lens.FieldOfView = 56f; lens.NearClipPlane = 0.2f; lens.FarClipPlane = 600f; cm.Lens = lens;
             var orbit = vcam.AddComponent<CinemachineOrbitalFollow>();
             orbit.OrbitStyle = CinemachineOrbitalFollow.OrbitStyles.Sphere;
-            orbit.Radius = 5.2f;
+            orbit.Radius = CameraRig.FootRadius;
             // the web pitch: 0.3 rad to start, -0.1 to 1.1 rad; position eased about as fast as its lerp of 12 a second
-            orbit.VerticalAxis.Range = new Vector2(-6f, 63f); orbit.VerticalAxis.Value = 17f;
+            orbit.VerticalAxis.Range = new Vector2(-6f, 63f); orbit.VerticalAxis.Value = 12f;
             orbit.HorizontalAxis.Value = yaw;
             var ts = orbit.TrackerSettings; ts.PositionDamping = new Vector3(0.08f, 0.08f, 0.08f); orbit.TrackerSettings = ts;
             var comp = vcam.AddComponent<CinemachineRotationComposer>();
-            // the web camera aims 0.6 m right of the player and 1.2 m past him: he sits a little left of center
-            var cc = comp.Composition; cc.ScreenPosition = new Vector2(-0.05f, 0f); comp.Composition = cc;
+            // over the right shoulder: he stands left of center with the street open ahead of him
+            var cc = comp.Composition; cc.ScreenPosition = new Vector2(CameraRig.FootShoulder, 0f); comp.Composition = cc;
             comp.Damping = new Vector2(0.05f, 0.05f);
-            var rig = vcam.AddComponent<CameraRig>(); rig.orbit = orbit; rig.composer = comp; rig.radius = 5.2f;
+            var rig = vcam.AddComponent<CameraRig>(); rig.orbit = orbit; rig.composer = comp; rig.radius = CameraRig.FootRadius; rig.footFollow = target.parent;
             return cm;
         }
 

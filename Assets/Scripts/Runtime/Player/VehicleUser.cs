@@ -14,7 +14,7 @@ namespace StreetEmpire.Player
         public float enterRange = 5f, exitOffset = 2.4f;
         public CinemachineCamera followCamera;
         public Transform footCameraTarget;
-        public float footRadius = 5.2f, carRadius = 8.5f;
+        public float footRadius = CameraRig.FootRadius, carRadius = 8.5f;
 
         public CarController Car { get; private set; }
         public bool scriptUse;
