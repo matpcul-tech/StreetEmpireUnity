@@ -22,6 +22,7 @@ namespace StreetEmpire.Tests
             Time.timeScale = 1f; MuggerOpening.AutoStart = false; JobBoard.AutoStart = false; SideHustles.AutoStart = false;
             SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
+            Carjack.Count = 0;
             var s = GameSession.Instance; var player = Object.FindFirstObjectByType<PlayerMotor>(); var user = player.GetComponent<VehicleUser>();
             Assert.IsNotNull(user, "the player can use cars");
 
@@ -99,6 +100,21 @@ namespace StreetEmpire.Tests
             yield return null; yield return null;
             Assert.IsNull(user.Car, "USE beside it does nothing");
             Assert.IsNotNull(job.GetComponent<JobCar>());
+
+            // the fifth driver does not run: he comes for the thief
+            // (the heat from the first car is cleared, so the police call does not take the message line)
+            job.jackable = true; Carjack.Count = Carjack.Nerve - 1; s.heat = 0f;
+            Assert.IsNull(GameObject.Find("Angry driver"));
+            user.scriptUse = true;
+            yield return null; yield return null;
+            Assert.IsNotNull(user.Car, "in the fifth car");
+            StringAssert.Contains("wants it back", s.Message);
+            var angry = GameObject.Find("Angry driver");
+            if (TurfWar.Instance != null && TurfWar.Instance.templates.Length > 0)
+            {
+                Assert.IsNotNull(angry, "the driver who fights"); Assert.IsNotNull(angry.GetComponent<Brawler>(), "a fighter");
+                Assert.AreEqual(45f, angry.GetComponent<Health>().max); Assert.IsFalse(angry.GetComponent<Brawler>().posted, "he comes after the thief");
+            }
         }
     }
 }

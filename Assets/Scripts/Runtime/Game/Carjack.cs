@@ -1,6 +1,6 @@
 // Taking a car off somebody in traffic, from the web build (state.js, the 'car' action on an AI car): USE beside a
 // traffic car pulls the driver out and puts you in the seat. It costs 6 heat, the driver lands on the street side
-// shouting and runs. The traffic car becomes a car that drives like any other you own.
+// shouting and runs, except one in five, who fights to get it back. The traffic car becomes a car that drives like any other you own.
 using StreetEmpire.Sim.Data;
 using StreetEmpire.Vehicles;
 using UnityEngine;
@@ -10,6 +10,8 @@ namespace StreetEmpire.Game
     public static class Carjack
     {
         public const float Heat = 6f;
+        /// <summary>Every Nerve-th driver fights for his car.</summary>
+        public const int Nerve = 5;
         public static readonly string[] Lines = { "That is my car!", "Give it back!", "You are dead, you hear me?" };
         /// <summary>Cars taken this session.</summary>
         public static int Count;
@@ -42,8 +44,13 @@ namespace StreetEmpire.Game
             car.hp = car.stats.hp; car.Place(at, yaw);
 
             var s = GameSession.Instance; string line = Lines[Count % Lines.Length];
-            if (s != null) { s.AddHeat(Heat); s.Say($"You jacked a ride. \"{line}\"", 3f); }
-            Driver(at - t.right * 2.2f, yaw, thief);
+            // one driver in five wants the car back: he does not run, he comes for the thief (45 hp, fists)
+            bool angry = Count % Nerve == Nerve - 1; Vector3 door = at - t.right * 2.2f;
+            if (s != null) { s.AddHeat(Heat); s.Say(angry ? "You jacked a ride. This one wants it back." : $"You jacked a ride. \"{line}\"", 3f); }
+            var turf = TurfWar.Instance; Health fighter = null;
+            if (angry && turf != null) fighter = turf.SpawnHostile(StreetEmpire.Sim.Turf.Locals, door, false, "Angry driver", false);
+            if (fighter != null) { fighter.max = fighter.hp = 45f; }
+            else Driver(door, yaw, thief);
             Count++;
             return car;
         }
