@@ -41,7 +41,11 @@ namespace StreetEmpire.Player
             if (alignTo != null && idle > alignDelay) h = Mathf.LerpAngle(h, alignTo.eulerAngles.y, 1f - Mathf.Exp(-alignSpeed * Time.deltaTime));
             orbit.HorizontalAxis.Value = Mathf.DeltaAngle(0f, h);
             var range = orbit.VerticalAxis.Range;
-            orbit.VerticalAxis.Value = Mathf.Clamp(orbit.VerticalAxis.Value - look.y, range.x, range.y);
+            // the lowest the camera may swing depends on how far back it sits: 6 degrees below level is fine at
+            // 5 m on foot, and under the road at the 8 to 17 m it keeps behind a car or a bus
+            var cmc = orbit.GetComponent<CinemachineCamera>(); var follow = cmc != null ? cmc.Follow : null;
+            float low = follow != null ? Mathf.Max(range.x, FloorAngle(follow.position.y, orbit.Radius)) : range.x;
+            orbit.VerticalAxis.Value = Mathf.Clamp(orbit.VerticalAxis.Value - look.y, Mathf.Min(low, range.y), range.y);
 
             if (composer != null)
             {
@@ -50,6 +54,14 @@ namespace StreetEmpire.Player
             }
             orbit.Radius = Mathf.Lerp(orbit.Radius, Clearance(), 1f - Mathf.Exp(-12f * Time.deltaTime));
         }
+
+        /// <summary>How high the camera stays above the street (the town is flat, streets at height 0).</summary>
+        public const float FloorHeight = 0.7f;
+
+        /// <summary>The lowest orbit angle (degrees, negative is below the target) that keeps a camera this far from
+        /// a target at this height above FloorHeight.</summary>
+        public static float FloorAngle(float targetHeight, float orbitRadius)
+            => Mathf.Asin(Mathf.Clamp((FloorHeight - targetHeight) / Mathf.Max(orbitRadius, 0.5f), -1f, 1f)) * Mathf.Rad2Deg;
 
         static readonly RaycastHit[] hits = new RaycastHit[16];
 
