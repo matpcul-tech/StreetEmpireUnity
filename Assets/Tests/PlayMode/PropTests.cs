@@ -34,8 +34,8 @@ namespace StreetEmpire.Tests
             Assert.GreaterOrEqual(Count("hydrant"), 9, "a hydrant per block");
             Assert.AreEqual(144, Count("traffic signal"), "four signals at each of the thirty six middle crossings");
             Assert.GreaterOrEqual(Count("stop sign"), 20, "stop signs at the outer crossings");
-            Assert.AreEqual(36, Count("street name sign"), "a street name post at every crossing");
-            Assert.AreEqual(72, Count("street name blade"), "two name blades on every post");
+            Assert.AreEqual(64, Count("street name sign"), "a street name post at every crossing");
+            Assert.AreEqual(128, Count("street name blade"), "two name blades on every post");
             Assert.GreaterOrEqual(Count("utility pole"), 12, "utility poles");
             Assert.GreaterOrEqual(Count("parked car"), 8, "parked cars");
             Assert.GreaterOrEqual(Count("tree"), 40, "palms in the lots, the yards and along the curbs");

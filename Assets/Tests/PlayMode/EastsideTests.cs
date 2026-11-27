@@ -27,7 +27,7 @@ namespace StreetEmpire.Tests
             Assert.IsTrue(blocks.All(b => b.gx < 7 && b.gz < 7), "the corner 7 x 7 of the city grid");
 
             var buildings = Object.FindObjectsByType<BuildingMarker>(FindObjectsSortMode.None);
-            Assert.AreEqual(100, buildings.Length, "four kit buildings per block");
+            Assert.AreEqual(196, buildings.Length, "four kit buildings per block");
             foreach (var b in buildings)
             {
                 var rs = b.GetComponentsInChildren<Renderer>();
