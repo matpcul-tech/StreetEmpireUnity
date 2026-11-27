@@ -25,9 +25,9 @@ namespace StreetEmpire.Tests
             yield return null; yield return null; yield return null;
             var s = GameSession.Instance; var turf = TurfWar.Instance; var hud = Object.FindFirstObjectByType<GameHud>();
             Assert.IsNotNull(s, "session"); Assert.IsNotNull(turf, "turf"); Assert.IsNotNull(turf.State, "turf state");
-            Assert.AreEqual(25, turf.State.blocks.Count); Assert.AreEqual(1, turf.State.Owned(Turf.You));
-            Assert.AreEqual("reds", turf.State.Block(40).owner, "a rival on each far corner of the town");
-            Assert.AreEqual("blues", turf.State.Block(4).owner); Assert.AreEqual("golds", turf.State.Block(36).owner);
+            Assert.AreEqual(49, turf.State.blocks.Count); Assert.AreEqual(1, turf.State.Owned(Turf.You));
+            Assert.AreEqual("reds", turf.State.Block(60).owner, "a rival on each far corner of the town");
+            Assert.AreEqual("blues", turf.State.Block(6).owner); Assert.AreEqual("golds", turf.State.Block(54).owner);
             Assert.AreEqual(3, turf.templates.Length);
             Assert.AreEqual(9, turf.crewTemplates.Length, "three bodies for each rival crew");
             CollectionAssert.AreEqual(new[] { "reds", "blues", "golds" }, turf.crewTemplateIds);
@@ -36,7 +36,7 @@ namespace StreetEmpire.Tests
             s.player.Teleport(c0 + new Vector3(0, 0.3f, 12f), 180f);
             yield return null; yield return null;
             Assert.AreEqual(0, turf.NearBlock, "on your own block");
-            StringAssert.Contains("Turf 1/25", hud.sub.text);
+            StringAssert.Contains("Turf 1/49", hud.sub.text);
 
             // your guard is on your block, and he is not a brawler
             float t = 0; while (turf.FriendlyBodies < 1 && t < 3f) { t += Time.deltaTime; yield return null; }
@@ -72,11 +72,11 @@ namespace StreetEmpire.Tests
             Assert.AreEqual(Turf.You, turf.State.Block(1).owner, "the block is yours");
             StringAssert.Contains("Car Wash is yours", s.Message);
             yield return null;
-            StringAssert.Contains("Turf 2/25", hud.sub.text);
+            StringAssert.Contains("Turf 2/49", hud.sub.text);
             Assert.AreEqual(25, s.rep);
 
             // NPC v4: on the Red Kings' corner the guards are Red Kings, not the plain bodies
-            var cr = turf.Center(40);
+            var cr = turf.Center(60);
             s.player.Teleport(cr + new Vector3(0, 0.3f, 21f), 180f);
             t = 0; while (!Brawler.All.Any(b => b.posted && b.name.StartsWith("Red Kings")) && t < 4f) { t += Time.deltaTime; yield return null; }
             var redGuards = Brawler.All.Where(b => b.posted && b.name.StartsWith("Red Kings")).ToArray();

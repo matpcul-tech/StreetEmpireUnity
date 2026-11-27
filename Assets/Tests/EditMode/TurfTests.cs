@@ -195,5 +195,23 @@ namespace StreetEmpire.Tests
             Assert.AreEqual("win", s.over);
             Assert.IsTrue(s.events.Any(e => e.type == "win"));
         }
+
+        [Test]
+        public void ASaveFromTheSmallerTownKeepsItsTurfWhenTheTownGrows()
+        {
+            var small = new[] { 0, 1, 9, 10 };
+            var s = Turf.Create(w, small, new System.Collections.Generic.Dictionary<string, int> { ["reds"] = 10 }, 1);
+            s.Block(1).owner = Turf.You; s.Block(1).guards = 3; s.Block(0).stash = 12f;
+            var big = new[] { 0, 1, 9, 10, 2, 11, 18, 19, 20 };
+            Assert.IsTrue(Turf.Extend(w, s, big));
+            Assert.AreEqual(9, s.blocks.Count); Assert.AreEqual(2, s.Owned(Turf.You)); Assert.AreEqual(3, s.Block(1).guards); Assert.AreEqual(12f, s.Block(0).stash);
+            Assert.AreEqual("reds", s.Block(10).owner);
+            foreach (int id in new[] { 2, 11, 18, 19, 20 })
+            {
+                var b = s.Block(id); Assert.IsNotNull(b); Assert.AreEqual(Turf.Locals, b.owner, "new land is the locals' to start");
+                Assert.AreEqual(id % w.grid, b.gx); Assert.AreEqual(id / w.grid, b.gz); Assert.AreEqual(2, b.guards);
+            }
+            Assert.IsFalse(Turf.Extend(w, s, new[] { 0, 1, 9 }), "a save with a block the town no longer has is not carried over");
+        }
     }
 }

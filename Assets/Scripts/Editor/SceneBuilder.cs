@@ -165,11 +165,12 @@ namespace StreetEmpire.EditorTools
 
         public static readonly int[] EastsideBlocks = { 0, 1, 2, 9, 10, 11, 18, 19, 20 };
 
-        /// <summary>The town is Town x Town blocks out of the city grid's corner (Matthew, Nov 22: 25 blocks, built to
+        /// <summary>The town is Town x Town blocks out of the city grid's corner (Matthew, Nov 22: 25 blocks; Nov 27:
+        /// more land, 49 blocks, into Downtown and the first Harbor lot. Built to
         /// read as a town and to be the same town on every player's machine: it comes from the grid and this list
         /// alone). The first nine are the original Eastside 3 x 3, in their old order, so every building there stays
-        /// on its lot; the sixteen new blocks follow, row by row.</summary>
-        public const int Town = 5;
+        /// on its lot; the rest follow, row by row.</summary>
+        public const int Town = 7;
         public static readonly int[] TownBlocks = EastsideBlocks.Concat(
             Enumerable.Range(0, Town * Town).Select(i => (i / Town) * 9 + i % Town).Where(id => !EastsideBlocks.Contains(id))).ToArray();
 
