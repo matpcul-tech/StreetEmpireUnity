@@ -59,6 +59,12 @@ namespace StreetEmpire.EditorTools
             // on the inner edge of the sidewalk of three blocks away from home and from the rivals' corners. They wear
             // bodies the game already has until they get their own.
             var board = job.AddComponent<JobBoard>();
+            // street calls (the web build's corner events), numbers from jobs.json
+            var calls = job.AddComponent<StreetCalls>();
+            {
+                var sc = data.Jobs.streetCalls;
+                if (sc != null) { calls.first = sc.first; calls.cooldown = sc.cooldown; calls.offer = sc.offer; calls.fight = sc.fight; calls.cap = sc.cap; calls.minDist = sc.minDist; }
+            }
             board.runner = runner; board.missions = data.Jobs.missions; board.contacts = data.Jobs.contacts;
             var stand = new Dictionary<string, (int block, Look look)> { { "Dee", (7, PedLooks[3]) }, { "Rook", (12, PedLooks[6]) }, { "Sal", (17, Fence) } };
             board.contactNodes = data.Jobs.contacts.Select(c =>
