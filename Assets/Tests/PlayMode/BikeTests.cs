@@ -121,6 +121,19 @@ namespace StreetEmpire.Tests
             Assert.IsFalse(player.animator.GetCurrentAnimatorStateInfo(0).IsName("Riding"), "standing again");
             Assert.Less(Vector3.Angle(player.transform.up, Vector3.up), 1f, "upright");
             Assert.That(Vector3.Distance(player.transform.position, bike.transform.position), Is.InRange(1.5f, 3.5f), "beside the bike");
+
+            // at night it carries one headlamp and one tail lamp on the bike itself, not a car's pair out at the corners
+            GameClock.FrozenHour = 22f;
+            yield return new WaitForSeconds(1.2f);
+            var drawn = bike.transform.Find("Model");
+            var head = drawn.Find("Headlamp"); var tail = drawn.Find("Tail lamp");
+            Assert.IsNotNull(head, "a headlamp on the bike"); Assert.IsNotNull(tail, "a tail lamp on the bike");
+            Assert.IsNull(bike.transform.Find("Headlamp L"), "no car headlamp pair"); Assert.IsNull(bike.transform.Find("Tail lamp L"), "no car tail lamp pair");
+            var bb = bike.GetComponent<BoxCollider>(); float lo = bb.center.y - bb.size.y * 0.5f, fwd = bb.center.z + bb.size.z * 0.5f, aft = bb.center.z - bb.size.z * 0.5f;
+            Assert.AreEqual(bb.center.x, head.localPosition.x, 0.01f, "on the centre line"); Assert.AreEqual(bb.center.x, tail.localPosition.x, 0.01f);
+            Assert.That(head.localPosition.y, Is.InRange(lo + bb.size.y * 0.5f, lo + bb.size.y * 0.85f), "up in the fairing");
+            Assert.Less(head.localPosition.z, fwd - 0.1f, "behind the front of the tyre"); Assert.Greater(tail.localPosition.z, aft, "inside the tail");
+            Assert.Less(head.localScale.x, 0.4f, "a bike sized lamp"); Assert.Less(tail.localScale.x, 0.3f);
         }
     }
 }
