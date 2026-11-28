@@ -23,7 +23,9 @@ namespace StreetEmpire.Player
             if (animator != null && animator.isHuman) spine = animator.GetBoneTransform(HumanBodyBones.Spine);
         }
 
-        void LateUpdate()
+        void LateUpdate() { Straighten(); ArmRest.Apply(animator); }
+
+        void Straighten()
         {
             if (spine == null) return;
             // a culled Animator leaves last frame's corrected pose; turning it again would add up

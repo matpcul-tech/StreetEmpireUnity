@@ -46,6 +46,14 @@ namespace StreetEmpire.Tests
             var all = Object.FindObjectsByType<Animator>(FindObjectsSortMode.None).Where(a => a.isHuman && a.isActiveAndEnabled && a.GetBoneTransform(HumanBodyBones.LeftHand) != null)
                 .OrderBy(a => Vector3.Distance(a.transform.position, player.transform.position)).Take(7).ToArray();
             Assert.Greater(all.Length, 0, "people to measure");
+            var pa = player.GetComponentInChildren<Animator>();
+            foreach (bool left in new[] { true, false })
+            {
+                var m = Measure(pa, left);
+                Assert.Less(m.foreDeg, 3f, "standing, his upper arm is not thrown forward"); Assert.Greater(m.foreDeg, -ArmRest.MaxBack - 3f, "nor swept back behind him");
+                Assert.Less(m.sideDeg, ArmRest.MaxOut + 3f, "it hangs beside the body"); Assert.Less(m.elbowDeg, ArmRest.MaxElbow + 4f, "with the elbow eased open");
+                Assert.Greater(m.palmIn, 0.5f, "palm toward the thigh");
+            }
             foreach (var a in all)
                 foreach (bool left in new[] { true, false })
                 {
