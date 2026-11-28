@@ -914,7 +914,7 @@ namespace StreetEmpire.EditorTools
             // UniversalAdditionalLightData (the fill above has none, so it lights everything); this one carries
             // layer 2 there. DayCycle brings it up with the night and aims it from the camera's side.
             var nightFill = new GameObject("Night Fill").AddComponent<Light>();
-            nightFill.type = LightType.Directional; nightFill.color = new Color(0.80f, 0.86f, 1f); nightFill.intensity = 0f; nightFill.shadows = LightShadows.None;
+            nightFill.type = LightType.Directional; nightFill.color = new Color(0.90f, 0.94f, 1f); nightFill.intensity = 0f; nightFill.shadows = LightShadows.None;
             nightFill.renderingLayerMask = 2; nightFill.enabled = false;
             nightFill.GetUniversalAdditionalLightData().renderingLayers = 2u;
             nightFill.transform.SetParent(root, false);

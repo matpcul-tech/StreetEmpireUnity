@@ -49,9 +49,13 @@ namespace StreetEmpire.City
         /// <summary>Full night: the moon, the fill light on people and the sky reflection (see BuildKeys).</summary>
         public const float NightMoon = 0.17f, NightReflection = 0.20f;
         /// <summary>The night fill on people and cars (SceneBuilder's "Night Fill" light): its brightness at full night, and
-        /// where it comes from, off the camera's heading: down from above, and round to one side.</summary>
+        /// where it comes from, off the camera's heading: down from above, and round to one side.
+        /// It has to stay dimmer than the Character Fill is at night (0.30 in the keys): with the sun off URP takes the
+        /// brightest directional light as its main light, and that has to remain the Character Fill, which lights
+        /// everything. At 0.42 this light took its place and the crosswalks, drawn as one mesh for the whole town,
+        /// lost the fill and went dark.</summary>
         public Light nightFill;
-        public const float NightFill = 0.42f, NightFillPitch = 30f, NightFillYaw = -35f;
+        public const float NightFill = 0.29f, NightFillPitch = 22f, NightFillYaw = -28f;
         float lastGlow = -1, lastSky = -1;
         Color[] windowBase = new Color[0], signBase = new Color[0];
 
