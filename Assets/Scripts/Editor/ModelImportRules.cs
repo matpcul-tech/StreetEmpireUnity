@@ -1,5 +1,6 @@
-// Import rules for character FBX files: Humanoid rigs so the CC0 Quaternius clips (UAL) retarget onto
-// the Meshy player (Mixamo bone names), in-place looping clips, and normal maps marked as such.
+// Import rules for character FBX files: Humanoid rigs on the Mixamo skeleton (65 bones), which the characters and
+// the clips share (the CC0 Quaternius UAL clips are baked onto it by tools/bake_to_mixamo.py), in-place looping
+// clips, and normal maps marked as such.
 // Textures under Assets/Art are GPU compressed per platform (ASTC Android, DXT WebGL).
 using System.Linq;
 using UnityEditor;
@@ -19,6 +20,9 @@ namespace StreetEmpire.EditorTools
             if (!(assetImporter is ModelImporter m) || !(IsCharacter(assetPath) || IsClips(assetPath))) return;
             m.animationType = ModelImporterAnimationType.Human;
             m.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
+            // the baked clips make their own avatar from their own rest pose. Read against the player's avatar instead,
+            // Unity found the bones 14 to 36 cm out of place (Blender writes the bones' own axes its way on export) and
+            // every body hung four metres in the air (Nov 28).
             m.materialImportMode = ModelImporterMaterialImportMode.None; // materials are made by PlayerBuilder
             m.importAnimation = IsClips(assetPath);
             m.importBlendShapes = false;
