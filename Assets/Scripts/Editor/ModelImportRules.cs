@@ -1,6 +1,5 @@
-// Import rules for character FBX files: Humanoid rigs on the Mixamo skeleton (65 bones), which the characters and
-// the clips share (the CC0 Quaternius UAL clips are baked onto it by tools/bake_to_mixamo.py), in-place looping
-// clips, and normal maps marked as such.
+// Import rules for character FBX files: Humanoid rigs so the CC0 Quaternius clips (UAL) retarget onto
+// the Meshy player (Mixamo bone names), in-place looping clips, and normal maps marked as such.
 // Textures under Assets/Art are GPU compressed per platform (ASTC Android, DXT WebGL).
 using System.Linq;
 using UnityEditor;

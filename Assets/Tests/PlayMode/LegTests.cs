@@ -63,6 +63,28 @@ namespace StreetEmpire.Tests
                 maxPlayerLean = Mathf.Max(maxPlayerLean, ShotDirector.Lean(player, player.transform));
                 foreach (var a in peds) { walk.Add(Knee(a, true)); walk.Add(Knee(a, false)); }
             }
+            // feet side by side, never crossed: the right foot stays on the body's right of the left one, every frame of
+            // two seconds of walking and of standing (Matthew, Nov 28: feet crossed on every character)
+            float walkGapMin = 9f, walkGapSum = 0f, idleGapMin = 9f, hipGap = 0f; int walkGapN = 0; string crossedWho = "";
+            float gapUntil = Time.time + 2f;
+            while (Time.time < gapUntil)
+            {
+                foreach (var a in peds.Concat(idlers))
+                {
+                    Vector3 lf = a.GetBoneTransform(HumanBodyBones.LeftFoot).position, rf = a.GetBoneTransform(HumanBodyBones.RightFoot).position;
+                    var hips = a.GetBoneTransform(HumanBodyBones.Hips);
+                    // across the body, by the body itself: from the left hip joint to the right one, flat on the ground
+                    // (the object's own forward is not the way every one of them faces)
+                    Vector3 across = a.GetBoneTransform(HumanBodyBones.RightUpperLeg).position - a.GetBoneTransform(HumanBodyBones.LeftUpperLeg).position;
+                    across.y = 0f; across.Normalize();
+                    float gap = Vector3.Dot(rf - lf, across);
+                    if (idlers.Contains(a)) idleGapMin = Mathf.Min(idleGapMin, gap);
+                    else { if (gap < walkGapMin) { walkGapMin = gap; crossedWho = a.transform.root.name; } walkGapSum += gap; walkGapN++; }
+                    hipGap = Vector3.Dot(a.GetBoneTransform(HumanBodyBones.RightUpperLeg).position - a.GetBoneTransform(HumanBodyBones.LeftUpperLeg).position, across);
+                }
+                yield return null;
+            }
+            Debug.Log($"[LegTests] feet, right of left: walking min {walkGapMin:0.000} m ({crossedWho}) mean {walkGapSum / Mathf.Max(1, walkGapN):0.000} m, standing min {idleGapMin:0.000} m, hip joints {hipGap:0.000} m apart");
             float walkMean = walk.Average(), walkMin = walk.Min();
             Debug.Log($"[LegTests] idle knee min {minIdleKnee:0.0} deg, idle feet apart max {maxWidth:0.00} m, idle toes {minSole:0.000} to {maxSole:0.000} m above the ground, walk knee mean {walkMean:0.0} min {walkMin:0.0} deg, player idle lean max {maxPlayerLean:0.0} deg ({idlers.Count} idle, {peds.Length} walking)");
             Assert.Greater(minIdleKnee, 165f, "legs straight at idle, not a squat");
@@ -71,6 +93,8 @@ namespace StreetEmpire.Tests
             Assert.That(maxSole, Is.LessThan(0.12f), "toes on the ground, not floating");
             Assert.Less(maxPlayerLean, 10f, "player stands up straight at idle, no stoop");
             Assert.Greater(walkMean, 135f, "walking knees fold like a walk, not a lunge");
+            Assert.Greater(idleGapMin, 0.1f, "standing feet are side by side, not crossed");
+            Assert.Greater(walkGapMin, -0.02f, "walking feet never cross");
             Assert.Greater(walkMin, 95f, "no deep knee fold in the walk");
         }
     }
