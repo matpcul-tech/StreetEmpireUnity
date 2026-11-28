@@ -1,0 +1,100 @@
+# Bakes the animation pack's clips (Quaternius UAL skeleton) onto the Mixamo skeleton our characters use, so the game
+# plays clips made for its own bones. Each bone takes the turn its counterpart made from the rest pose, measured in
+# world space, so two upright T-poses stay matched whatever way the bones themselves were drawn.
+# usage (needs the bpy module): python3 tools/bake_to_mixamo.py tools/anim-src/ual-clips.fbx \
+#   Assets/Art/Models/Characters/Player/player-m-2.fbx Assets/Art/Animations/mixamo-clips.fbx
+import bpy, sys, math
+from mathutils import Matrix, Quaternion, Vector
+src_path, tgt_path, out_path = sys.argv[-3:]
+MAP = {'pelvis':'Hips','spine_01':'Spine','spine_02':'Spine1','spine_03':'Spine2','neck_01':'Neck','Head':'Head'}
+for s,S in (('l','Left'),('r','Right')):
+    MAP.update({f'clavicle_{s}':f'{S}Shoulder',f'upperarm_{s}':f'{S}Arm',f'lowerarm_{s}':f'{S}ForeArm',f'hand_{s}':f'{S}Hand',
+                f'thigh_{s}':f'{S}UpLeg',f'calf_{s}':f'{S}Leg',f'foot_{s}':f'{S}Foot',f'ball_{s}':f'{S}ToeBase'})
+    for f,F in (('index','Index'),('middle','Middle'),('pinky','Pinky'),('ring','Ring'),('thumb','Thumb')):
+        for i in (1,2,3): MAP[f'{f}_0{i}_{s}'] = f'{S}Hand{F}{i}'
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.import_scene.fbx(filepath=src_path)
+src = [o for o in bpy.data.objects if o.type=='ARMATURE'][0]
+actions = list(bpy.data.actions)
+bpy.ops.import_scene.fbx(filepath=tgt_path)
+tgt = [o for o in bpy.data.objects if o.type=='ARMATURE' and o != src][0]
+for o in list(bpy.data.objects):
+    if o.type == 'MESH': bpy.data.objects.remove(o)
+tgt.name = 'Armature'
+# rest poses, with no action playing
+if src.animation_data: src.animation_data.action = None
+for pb in src.pose.bones: pb.matrix_basis = Matrix.Identity(4)
+bpy.context.view_layer.update()
+SW = src.matrix_world.copy(); TW = tgt.matrix_world.copy()
+src_rest = {b.name: (SW @ b.matrix_local) for b in src.data.bones}
+tgt_rest_arm = {b.name: b.matrix_local.copy() for b in tgt.data.bones}
+TWq = TW.to_quaternion(); TWqi = TWq.inverted()
+tgt_rest_world_q = {n: (TWq @ m.to_quaternion()) for n,m in tgt_rest_arm.items()}
+inv = {v:k for k,v in MAP.items()}
+hip_t = 'mixamorig:Hips'
+src_hip_h = (src_rest['pelvis'].translation - src_rest['root'].translation).length if 'root' in src_rest else src_rest['pelvis'].translation.z
+tgt_hip_h = (TW @ tgt_rest_arm[hip_t]).translation.z
+k = tgt_hip_h / max(src_hip_h, 1e-4)
+print(f'[bake] hip height source {src_hip_h:.3f} target {tgt_hip_h:.3f} scale {k:.3f}; {len(actions)} clips; mapped {sum(1 for s in MAP if s in src_rest and "mixamorig:"+MAP[s] in tgt_rest_arm)} of {len(MAP)} bones')
+order = [b.name for b in tgt.data.bones]   # parents first
+scene = bpy.context.scene; scene.render.fps = 30
+tgt.animation_data_create()
+for pb in tgt.pose.bones: pb.rotation_mode = 'QUATERNION'
+report = []
+for act in actions:
+    name = act.name.split('|')[-1]
+    if name.endswith('_Armature'): name = name[:-9]
+    src.animation_data.action = act
+    if hasattr(src.animation_data, 'action_slot') and act.slots: src.animation_data.action_slot = act.slots[0]
+    f0, f1 = int(round(act.frame_range[0])), int(round(act.frame_range[1]))
+    new = bpy.data.actions.new(name); tgt.animation_data.action = new
+    leans = []
+    for f in range(f0, f1 + 1):
+        scene.frame_set(f); bpy.context.view_layer.update()
+        SWf = src.matrix_world
+        want = {}   # target bone -> world rotation wanted
+        for tb in order:
+            short = tb.split(':')[-1]; sb = inv.get(short)
+            b = tgt.data.bones[tb]
+            if sb and sb in src.pose.bones:
+                sw = (SWf @ src.pose.bones[sb].matrix).to_quaternion()
+                delta = sw @ src_rest[sb].to_quaternion().inverted()
+                want[tb] = delta @ tgt_rest_world_q[tb]
+            elif b.parent:   # carried by its parent
+                pd = want[b.parent.name] @ tgt_rest_world_q[b.parent.name].inverted()
+                want[tb] = pd @ tgt_rest_world_q[tb]
+            else: want[tb] = tgt_rest_world_q[tb]
+        for tb in order:
+            b = tgt.data.bones[tb]; pb = tgt.pose.bones[tb]
+            arm_q = TWqi @ want[tb]
+            if b.parent:
+                par_arm_q = TWqi @ want[b.parent.name]
+                rest_rel = tgt_rest_arm[b.parent.name].to_quaternion().inverted() @ tgt_rest_arm[tb].to_quaternion()
+                basis = rest_rel.inverted() @ (par_arm_q.inverted() @ arm_q)
+            else:
+                basis = tgt_rest_arm[tb].to_quaternion().inverted() @ arm_q
+            pb.rotation_quaternion = basis; pb.keyframe_insert('rotation_quaternion', frame=f - f0 + 1)
+        # the hips travel as the pelvis did from its rest, scaled to this body's leg length
+        sp = (SWf @ src.pose.bones['pelvis'].matrix).translation - SWf.translation
+        rp = src_rest['pelvis'].translation - SW.translation
+        d_world = (sp - rp) * k
+        d_arm = TWqi @ d_world
+        hp = tgt.pose.bones[hip_t]
+        hp.location = tgt_rest_arm[hip_t].to_quaternion().inverted() @ d_arm; hp.keyframe_insert('location', frame=f - f0 + 1)
+        # lean of the upper body: hips to neck against straight up, forward positive (the character faces -Y)
+        bpy.context.view_layer.update()
+        hw = TW @ tgt.pose.bones[hip_t].head; nw = TW @ tgt.pose.bones['mixamorig:Neck'].head; v = nw - hw
+        leans.append(math.degrees(math.atan2(-v.y, v.z)))
+        shw = SWf @ src.pose.bones['pelvis'].head; snw = SWf @ src.pose.bones['neck_01'].head; sv = snw - shw
+        leans.append(math.degrees(math.atan2(-sv.y, sv.z)))
+    t = leans[0::2]; s_ = leans[1::2]
+    report.append((name, f1 - f0 + 1, sum(t)/len(t), sum(s_)/len(s_)))
+    new.use_fake_user = True
+for r in report: print(f'[bake] {r[0]:22s} {r[1]:3d} frames  lean on our rig {r[2]:6.1f} deg   in the source {r[3]:6.1f} deg')
+bpy.data.objects.remove(src)
+tgt.animation_data.action = None
+for pb in tgt.pose.bones: pb.matrix_basis = Matrix.Identity(4)
+bpy.ops.object.select_all(action='DESELECT'); tgt.select_set(True); bpy.context.view_layer.objects.active = tgt
+bpy.ops.export_scene.fbx(filepath=out_path, use_selection=True, object_types={'ARMATURE'}, add_leaf_bones=False, bake_anim=True,
+    bake_anim_use_all_actions=True, bake_anim_use_nla_strips=False, bake_anim_use_all_bones=True, bake_anim_force_startend_keying=True, bake_anim_simplify_factor=0.4)
+print('[bake] wrote', out_path)
