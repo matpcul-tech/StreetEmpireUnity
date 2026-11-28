@@ -74,7 +74,8 @@ jobs:
 
   build:
     name: Build ${{ matrix.targetPlatform }}
-    needs: test
+    # no "needs: test": the builds start with the tests, not after them, so a run is done in about 30 minutes, not 55.
+    # A build can finish on a commit whose tests fail; the Tests job is still what says a change is good.
     runs-on: ubuntu-latest
     timeout-minutes: 120
     strategy:
