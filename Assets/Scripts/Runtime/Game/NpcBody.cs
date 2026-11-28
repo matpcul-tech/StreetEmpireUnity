@@ -69,7 +69,9 @@ namespace StreetEmpire.Game
         public const float GaitGap = 6f;
         Quaternion corrected; bool hasCorrected, hasAvg; float avgLean;
 
-        void LateUpdate()
+        void LateUpdate() { Body(); ArmRest.Apply(animator); }
+
+        void Body()
         {
             // After the Animator has posed the bones, turn the spine back so the upper body's average lean
             // is uprightLean. Only on frames the Animator wrote the spine: a culled Animator
