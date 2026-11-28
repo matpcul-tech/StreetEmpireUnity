@@ -67,8 +67,8 @@ namespace StreetEmpire.Tests
             {
                 Assert.Greater(user.Tuck, 10f, "tucked forward over the tank on a sport bike");
                 yield return null; yield return null;
-                var hips = player.animator.GetBoneTransform(HumanBodyBones.Hips); var head = player.animator.GetBoneTransform(HumanBodyBones.Head);
-                float ahead = Vector3.Dot(head.position - hips.position, bike.transform.forward);
+                var hipBone = player.animator.GetBoneTransform(HumanBodyBones.Hips); var headBone = player.animator.GetBoneTransform(HumanBodyBones.Head);
+                float ahead = Vector3.Dot(headBone.position - hipBone.position, bike.transform.forward);
                 Debug.Log($"[BikeTests] head ahead of hips: {ahead:0.00} m");
                 Assert.Greater(ahead, 0.15f, "his head is out over the tank");
             }
