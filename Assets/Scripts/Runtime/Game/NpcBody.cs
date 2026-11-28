@@ -65,6 +65,8 @@ namespace StreetEmpire.Game
         /// <summary>Average forward lean the upper body is brought to (degrees). The UAL walk itself carries
         /// about 12 degrees of torso tilt on top of the rig's rest lean; the stride's own sway is kept.</summary>
         public float uprightLean = 3f;
+        /// <summary>A lean this far from the running average is a change of gait, not the stride's sway (degrees).</summary>
+        public const float GaitGap = 6f;
         Quaternion corrected; bool hasCorrected, hasAvg; float avgLean;
 
         void LateUpdate()
@@ -76,7 +78,11 @@ namespace StreetEmpire.Game
             if (spine != null && !IsDown && !(hasCorrected && spine.localRotation == corrected))
             {
                 float raw = ShotDirector.Lean(animator, transform);
-                avgLean = hasAvg ? Mathf.Lerp(avgLean, raw, 1f - Mathf.Exp(-Time.deltaTime / 0.5f)) : raw; hasAvg = true;
+                // the average follows the stride's sway slowly (half a second), but a change of gait (a stop, a start,
+                // a turn into a run) moves the lean by more than the sway ever does, and then it catches up at once:
+                // following that slowly left him hunched 16 degrees for the first half second of every walk
+                float gap = Mathf.Abs(raw - avgLean);
+                avgLean = hasAvg ? Mathf.Lerp(avgLean, raw, 1f - Mathf.Exp(-Time.deltaTime / (gap > GaitGap ? 0.06f : 0.5f))) : raw; hasAvg = true;
                 float turn = Mathf.Clamp(avgLean - uprightLean, -5f, 35f);
                 spine.rotation = Quaternion.AngleAxis(-turn, transform.right) * spine.rotation;
                 // the hips to spine segment does not turn with the spine, so the lean drops by less than the
