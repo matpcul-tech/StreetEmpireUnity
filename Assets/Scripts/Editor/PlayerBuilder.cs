@@ -21,6 +21,12 @@ namespace StreetEmpire.EditorTools
     {
         public const string PlayerFbx = "Assets/Art/Models/Characters/Player/player.fbx";
         const string ClipsFbx = "Assets/Art/Animations/ual-clips.fbx";
+        /// <summary>The same pack baked onto the Mixamo skeleton our characters carry (tools/bake_to_mixamo.py). Read
+        /// through Unity's humanoid, its arms come out right where the pack's own hang out from the body with the
+        /// forearms turned over, and its legs come out crossed where the pack's own are right. So each set plays the
+        /// half it gets right: the pack's clips drive the body, these drive the arms only (the Arms layer).</summary>
+        const string ArmClipsFbx = "Assets/Art/Animations/mixamo-clips.fbx";
+        public const string ArmsMaskPath = "Assets/Art/Animations/ArmsMask.mask";
         public const string ControllerPath = "Assets/Art/Animations/Player.controller";
 
         public static GameObject Build(WorldFile w, Block start)
@@ -130,8 +136,35 @@ namespace StreetEmpire.EditorTools
             var riding = sm.AddState("Riding"); riding.motion = C("Driving_Loop");
             var mount = sm.AddAnyStateTransition(riding); mount.AddCondition(AnimatorConditionMode.If, 0, "Riding"); mount.AddCondition(AnimatorConditionMode.IfNot, 0, "Down"); mount.duration = 0.15f; mount.canTransitionToSelf = false;
             var dismount = riding.AddTransition(loco); dismount.AddCondition(AnimatorConditionMode.IfNot, 0, "Riding"); dismount.duration = 0.15f;
+            ArmsLayer(ac, loco, jumpStart, air);
             AssetDatabase.SaveAssets();
             return ac;
+        }
+
+        /// <summary>A second layer in step with the first (a synced layer: same states, same timing) that plays the baked
+        /// clips on the arms and hands only, while walking, standing and jumping. Punches, the flinch, the fall and the
+        /// motorcycle seat keep the pack's own arms.</summary>
+        static void ArmsLayer(AnimatorController ac, AnimatorState loco, AnimatorState jumpStart, AnimatorState air)
+        {
+            var clips = AssetDatabase.LoadAllAssetsAtPath(ArmClipsFbx).OfType<AnimationClip>().Where(c => !c.name.StartsWith("__preview__")).ToDictionary(c => c.name);
+            string[] need = { "Idle_Loop", "Walk_Loop", "Jog_Fwd_Loop", "Sprint_Loop", "Jump_Start", "Jump_Loop" };
+            var missing = need.Where(n => !clips.ContainsKey(n)).ToArray();
+            if (missing.Length > 0) { Debug.LogError($"[PlayerBuilder] no Arms layer: {ArmClipsFbx} lacks {string.Join(", ", missing)}; has {string.Join(", ", clips.Keys)}"); return; }
+            AssetDatabase.DeleteAsset(ArmsMaskPath);
+            var mask = new AvatarMask { name = "ArmsMask" };
+            for (int i = 0; i < (int)AvatarMaskBodyPart.LastBodyPart; i++)
+            {
+                var part = (AvatarMaskBodyPart)i;
+                mask.SetHumanoidBodyPartActive(part, part == AvatarMaskBodyPart.LeftArm || part == AvatarMaskBodyPart.RightArm || part == AvatarMaskBodyPart.LeftFingers || part == AvatarMaskBodyPart.RightFingers);
+            }
+            AssetDatabase.CreateAsset(mask, ArmsMaskPath);
+            var tree = new BlendTree { name = "Locomotion arms", blendType = BlendTreeType.Simple1D, blendParameter = "Speed", useAutomaticThresholds = false, hideFlags = HideFlags.HideInHierarchy };
+            AssetDatabase.AddObjectToAsset(tree, ac);
+            tree.AddChild(clips["Idle_Loop"], 0f); tree.AddChild(clips["Walk_Loop"], 1.8f); tree.AddChild(clips["Jog_Fwd_Loop"], 5f); tree.AddChild(clips["Sprint_Loop"], 9f);
+            var arms = new AnimatorControllerLayer { name = "Arms", defaultWeight = 1f, avatarMask = mask, syncedLayerIndex = 0, blendingMode = AnimatorLayerBlendingMode.Override };
+            arms.SetOverrideMotion(loco, tree); arms.SetOverrideMotion(jumpStart, clips["Jump_Start"]); arms.SetOverrideMotion(air, clips["Jump_Loop"]);
+            var layers = ac.layers.ToList(); layers.Add(arms); ac.layers = layers.ToArray();
+            EditorUtility.SetDirty(ac);
         }
 
         public static Material PlayerMaterial()
