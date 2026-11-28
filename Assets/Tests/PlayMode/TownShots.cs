@@ -13,7 +13,12 @@ namespace StreetEmpire.Tests
     [PrebuildSetup(typeof(SceneSetup))]
     public class TownShots
     {
-        [TearDown] public void Reset() { MuggerOpening.AutoStart = true; BuildingCuller.On = true; }
+        static bool clockHeld, clockWasFrozen; static float clockWasHour;
+        [TearDown] public void Reset()
+        {
+            MuggerOpening.AutoStart = true; BuildingCuller.On = true;
+            if (clockHeld) { GameClock.Frozen = clockWasFrozen; GameClock.FrozenHour = clockWasHour; clockHeld = false; }
+        }
 
         [UnityTest, Timeout(600000)]
         public IEnumerator TheTownOnCamera()
@@ -21,6 +26,7 @@ namespace StreetEmpire.Tests
             MuggerOpening.AutoStart = false; SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
             bool wasFrozen = GameClock.Frozen; float wasHour = GameClock.FrozenHour;
+            clockWasFrozen = wasFrozen; clockWasHour = wasHour; clockHeld = true;
             GameClock.Frozen = true; GameClock.FrozenHour = 14f; BuildingCuller.On = false;
             var hud = GameObject.Find("HUD"); if (hud) hud.SetActive(false);
             var cam = Camera.main; Assert.IsNotNull(cam, "the game camera"); var turf = TurfWar.Instance; Assert.IsNotNull(turf);

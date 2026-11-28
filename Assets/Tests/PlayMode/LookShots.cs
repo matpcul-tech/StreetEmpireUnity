@@ -25,12 +25,22 @@ namespace StreetEmpire.Tests
         static readonly string[] Kinds = { "sedan-clean", "sedan", "coupe", "lowrider", "suv", "pickup", "van", "taxi", "police", "hatchback", "minivan",
             "luxury-sedan", "limo", "school-bus", "city-bus", "ambulance", "armored-truck", "tow-truck", "fire-engine", "garbage-truck", "swat-van", "dump-truck" };
 
+        // whatever happens in the test, the clock, the culling and the street life go back as they were: a failure here
+        // once left the clock frozen at 22:00 and failed the opening test after it
+        static bool clockHeld, clockWasFrozen; static float clockWasHour;
+        [TearDown] public void Restore()
+        {
+            if (clockHeld) { GameClock.Frozen = clockWasFrozen; GameClock.FrozenHour = clockWasHour; clockHeld = false; }
+            BuildingCuller.On = true; MuggerOpening.AutoStart = true; BlockLife.AutoStart = false; TrafficFlow.AutoStart = false; StreetDice.AutoStart = false;
+        }
+
         [UnityTest, Timeout(900000)]
         public IEnumerator ParkedCarsOnCamera()
         {
             MuggerOpening.AutoStart = false; BlockLife.AutoStart = true; TrafficFlow.AutoStart = true; SceneManager.LoadScene("Eastside");
             yield return null; yield return null;
             bool wasFrozen = GameClock.Frozen; float wasHour = GameClock.FrozenHour;
+            clockWasFrozen = wasFrozen; clockWasHour = wasHour; clockHeld = true;
             GameClock.Frozen = true; GameClock.FrozenHour = 14f;
             BuildingCuller.On = false;
             var hud = GameObject.Find("HUD"); if (hud) hud.SetActive(false);
@@ -135,8 +145,12 @@ namespace StreetEmpire.Tests
             var lit = JobCar.All.FirstOrDefault(c => c != null && c.GetComponent<StreetEmpire.Vehicles.CarLamps>() != null && c.GetComponent<StreetEmpire.Vehicles.CarLamps>().On);
             if (lit == null) Debug.Log("[LookShot] no traffic car with its lights on to photograph");
             else
+            {
+                // held where it is and kept out of the traffic's own clean up: it used to drive off and be removed mid shoot
+                lit.stopped = true; lit.transform.SetParent(null, true);
                 foreach (var view in new[] { "ahead", "behind", "side" })
                 {
+                    if (lit == null) { Debug.Log("[LookShot] the traffic car was removed before its photos were done"); break; }
                     var ct = lit.transform; Vector3 mid = ct.position + Vector3.up * 0.8f;
                     cam.transform.position = view == "ahead" ? mid + ct.forward * 8f + Vector3.up * 0.6f : view == "behind" ? mid - ct.forward * 7f + Vector3.up * 4f : mid + ct.right * 7f + Vector3.up * 1f;
                     cam.transform.LookAt(mid);
@@ -152,6 +166,7 @@ namespace StreetEmpire.Tests
                         Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, "[LookShot] lamps-{0} {1}/{2} {3}", view, i + 1, parts, b64.Substring(i * 6000, Mathf.Min(6000, b64.Length - i * 6000)));
                     shots++;
                 }
+            }
             TrafficFlow.AutoStart = false;
             // the people on the corners by day, from the front and the side: how they hold their heads
             GameClock.FrozenHour = 14f;

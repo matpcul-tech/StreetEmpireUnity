@@ -89,9 +89,10 @@ namespace StreetEmpire.Tests
 
             // it goes, and in a turn at speed the bike leans over and he leans with it
             Vector3 from = bike.transform.position;
+            // a short run: at full throttle for a second and a half it is across the block and into a wall before the turn
             bike.scriptThrottle = 1f; bike.scriptSteer = 0f;
-            yield return new WaitForSeconds(1.5f);
-            Assert.Greater(Vector3.Distance(bike.transform.position, from), 5f, "the bike goes");
+            yield return new WaitForSeconds(0.7f);
+            Assert.Greater(Vector3.Distance(bike.transform.position, from), 2.5f, "the bike goes");
             Assert.Less(Mathf.Abs(lean.Roll), 2f, "upright in a straight line");
             bike.scriptSteer = 0.5f;
             float worst = 0f, until = Time.time + 1.2f, fastest = 0f, mostSteer = 0f;
