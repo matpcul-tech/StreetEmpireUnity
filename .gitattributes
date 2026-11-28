@@ -116,5 +116,3 @@ docs/sovereign-assets/vehicles-wave-c/*.jpg -filter -diff -merge binary
 Assets/Art/Textures/Buildings/*__windows_* -filter -diff -merge binary
 Assets/Art/Textures/Buildings/*__sign_lit_emission.jpg -filter -diff -merge binary
 Assets/Art/Textures/Neon/** -filter -diff -merge binary
-# the clips baked onto the Mixamo skeleton: kept in git itself (6 MB), since this session cannot upload to LFS
-Assets/Art/Animations/mixamo-clips.fbx -filter -diff -merge binary
