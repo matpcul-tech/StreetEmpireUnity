@@ -109,7 +109,7 @@ namespace StreetEmpire.Game
                     break;
             }
             // who stands where, with what and how tough: the specs in state.js (x, z, hp, bat). The second man of a push
-            // or an ambush carries a bat and comes round the side. (The web game's retreat style has no brawler here yet.)
+            // or an ambush carries a bat and comes round the side.
             (float x, float z, float hp, bool bat)[] specs = Current == Kind.Incursion ? new[] { (0f, 0f, 56f, false), (1.5f, 0.8f, 60f, true), (-1.5f, 0.6f, 50f, false) }
                 : Current == Kind.Ambush ? new[] { (0f, 0f, 58f, false), (1.6f, -0.4f, 60f, true) } : new[] { (0f, 0f, 52f, false), (1.5f, 0.2f, 48f, false) };
             men.Clear();
@@ -118,7 +118,9 @@ namespace StreetEmpire.Game
                 var h = turf.SpawnHostile(crew, at + new Vector3(specs[i].x, 0f, specs[i].z), false, $"{crewName} ({Current.ToString().ToLowerInvariant()})", true, specs[i].bat);
                 if (h == null) continue;
                 h.max = h.hp = specs[i].hp;
-                var br = h.GetComponent<Brawler>(); if (br != null && i == 1) br.style = Brawler.Style.Flank;
+                // the second man comes round the side; the last man of a push and of a broken deal hangs back
+                var br = h.GetComponent<Brawler>();
+                if (br != null) br.style = i == 1 && Current != Kind.Deal ? Brawler.Style.Flank : (i == 2 || (i == 1 && Current == Kind.Deal)) ? Brawler.Style.Retreat : Brawler.Style.Rush;
                 men.Add(h);
             }
             if (men.Count == 0) { wait = 8f; return; }

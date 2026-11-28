@@ -34,6 +34,8 @@ namespace StreetEmpire.Tests
             Assert.AreEqual(3, calls.Men.Count, "three men push the corner");
             Assert.IsTrue(calls.Men[1].GetComponent<Brawler>().bat, "the second man carries a bat"); Assert.IsFalse(calls.Men[0].GetComponent<Brawler>().bat); Assert.IsFalse(calls.Men[2].GetComponent<Brawler>().bat);
             Assert.AreEqual(56f, calls.Men[0].max); Assert.AreEqual(60f, calls.Men[1].max); Assert.AreEqual(50f, calls.Men[2].max);
+            Assert.AreEqual(Brawler.Style.Rush, calls.Men[0].GetComponent<Brawler>().style); Assert.AreEqual(Brawler.Style.Flank, calls.Men[1].GetComponent<Brawler>().style);
+            Assert.AreEqual(Brawler.Style.Retreat, calls.Men[2].GetComponent<Brawler>().style, "the third man hangs back");
             Assert.GreaterOrEqual(Vector3.Distance(calls.Spot, player.transform.position), calls.minDist, "not on top of the player");
             Assert.IsTrue(calls.Men.All(m => m.GetComponent<Brawler>().posted), "they hold the corner until the player steps in");
 
@@ -81,6 +83,16 @@ namespace StreetEmpire.Tests
             yield return null;
             Assert.IsTrue(lookouts.All(g => g == null), "the lookouts pack it in");
             Assert.AreEqual(2, calls.Offered); Assert.AreEqual(1, calls.Won);
+
+            // the retreat style: a hurt man with the player close backs away from him
+            var shy = turf.SpawnHostile("neutral", player.transform.position + new Vector3(0f, 0f, 3f), false, "Retreat man", false);
+            Assert.IsNotNull(shy, "a man to fight");
+            var sb = shy.GetComponent<Brawler>(); sb.style = Brawler.Style.Retreat; shy.hp = shy.max * 0.3f;
+            yield return null;
+            float gap0 = Vector3.Distance(shy.transform.position, player.transform.position), end = Time.time + 1.1f;
+            while (Time.time < end) { s.playerHealth.Restore(); yield return null; }
+            Assert.Greater(sb.BackOffs, 0.5f, "he backs off"); Assert.AreEqual(0, sb.Swings, "without a swing");
+            Assert.Greater(Vector3.Distance(shy.transform.position, player.transform.position), gap0 + 1.5f, "away from the player");
         }
     }
 }
