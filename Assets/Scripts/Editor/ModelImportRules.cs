@@ -13,7 +13,6 @@ namespace StreetEmpire.EditorTools
         // (2: cutout coverage, 4x4 ASTC alpha maps, anisotropic building walls)
         public override uint GetVersion() => 3;   // 3: v75g/h 2048 wall normal and roughness maps for Matthew's files
         static bool IsCharacter(string p) => p.StartsWith("Assets/Art/Models/Characters/") && p.EndsWith(".fbx");
-        const string ClipsAvatarFbx = "Assets/Art/Models/Characters/Player/player-m-2.fbx";
         static bool IsClips(string p) => p.StartsWith("Assets/Art/Animations/") && p.EndsWith(".fbx");
 
         void OnPreprocessModel()
@@ -21,15 +20,9 @@ namespace StreetEmpire.EditorTools
             if (!(assetImporter is ModelImporter m) || !(IsCharacter(assetPath) || IsClips(assetPath))) return;
             m.animationType = ModelImporterAnimationType.Human;
             m.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
-            // the baked clips are on the player's own skeleton, bone for bone, so they are read against the player's own
-            // avatar. An avatar made from the clips file itself came out with every character's feet crossed (Nov 28).
-            if (IsClips(assetPath))
-            {
-                context.DependsOnSourceAsset(ClipsAvatarFbx);
-                var own = AssetDatabase.LoadAssetAtPath<UnityEngine.Avatar>(ClipsAvatarFbx);
-                if (own != null && own.isValid && own.isHuman) { m.avatarSetup = ModelImporterAvatarSetup.CopyFromOther; m.sourceAvatar = own; }
-                else UnityEngine.Debug.LogWarning($"[ModelImportRules] {assetPath}: the player's avatar is not imported yet, so the clips make their own for now");
-            }
+            // the baked clips make their own avatar from their own rest pose. Read against the player's avatar instead,
+            // Unity found the bones 14 to 36 cm out of place (Blender writes the bones' own axes its way on export) and
+            // every body hung four metres in the air (Nov 28).
             m.materialImportMode = ModelImporterMaterialImportMode.None; // materials are made by PlayerBuilder
             m.importAnimation = IsClips(assetPath);
             m.importBlendShapes = false;
