@@ -13,6 +13,11 @@ namespace StreetEmpire.City
         /// <summary>The asphalt tile material (an asset): its smoothness goes up at night and back by day.</summary>
         public Material road;
         public const float NightSheen = 0.42f;
+        /// <summary>Block pass: the gutter grime and puddle material (an asset, PropBuilder.WetMaterial). Its
+        /// smoothness map is scaled by this: half dry by day, so a puddle is a dark damp patch, and full at night,
+        /// when the lamps and headlights glint in it.</summary>
+        public Material wet;
+        public const float DayWet = 0.5f, NightWet = 1f;
         /// <summary>0 by day, 1 at full night.</summary>
         public float Level { get; private set; }
         /// <summary>The night volume's weight and whether it has a profile (the tests read these).</summary>
@@ -24,6 +29,7 @@ namespace StreetEmpire.City
         void OnDisable()
         {
             if (road != null && daySheen >= 0f) road.SetFloat("_Smoothness", daySheen);
+            if (wet != null) wet.SetFloat("_Smoothness", DayWet);
             daySheen = -1f; last = -1f;
         }
 
@@ -38,6 +44,7 @@ namespace StreetEmpire.City
                 if (daySheen < 0f) daySheen = road.GetFloat("_Smoothness");
                 road.SetFloat("_Smoothness", Mathf.Lerp(daySheen, NightSheen, Level));
             }
+            if (wet != null) wet.SetFloat("_Smoothness", Mathf.Lerp(DayWet, NightWet, Level));
         }
     }
 }

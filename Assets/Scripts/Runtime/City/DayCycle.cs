@@ -46,6 +46,8 @@ namespace StreetEmpire.City
         public const float WindowIntensity = 1.6f;      // linear multiplier (v74 had x4, which ACES and bloom turned white)
         static readonly Color MoonColor = new(0.55f, 0.64f, 0.86f);
         public const float SunriseHour = 6.5f, SunsetHour = 18.67f;
+        /// <summary>Full night: the moon, the fill light on people and the sky reflection (see BuildKeys).</summary>
+        public const float NightMoon = 0.17f, NightFill = 0.46f, NightReflection = 0.20f;
         float lastGlow = -1, lastSky = -1;
         Color[] windowBase = new Color[0], signBase = new Color[0];
 
@@ -88,15 +90,19 @@ namespace StreetEmpire.City
             Key K(float h, float sunI, Color sunC, Color sky, Color eq, Color gr, Vector3 w, float exp, float moonI, float lamps, float skyline, float refl, float fillI, float fs, float fe)
                 => new Key { h = h, sunI = sunI, sunC = sunC, aSky = sky, aEq = eq, aGround = gr, w = w, exposure = exp, moonI = moonI, lamps = lamps, skyline = skyline, refl = refl, fill = fillI, fogStart = fs, fogEnd = fe };
             // night look: the night ambient a step up and bluer, so cars and people between lamps keep their shape
-            Color nSky = new(0.16f, 0.18f, 0.29f), nEq = new(0.13f, 0.135f, 0.20f), nGr = new(0.10f, 0.085f, 0.10f);
+            // block pass: the sky term up again (0.16, 0.18, 0.29 before) and the sides a little (0.13, 0.135, 0.20),
+            // the ground left alone: tops read lighter than sides, so shapes hold between the lamp pools without
+            // the whole street lifting. With it the moon 0.12 to 0.17, the people's fill 0.30 to 0.46 and the sky
+            // reflection 0.15 to 0.20 (the keys below).
+            Color nSky = new(0.19f, 0.215f, 0.34f), nEq = new(0.142f, 0.15f, 0.222f), nGr = new(0.10f, 0.085f, 0.10f);
             Color bSky = new(0.22f, 0.26f, 0.38f), bEq = new(0.17f, 0.18f, 0.25f), bGr = new(0.12f, 0.10f, 0.10f);
             Color dSky = new(0.60f, 0.68f, 0.85f), dEq = new(0.58f, 0.60f, 0.62f), dGr = new(0.38f, 0.35f, 0.31f);
             Color daySun = new(1f, 0.96f, 0.90f), lateSun = new(1f, 0.87f, 0.70f);
             var N = new Vector3(0, 0, 1); var D = new Vector3(1, 0, 0); var G = new Vector3(0, 1, 0);
             return new[]
             {
-                K(0f, 0f, daySun, nSky, nEq, nGr, N, 1f, 0.12f, 1f, 1f, 0.15f, 0.30f, 70f, 420f),
-                K(4.6f, 0f, daySun, nSky, nEq, nGr, N, 1f, 0.12f, 1f, 1f, 0.15f, 0.30f, 70f, 420f),
+                K(0f, 0f, daySun, nSky, nEq, nGr, N, 1f, NightMoon, 1f, 1f, NightReflection, NightFill, 70f, 420f),
+                K(4.6f, 0f, daySun, nSky, nEq, nGr, N, 1f, NightMoon, 1f, 1f, NightReflection, NightFill, 70f, 420f),
                 K(5.8f, 0f, daySun, bSky, bEq, bGr, new Vector3(0, 0.1f, 0.9f), 3f, 0.07f, 1f, 0.7f, 0.25f, 0.40f, 90f, 440f),
                 K(6.7f, 0.55f, duskSun, Color.Lerp(duskAmbSky, bSky, 0.3f), Color.Lerp(duskAmbEq, bEq, 0.3f), Color.Lerp(duskAmbGround, bGr, 0.3f), new Vector3(0.1f, 0.9f, 0f), 0.9f, 0f, 0f, 0.2f, 0.3f, 0.5f, 110f, 440f),   // v75c: lamps off once the sun is up
                 K(8.2f, 1.2f, lateSun, Color.Lerp(duskAmbSky, dSky, 0.6f), Color.Lerp(duskAmbEq, dEq, 0.6f), Color.Lerp(duskAmbGround, dGr, 0.6f), new Vector3(0.65f, 0.35f, 0f), 1f, 0f, 0f, 0f, 0.38f, 0.5f, 130f, 500f),
@@ -107,8 +113,8 @@ namespace StreetEmpire.City
                 K(18.13f, duskSunIntensity, duskSun, duskAmbSky, duskAmbEq, duskAmbGround, G, 1f, 0f, 0f, 0f, reflection, fillIntensity, 120f, 460f),   // v75c: lamps not on before sunset
                 K(18.67f, 0f, duskSun, Color.Lerp(duskAmbSky, bSky, 0.5f), Color.Lerp(duskAmbEq, bEq, 0.5f), Color.Lerp(duskAmbGround, bGr, 0.5f), new Vector3(0, 0.6f, 0.4f), 1.2f, 0f, 0.7f, 0.3f, 0.3f, 0.45f, 100f, 420f),
                 K(19.1f, 0f, duskSun, bSky, bEq, bGr, new Vector3(0, 0.1f, 0.9f), 3f, 0.07f, 1f, 0.75f, 0.25f, 0.40f, 90f, 440f),
-                K(20.6f, 0f, daySun, nSky, nEq, nGr, N, 1f, 0.12f, 1f, 1f, 0.15f, 0.30f, 70f, 420f),
-                K(24f, 0f, daySun, nSky, nEq, nGr, N, 1f, 0.12f, 1f, 1f, 0.15f, 0.30f, 70f, 420f),
+                K(20.6f, 0f, daySun, nSky, nEq, nGr, N, 1f, NightMoon, 1f, 1f, NightReflection, NightFill, 70f, 420f),
+                K(24f, 0f, daySun, nSky, nEq, nGr, N, 1f, NightMoon, 1f, 1f, NightReflection, NightFill, 70f, 420f),
             };
         }
 

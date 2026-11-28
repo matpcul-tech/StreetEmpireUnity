@@ -704,6 +704,7 @@ namespace StreetEmpire.EditorTools
             var tiles = GameObject.Find("Ground Tiles");
             look.road = tiles == null ? null : tiles.GetComponentInChildren<MeshRenderer>()?.sharedMaterial;
             if (look.road == null) Debug.LogWarning("[SceneBuilder] night look: no road material");
+            look.wet = PropBuilder.WetMaterial;   // block pass: the puddles take their sheen with the night
             var gq = new GameObject("Graphics Quality").AddComponent<StreetEmpire.UI.GraphicsQuality>();
             gq.transform.SetParent(root, false);
             gq.ultra = GraphicsSetup.Ultra; gq.high = GraphicsSetup.High;
