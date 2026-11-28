@@ -29,7 +29,7 @@ namespace StreetEmpire.City
         readonly HashSet<Transform> seen = new();
         static readonly Collider[] found = new Collider[768];
         static readonly RaycastHit[] hits = new RaycastHit[8];
-        Material carMat, personMat; Mesh quad; float next; Camera cam;
+        Material carMat, personMat; Mesh quad; float next; Camera cam; Vector3 lastEye;
 
         void Awake() { Instance = this; }
         void OnDestroy() { if (Instance == this) Instance = null; if (carMat) Destroy(carMat); if (personMat) Destroy(personMat); }
@@ -114,7 +114,9 @@ namespace StreetEmpire.City
             if (!On || !Ready()) { Hide(0); Drawn = UnderCars = 0; return; }
             if (cam == null) cam = Camera.main;
             if (cam == null) { Hide(0); return; }
-            if (Time.unscaledTime >= next) { next = Time.unscaledTime + 0.5f; Gather(cam.transform.position); }
+            // look again twice a second, and at once when the camera has jumped (a cut, a respawn, a ride across town)
+            Vector3 eye = cam.transform.position;
+            if (Time.unscaledTime >= next || (eye - lastEye).sqrMagnitude > 64f) { next = Time.unscaledTime + 0.5f; lastEye = eye; Gather(eye); }
             int used = 0, cars = 0;
             foreach (var b in bodies)
             {
