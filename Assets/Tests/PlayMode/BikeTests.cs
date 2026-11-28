@@ -63,7 +63,15 @@ namespace StreetEmpire.Tests
             yield return new WaitForSeconds(0.6f);
             Assert.IsTrue(player.animator.GetCurrentAnimatorStateInfo(0).IsName("Riding"), "seated, hands out front");
             Assert.Less(Vector3.Distance(player.transform.position, bike.transform.position + bike.transform.rotation * (user.bikeSeat + Vector3.forward * (user.Tuck > 0f ? user.sportForward : 0f))), 0.05f, "in the saddle");
-            if (kind == "sport-bike") Assert.That(Vector3.Angle(player.transform.up, Vector3.up), Is.InRange(15f, 25f), "tucked forward over the tank on a sport bike");
+            if (kind == "sport-bike")
+            {
+                Assert.Greater(user.Tuck, 10f, "tucked forward over the tank on a sport bike");
+                yield return null; yield return null;
+                var hips = player.animator.GetBoneTransform(HumanBodyBones.Hips); var head = player.animator.GetBoneTransform(HumanBodyBones.Head);
+                float ahead = Vector3.Dot(head.position - hips.position, bike.transform.forward);
+                Debug.Log($"[BikeTests] head ahead of hips: {ahead:0.00} m");
+                Assert.Greater(ahead, 0.15f, "his head is out over the tank");
+            }
 
             // photos of the rider at rest: side, behind and ahead
             var hud = GameObject.Find("HUD"); if (hud) hud.SetActive(false);
