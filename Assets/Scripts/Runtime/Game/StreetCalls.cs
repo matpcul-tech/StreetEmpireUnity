@@ -34,6 +34,11 @@ namespace StreetEmpire.Game
         public int Won { get; private set; }
         public string LastEnd { get; private set; } = "";
         public IReadOnlyList<Health> Men => men;
+        /// <summary>BACKUP in state.js: how far a guard comes from, and how near his own block the trouble has to be for a
+        /// block's only guard to leave it.</summary>
+        public const float BackupRange = 80f, BackupNear = 30f;
+        /// <summary>The guard of the player's fighting beside him in this call, if one came.</summary>
+        public CallBackup Backup { get; private set; }
         /// <summary>Seconds until the next call may start (tests shorten it).</summary>
         public float wait;
 
@@ -157,7 +162,11 @@ namespace StreetEmpire.Game
             Now = Phase.Fight; t = fight;
             foreach (var m in men) { var br = m != null ? m.GetComponent<Brawler>() : null; if (br != null) br.posted = false; }
             if (heatGain > 0f) s.AddHeat(heatGain);
-            s.Say(fightText, 4f);
+            // crew that shows up: the nearest guard of his runs over to fight beside him
+            var turf = TurfWar.Instance; string hustle = null;
+            var guard = turf != null ? turf.BackupFor(Spot, BackupRange, BackupNear, out hustle) : null;
+            if (guard != null) { Backup = guard.gameObject.AddComponent<CallBackup>(); Backup.men = men; }
+            s.Say(guard != null ? $"{fightText} A guard from {hustle} is coming to back you up." : fightText, 4f);
         }
 
         void Decline(GameSession s, string why)
@@ -181,6 +190,7 @@ namespace StreetEmpire.Game
         /// <summary>The call is over: the men still standing leave, the ones on the ground after a win stay down.</summary>
         void End(string why)
         {
+            if (Backup != null) { Backup.Release(); Backup = null; }   // the guard who came to help goes home
             foreach (var m in men) if (m != null && !(why == "win" && m.Down)) Destroy(m.gameObject);
             men.Clear();
             if (Now != Phase.None) { LastEnd = why; wait = cooldown; }

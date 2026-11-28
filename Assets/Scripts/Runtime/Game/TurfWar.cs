@@ -371,6 +371,26 @@ namespace StreetEmpire.Game
             return h;
         }
 
+        /// <summary>The guard of yours who can run to trouble at a spot (callBackup in state.js): the nearest one standing
+        /// within range, from a block that is right by the trouble (within near of its edge) or that keeps another guard.</summary>
+        public TurfGuard BackupFor(Vector3 spot, float range, float near, out string hustle)
+        {
+            hustle = null; TurfGuard best = null; float bd = range * range;
+            if (State == null) return null;
+            foreach (var x in bodies)
+            {
+                if (!x.friendly || x.gone || x.go == null || x.hp == null || x.hp.Down) continue;
+                var g = x.go.GetComponent<TurfGuard>(); if (g == null || !g.enabled) continue;
+                var b = State.Block(x.block); int i = IndexOf(x.block); if (b == null || i < 0) continue;
+                Vector3 c = centers[i]; float reach = world.block / 2f + near;
+                bool ownCorner = Mathf.Abs(spot.x - c.x) < reach && Mathf.Abs(spot.z - c.z) < reach;
+                if (!ownCorner && b.guards < 2) continue;
+                float d = (x.go.transform.position - spot).sqrMagnitude;
+                if (d < bd) { bd = d; best = g; hustle = b.hustle; }
+            }
+            return best;
+        }
+
         void Down(Body x)
         {
             if (x.gone || State == null) return;
