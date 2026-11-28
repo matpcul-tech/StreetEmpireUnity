@@ -26,11 +26,12 @@ namespace StreetEmpire.Tests
         [Test]
         public void TheLeanGrowsWithSpeedAndSteering()
         {
-            Assert.AreEqual(0f, BikeLean.LeanFor(0.4f, 0f, 32f, 14f), "standing still it is upright");
-            Assert.Less(BikeLean.LeanFor(0.3f, 14f, 32f, 14f), -10f, "a right turn leans right");
-            Assert.Greater(BikeLean.LeanFor(-0.3f, 14f, 32f, 14f), 10f, "a left turn leans left");
-            Assert.Less(Mathf.Abs(BikeLean.LeanFor(0.3f, 4f, 32f, 14f)), Mathf.Abs(BikeLean.LeanFor(0.3f, 14f, 32f, 14f)), "less at a crawl");
-            Assert.AreEqual(-32f, BikeLean.LeanFor(1.2f, 30f, 32f, 14f), "never past 32 degrees");
+            Assert.AreEqual(0f, BikeLean.LeanFor(0.4f, 0f, 1.4f, 32f), 1e-4f, "standing still it is upright");
+            Assert.Less(BikeLean.LeanFor(0.1f, 10f, 1.4f, 32f), -10f, "a right turn leans right");
+            Assert.Greater(BikeLean.LeanFor(-0.1f, 10f, 1.4f, 32f), 10f, "a left turn leans left");
+            Assert.Less(Mathf.Abs(BikeLean.LeanFor(0.1f, 3f, 1.4f, 32f)), Mathf.Abs(BikeLean.LeanFor(0.1f, 6f, 1.4f, 32f)), "less at a crawl");
+            Assert.AreEqual(-32f, BikeLean.LeanFor(0.3f, 30f, 1.4f, 32f), "never past 32 degrees");
+            Assert.Less(BikeLean.LeanFor(0.03f, 25f, 1.4f, 32f), -20f, "at speed a small turn of the bars is a deep lean");
             Assert.IsTrue(ParkedCars.IsBike("sport-bike") && ParkedCars.IsBike("dirt-bike") && ParkedCars.IsBike("cruiser")); Assert.IsFalse(ParkedCars.IsBike("sedan"));
         }
 
@@ -93,9 +94,10 @@ namespace StreetEmpire.Tests
             Assert.Greater(Vector3.Distance(bike.transform.position, from), 5f, "the bike goes");
             Assert.Less(Mathf.Abs(lean.Roll), 2f, "upright in a straight line");
             bike.scriptSteer = 0.5f;
-            float worst = 0f, until = Time.time + 1.2f;
-            while (Time.time < until) { worst = Mathf.Min(worst, lean.Roll); yield return null; }
-            Assert.Less(worst, -8f, "over to the right in a right turn");
+            float worst = 0f, until = Time.time + 1.2f, fastest = 0f, mostSteer = 0f;
+            while (Time.time < until) { worst = Mathf.Min(worst, lean.Roll); fastest = Mathf.Max(fastest, bike.Speed); mostSteer = Mathf.Max(mostSteer, bike.state.steer); yield return null; }
+            Debug.Log($"[BikeTests] in the turn: lean {worst:0.0} deg, top speed {fastest:0.0} m/s, most steer {mostSteer * Mathf.Rad2Deg:0.0} deg");
+            Assert.Less(worst, -8f, $"over to the right in a right turn (top speed {fastest:0.0} m/s, steer {mostSteer * Mathf.Rad2Deg:0.0} deg)");
             var model = bike.transform.Find("Model"); Assert.IsNotNull(model);
             Assert.AreEqual(lean.Roll, Mathf.DeltaAngle(0f, model.localEulerAngles.z), 0.5f, "the drawn bike is the one leaning");
             Assert.Greater(Vector3.Angle(player.transform.up, Vector3.up), 5f, "and the rider leans with it");

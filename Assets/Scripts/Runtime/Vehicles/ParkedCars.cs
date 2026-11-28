@@ -71,7 +71,7 @@ namespace StreetEmpire.Vehicles
             {
                 // light and quick off the line; the sport bike is the fastest thing at the curb, the dirt bike the slowest
                 car.bike = true;
-                car.stats = new VehicleData { id = kind, maxSpeed = kind == "sport-bike" ? 34f : kind == "dirt-bike" ? 27f : 30f, accel = 21f, hp = 60f, wheelbase = Mathf.Clamp(len * 0.62f, 1.2f, 1.7f) };
+                car.stats = new VehicleData { id = kind, maxSpeed = kind == "sport-bike" ? 34f : kind == "dirt-bike" ? 27f : 30f, accel = 21f, hp = 60f, wheelbase = 2.2f };   // longer than the real 1.4 m: at that the car steering model turns it on the spot
                 go.AddComponent<BikeLean>();
             }
             car.hp = car.stats.hp;
