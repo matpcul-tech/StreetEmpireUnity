@@ -201,6 +201,8 @@ namespace StreetEmpire.EditorTools
                 m.SetColor("_BaseColor", Color.white); EditorUtility.SetDirty(m); return m;
             }
             var fx = new GameObject("Combat Fx").AddComponent<CombatFx>();
+            // a soft dark patch under every car and person near the camera (GroundShades)
+            new GameObject("Ground Shades").AddComponent<StreetEmpire.City.GroundShades>();
             fx.canvas = (RectTransform)canvas; fx.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             fx.ringMat = Fx("FxRing", false); fx.particleMat = Fx("FxParticle", false);
             // v75: the sparks and dust were plain squares; they use the fx-dust sprite (a soft puff with grit,
