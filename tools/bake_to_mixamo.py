@@ -117,5 +117,8 @@ print(f'[bake] exported standing pose is off the rest pose by at most {math.degr
 anchor = bpy.data.objects.new('Clips', None); bpy.context.scene.collection.objects.link(anchor)
 bpy.ops.object.select_all(action='DESELECT'); tgt.select_set(True); anchor.select_set(True); bpy.context.view_layer.objects.active = tgt
 bpy.ops.export_scene.fbx(filepath=out_path, use_selection=True, object_types={'ARMATURE', 'EMPTY'}, add_leaf_bones=False, bake_anim=True,
-    bake_anim_use_all_actions=True, bake_anim_use_nla_strips=False, bake_anim_use_all_bones=True, bake_anim_force_startend_keying=True, bake_anim_simplify_factor=0.4)
+    bake_anim_use_all_actions=True, bake_anim_use_nla_strips=False, bake_anim_use_all_bones=True, bake_anim_force_startend_keying=True, bake_anim_simplify_factor=0.4,
+    # real units on the bones themselves: Blender's default leaves the armature 100 times too big with bones 100 times
+    # too small, and Unity then finds every bone a bone length out of place against the player's avatar
+    apply_scale_options='FBX_SCALE_ALL')
 print('[bake] wrote', out_path)
