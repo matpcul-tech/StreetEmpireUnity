@@ -41,6 +41,14 @@ scene = bpy.context.scene; scene.render.fps = 30
 tgt.animation_data_create()
 for pb in tgt.pose.bones: pb.rotation_mode = 'QUATERNION'
 report = []
+idle = [a for a in actions if 'Idle_Loop' in a.name and 'Talking' not in a.name and 'Pistol' not in a.name and 'Sitting' not in a.name][0]
+src.animation_data.action = idle
+if hasattr(src.animation_data, 'action_slot') and idle.slots: src.animation_data.action_slot = idle.slots[0]
+scene.frame_set(int(idle.frame_range[0])); bpy.context.view_layer.update()
+stand = (src.matrix_world @ src.pose.bones['pelvis'].matrix).translation - src.matrix_world.translation
+foot0 = min((src.matrix_world @ src.pose.bones[n].matrix).translation.z for n in ('foot_l', 'foot_r')) - src.matrix_world.translation.z
+k = tgt_hip_h / max(stand.z - foot0 + 0.09, 1e-4)   # ankle to floor is about 9 cm
+print(f'[bake] the pelvis stands at {stand.z:.3f}, ankles at {foot0:.3f}; leg scale {k:.3f}')
 for act in actions:
     name = act.name.split('|')[-1]
     if name.endswith('_Armature'): name = name[:-9]
@@ -48,7 +56,7 @@ for act in actions:
     if hasattr(src.animation_data, 'action_slot') and act.slots: src.animation_data.action_slot = act.slots[0]
     f0, f1 = int(round(act.frame_range[0])), int(round(act.frame_range[1]))
     new = bpy.data.actions.new(name); tgt.animation_data.action = new
-    leans = []
+    leans = []; hips_z = []; feet_z = []
     for f in range(f0, f1 + 1):
         scene.frame_set(f); bpy.context.view_layer.update()
         SWf = src.matrix_world
@@ -75,9 +83,9 @@ for act in actions:
                 basis = tgt_rest_arm[tb].to_quaternion().inverted() @ arm_q
             pb.rotation_quaternion = basis; pb.keyframe_insert('rotation_quaternion', frame=f - f0 + 1)
         # the hips travel as the pelvis did from its rest, scaled to this body's leg length
+        # (from where the pelvis stands in the idle, not from the pack's rest pose: that one sits 20 m under the floor)
         sp = (SWf @ src.pose.bones['pelvis'].matrix).translation - SWf.translation
-        rp = src_rest['pelvis'].translation - SW.translation
-        d_world = (sp - rp) * k
+        d_world = (sp - stand) * k
         d_arm = TWqi @ d_world
         hp = tgt.pose.bones[hip_t]
         hp.location = tgt_rest_arm[hip_t].to_quaternion().inverted() @ d_arm; hp.keyframe_insert('location', frame=f - f0 + 1)
@@ -87,10 +95,11 @@ for act in actions:
         leans.append(math.degrees(math.atan2(-v.y, v.z)))
         shw = SWf @ src.pose.bones['pelvis'].head; snw = SWf @ src.pose.bones['neck_01'].head; sv = snw - shw
         leans.append(math.degrees(math.atan2(-sv.y, sv.z)))
+        hips_z.append((TW @ tgt.pose.bones[hip_t].head).z); feet_z.append(min((TW @ tgt.pose.bones['mixamorig:' + n].head).z for n in ('LeftFoot', 'RightFoot')))
     t = leans[0::2]; s_ = leans[1::2]
-    report.append((name, f1 - f0 + 1, sum(t)/len(t), sum(s_)/len(s_)))
+    report.append((name, f1 - f0 + 1, sum(t)/len(t), sum(s_)/len(s_), min(hips_z), max(hips_z), min(feet_z)))
     new.use_fake_user = True
-for r in report: print(f'[bake] {r[0]:22s} {r[1]:3d} frames  lean on our rig {r[2]:6.1f} deg   in the source {r[3]:6.1f} deg')
+for r in report: print(f'[bake] {r[0]:22s} {r[1]:3d} frames  lean {r[2]:6.1f} deg (source {r[3]:6.1f})  hips {r[4]:5.2f} to {r[5]:5.2f} m, lowest ankle {r[6]:5.2f} m')
 bpy.data.objects.remove(src)
 tgt.animation_data.action = None
 for pb in tgt.pose.bones: pb.matrix_basis = Matrix.Identity(4)
