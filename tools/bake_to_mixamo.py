@@ -101,13 +101,21 @@ for act in actions:
     new.use_fake_user = True
 for r in report: print(f'[bake] {r[0]:22s} {r[1]:3d} frames  lean {r[2]:6.1f} deg (source {r[3]:6.1f})  hips {r[4]:5.2f} to {r[5]:5.2f} m, lowest ankle {r[6]:5.2f} m')
 bpy.data.objects.remove(src)
+for a in list(bpy.data.armatures):
+    if a.users == 0: bpy.data.armatures.remove(a)
+tgt.name = 'Armature'; tgt.data.name = 'Armature'   # the name the character files give theirs
 tgt.animation_data.action = None
 for pb in tgt.pose.bones: pb.matrix_basis = Matrix.Identity(4)
 # the file's own standing pose must be the rest pose, not whatever frame was evaluated last
 scene.frame_set(0); bpy.context.view_layer.update()
 worst = max((pb.matrix.to_quaternion().rotation_difference(tgt.data.bones[pb.name].matrix_local.to_quaternion()).angle for pb in tgt.pose.bones))
 print(f'[bake] exported standing pose is off the rest pose by at most {math.degrees(worst):.3f} deg')
-bpy.ops.object.select_all(action='DESELECT'); tgt.select_set(True); bpy.context.view_layer.objects.active = tgt
-bpy.ops.export_scene.fbx(filepath=out_path, use_selection=True, object_types={'ARMATURE'}, add_leaf_bones=False, bake_anim=True,
+# A second top level object goes in beside the armature. With the armature alone in the file Unity makes it the
+# file's own root, the armature's turn (Blender's Z up to Unity's Y up) lands on the root, and the humanoid reads
+# the whole body a quarter turn out: every character stood with its feet crossed. The character files have a mesh
+# beside their armature, so theirs stays a child named Armature; this keeps the clips file the same shape.
+anchor = bpy.data.objects.new('Clips', None); bpy.context.scene.collection.objects.link(anchor)
+bpy.ops.object.select_all(action='DESELECT'); tgt.select_set(True); anchor.select_set(True); bpy.context.view_layer.objects.active = tgt
+bpy.ops.export_scene.fbx(filepath=out_path, use_selection=True, object_types={'ARMATURE', 'EMPTY'}, add_leaf_bones=False, bake_anim=True,
     bake_anim_use_all_actions=True, bake_anim_use_nla_strips=False, bake_anim_use_all_bones=True, bake_anim_force_startend_keying=True, bake_anim_simplify_factor=0.4)
 print('[bake] wrote', out_path)
