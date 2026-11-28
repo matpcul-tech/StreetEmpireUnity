@@ -86,19 +86,28 @@ namespace StreetEmpire.Tests
                     Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, "[LookShot] {0}-{1} {2}/{3} {4}", name, kind, i + 1, parts, b64.Substring(i * 6000, Mathf.Min(6000, b64.Length - i * 6000)));
             }
             Object.Destroy(rt); Object.Destroy(tex);
+            // this test has twice stopped dead here for five minutes with nothing in the log. Each step now says where it
+            // is, with the game clock, the frame and the time scale, so the next time shows which wait never came back.
+            void Mark(string step) => Debug.Log($"[BikeTests] {step}: time {Time.time:0.00} frame {Time.frameCount} scale {Time.timeScale:0.##} bike {(bike != null ? bike.transform.position.ToString("0.0") : "gone")} v {(bike != null ? bike.Speed : 0f):0.0} hp {(bike != null ? bike.hp : 0f):0}");
+            Mark("photos done");
 
             // it goes, and in a turn at speed the bike leans over and he leans with it
             Vector3 from = bike.transform.position;
             // a short run: at full throttle for a second and a half it is across the block and into a wall before the turn
             bike.scriptThrottle = 1f; bike.scriptSteer = 0f;
-            yield return new WaitForSeconds(0.7f);
+            Mark("throttle on");
+            float wall = Time.realtimeSinceStartup, goUntil = Time.time + 0.7f;
+            while (Time.time < goUntil) { Assert.Less(Time.realtimeSinceStartup - wall, 30f, $"0.7 s of game time takes under 30 s of real time (scale {Time.timeScale}, frame {Time.frameCount})"); yield return null; }
+            Mark("straight run done");
             Assert.Greater(Vector3.Distance(bike.transform.position, from), 2.5f, "the bike goes");
             Assert.Less(Mathf.Abs(lean.Roll), 2f, "upright in a straight line");
             bike.scriptSteer = 0.5f;
             float worst = 0f, until = Time.time + 1.2f, fastest = 0f, mostSteer = 0f, riderOver = 0f, drawnOff = 0f;
             var model = bike.transform.Find("Model"); Assert.IsNotNull(model);
+            wall = Time.realtimeSinceStartup;
             while (Time.time < until)
             {
+                Assert.Less(Time.realtimeSinceStartup - wall, 30f, $"the turn takes under 30 s of real time (scale {Time.timeScale}, frame {Time.frameCount})");
                 // read while it is leaning: by the end of the turn it may have straightened or met a wall
                 worst = Mathf.Min(worst, lean.Roll); fastest = Mathf.Max(fastest, bike.Speed); mostSteer = Mathf.Max(mostSteer, bike.state.steer);
                 riderOver = Mathf.Max(riderOver, Vector3.Angle(player.transform.up, Vector3.up));
