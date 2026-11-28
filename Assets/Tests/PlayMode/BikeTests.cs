@@ -86,19 +86,28 @@ namespace StreetEmpire.Tests
                     Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, "[LookShot] {0}-{1} {2}/{3} {4}", name, kind, i + 1, parts, b64.Substring(i * 6000, Mathf.Min(6000, b64.Length - i * 6000)));
             }
             Object.Destroy(rt); Object.Destroy(tex);
+            // this test has twice stopped dead here for five minutes with nothing in the log. Each step now says where it
+            // is, with the game clock, the frame and the time scale, so the next time shows which wait never came back.
+            void Mark(string step) => Debug.Log($"[BikeTests] {step}: time {Time.time:0.00} frame {Time.frameCount} scale {Time.timeScale:0.##} bike {(bike != null ? bike.transform.position.ToString("0.0") : "gone")} v {(bike != null ? bike.Speed : 0f):0.0} hp {(bike != null ? bike.hp : 0f):0}");
+            Mark("photos done");
 
             // it goes, and in a turn at speed the bike leans over and he leans with it
             Vector3 from = bike.transform.position;
             // a short run: at full throttle for a second and a half it is across the block and into a wall before the turn
             bike.scriptThrottle = 1f; bike.scriptSteer = 0f;
-            yield return new WaitForSeconds(0.7f);
+            Mark("throttle on");
+            float wall = Time.realtimeSinceStartup, goUntil = Time.time + 0.7f;
+            while (Time.time < goUntil) { Assert.Less(Time.realtimeSinceStartup - wall, 30f, $"0.7 s of game time takes under 30 s of real time (scale {Time.timeScale}, frame {Time.frameCount})"); yield return null; }
+            Mark("straight run done");
             Assert.Greater(Vector3.Distance(bike.transform.position, from), 2.5f, "the bike goes");
             Assert.Less(Mathf.Abs(lean.Roll), 2f, "upright in a straight line");
             bike.scriptSteer = 0.5f;
             float worst = 0f, until = Time.time + 1.2f, fastest = 0f, mostSteer = 0f, riderOver = 0f, drawnOff = 0f;
             var model = bike.transform.Find("Model"); Assert.IsNotNull(model);
+            wall = Time.realtimeSinceStartup;
             while (Time.time < until)
             {
+                Assert.Less(Time.realtimeSinceStartup - wall, 30f, $"the turn takes under 30 s of real time (scale {Time.timeScale}, frame {Time.frameCount})");
                 // read while it is leaning: by the end of the turn it may have straightened or met a wall
                 worst = Mathf.Min(worst, lean.Roll); fastest = Mathf.Max(fastest, bike.Speed); mostSteer = Mathf.Max(mostSteer, bike.state.steer);
                 riderOver = Mathf.Max(riderOver, Vector3.Angle(player.transform.up, Vector3.up));
@@ -121,6 +130,19 @@ namespace StreetEmpire.Tests
             Assert.IsFalse(player.animator.GetCurrentAnimatorStateInfo(0).IsName("Riding"), "standing again");
             Assert.Less(Vector3.Angle(player.transform.up, Vector3.up), 1f, "upright");
             Assert.That(Vector3.Distance(player.transform.position, bike.transform.position), Is.InRange(1.5f, 3.5f), "beside the bike");
+
+            // at night it carries one headlamp and one tail lamp on the bike itself, not a car's pair out at the corners
+            GameClock.FrozenHour = 22f;
+            yield return new WaitForSeconds(1.2f);
+            var drawn = bike.transform.Find("Model");
+            var head = drawn.Find("Headlamp"); var tail = drawn.Find("Tail lamp");
+            Assert.IsNotNull(head, "a headlamp on the bike"); Assert.IsNotNull(tail, "a tail lamp on the bike");
+            Assert.IsNull(bike.transform.Find("Headlamp L"), "no car headlamp pair"); Assert.IsNull(bike.transform.Find("Tail lamp L"), "no car tail lamp pair");
+            var bb = bike.GetComponent<BoxCollider>(); float lo = bb.center.y - bb.size.y * 0.5f, fwd = bb.center.z + bb.size.z * 0.5f, aft = bb.center.z - bb.size.z * 0.5f;
+            Assert.AreEqual(bb.center.x, head.localPosition.x, 0.01f, "on the centre line"); Assert.AreEqual(bb.center.x, tail.localPosition.x, 0.01f);
+            Assert.That(head.localPosition.y, Is.InRange(lo + bb.size.y * 0.5f, lo + bb.size.y * 0.85f), "up in the fairing");
+            Assert.Less(head.localPosition.z, fwd - 0.1f, "behind the front of the tyre"); Assert.Greater(tail.localPosition.z, aft, "inside the tail");
+            Assert.Less(head.localScale.x, 0.4f, "a bike sized lamp"); Assert.Less(tail.localScale.x, 0.3f);
         }
     }
 }

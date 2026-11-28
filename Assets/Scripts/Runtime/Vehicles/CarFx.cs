@@ -31,8 +31,20 @@ namespace StreetEmpire.Vehicles
             if (!Shared()) return false;
             Vector3 c = box.center, s = box.size; float bottom = c.y - s.y * 0.5f, y = bottom + Mathf.Clamp(s.y * 0.42f, 0.55f, 0.95f), x = s.x * 0.33f;
             float front = c.z + s.z * 0.5f + 0.03f, back = c.z - s.z * 0.5f - 0.03f;
-            heads = new[] { Lamp(transform, "Headlamp L", new Vector3(c.x - x, y, front), 0.5f, headMat, false), Lamp(transform, "Headlamp R", new Vector3(c.x + x, y, front), 0.5f, headMat, false) };
-            tails = new[] { Lamp(transform, "Tail lamp L", new Vector3(c.x - x, y + 0.08f, back), 0.38f, tailMat, true), Lamp(transform, "Tail lamp R", new Vector3(c.x + x, y + 0.08f, back), 0.38f, tailMat, true) };
+            if (car != null && car.bike)
+            {
+                // a motorcycle: one headlamp in the fairing and one small tail lamp under the seat, not a car's pair set
+                // out at the corners of the box (on a bike those hung in the air ahead of the wheel and either side of
+                // the tail). They ride on the drawn model so they lean with it.
+                var on = transform.Find("Model") ?? transform;
+                heads = new[] { Lamp(on, "Headlamp", new Vector3(c.x, bottom + s.y * 0.66f, front - s.z * 0.17f), 0.3f, headMat, false) };
+                tails = new[] { Lamp(on, "Tail lamp", new Vector3(c.x, bottom + s.y * 0.62f, back + s.z * 0.07f), 0.2f, tailMat, true) };
+            }
+            else
+            {
+                heads = new[] { Lamp(transform, "Headlamp L", new Vector3(c.x - x, y, front), 0.5f, headMat, false), Lamp(transform, "Headlamp R", new Vector3(c.x + x, y, front), 0.5f, headMat, false) };
+                tails = new[] { Lamp(transform, "Tail lamp L", new Vector3(c.x - x, y + 0.08f, back), 0.38f, tailMat, true), Lamp(transform, "Tail lamp R", new Vector3(c.x + x, y + 0.08f, back), 0.38f, tailMat, true) };
+            }
             pool = Pool(transform, c, s);
             var b = new GameObject("Headlight beam"); b.transform.SetParent(transform, false);
             b.transform.localPosition = new Vector3(c.x, y + 0.1f, front); b.transform.localRotation = Quaternion.Euler(9f, 0f, 0f);
