@@ -292,6 +292,7 @@ namespace StreetEmpire.EditorTools
             cycle.sun = sunLight; cycle.sky = RenderSettings.skybox; cycle.duskFog = RenderSettings.fogColor;
             cycle.dayFog = DayFog; cycle.nightFog = NightFog;
             var fillT = root.transform.Find("Character Fill"); if (fillT) cycle.fill = fillT.GetComponent<Light>();
+            var nightFillT = root.transform.Find("Night Fill"); if (nightFillT) cycle.nightFill = nightFillT.GetComponent<Light>();
             var moonT = root.transform.Find("Moon"); if (moonT) cycle.moon = moonT.GetComponent<Light>();
             // v74: only the Sovereign Asset windows_lit materials glow (a flat color, no emission map); walls never do
             cycle.windowMaterials = Object.FindObjectsByType<StreetEmpire.City.BuildingMarker>(FindObjectsSortMode.None)
@@ -704,6 +705,7 @@ namespace StreetEmpire.EditorTools
             var tiles = GameObject.Find("Ground Tiles");
             look.road = tiles == null ? null : tiles.GetComponentInChildren<MeshRenderer>()?.sharedMaterial;
             if (look.road == null) Debug.LogWarning("[SceneBuilder] night look: no road material");
+            look.wet = PropBuilder.WetMaterial;   // block pass: the puddles take their sheen with the night
             var gq = new GameObject("Graphics Quality").AddComponent<StreetEmpire.UI.GraphicsQuality>();
             gq.transform.SetParent(root, false);
             gq.ultra = GraphicsSetup.Ultra; gq.high = GraphicsSetup.High;
@@ -908,6 +910,14 @@ namespace StreetEmpire.EditorTools
             fill.renderingLayerMask = 2;
             fill.transform.rotation = Quaternion.LookRotation(-new Vector3(-SunDir.x, 0.55f, -SunDir.z).normalized);
             fill.transform.SetParent(root, false);
+            // block pass: the night fill, for people and cars alone. URP reads a light's layers from its
+            // UniversalAdditionalLightData (the fill above has none, so it lights everything); this one carries
+            // layer 2 there. DayCycle brings it up with the night and aims it from the camera's side.
+            var nightFill = new GameObject("Night Fill").AddComponent<Light>();
+            nightFill.type = LightType.Directional; nightFill.color = new Color(0.90f, 0.94f, 1f); nightFill.intensity = 0f; nightFill.shadows = LightShadows.None;
+            nightFill.renderingLayerMask = 2; nightFill.enabled = false;
+            nightFill.GetUniversalAdditionalLightData().renderingLayers = 2u;
+            nightFill.transform.SetParent(root, false);
             // v74: moonlight, a blue gray directional of its own, off by day (DayCycle turns it on with the night and
             // puts it high in another quarter of the sky). When the sun is switched off it is the main light and casts the shadows.
             var moon = new GameObject("Moon").AddComponent<Light>();

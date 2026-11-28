@@ -86,6 +86,7 @@ namespace StreetEmpire.EditorTools
             Edge(streetX, streetZ, root);
             foreach (var b in blocks) for (int k = 0; k < 4; k++) Grime(b, k, StreetAt(b, k, streetX, streetZ), marks);
             Graffiti(marks);
+            foreach (var b in blocks) if (b.id == PassBlock) BlockPass(b, root.Find($"Block {b.id} props"), marks);
             marks.Save(root);
 
             foreach (var kv in batches) kv.Value.matrices = placed[kv.Key].ToArray();
@@ -527,7 +528,7 @@ namespace StreetEmpire.EditorTools
                 var mats = color == null ? cm.order
                     : cm.order.Select(m => m != null && m.name.EndsWith("_body") ? VehicleBuilder.Painted(m, kind, color) : m).ToList();
                 batch = NewBatch(key, cm.lod0, cm.lod1, mats, 15f, 150f, true);
-                batch.shadowDistance = 40f;
+                batch.shadowDistance = 40f; batch.renderingLayers = 3;   // block pass: the night fill reaches cars
             }
             var car = new GameObject($"Parked {kind}");
             car.transform.SetParent(parent, false);
@@ -885,6 +886,271 @@ namespace StreetEmpire.EditorTools
 
         static string Safe(string s) => new string((s ?? "mat").Select(ch => char.IsLetterOrDigit(ch) || ch == '-' || ch == '_' ? ch : '_').ToArray());
 
+        // ---------------------------------------------------------------- block pass (one block dressed as a real street)
+
+        /// <summary>The block that has had the street pass: block 1, across the street from where a new game starts,
+        /// with the card table on its corner. More stands on its curbs (trash put out by the lamps, bins, newspaper
+        /// boxes, pallets, cones round a road patch, milk crates), and its ground is worn: gutter grime, a dirt line
+        /// along the lots and walls, cracks, oil, asphalt patches and puddles that take a sheen at night (NightLook).
+        /// Everything goes through Place and the instancer like the rest of the props; the ground wear is flat
+        /// quads in the Marks meshes. Nothing with a collider stands in the walkers' lane (20.4 to 21.6 m).</summary>
+        public const int PassBlock = 1;
+        /// <summary>The puddle material (PropBuilder makes it, NightLook gives it its sheen at night).</summary>
+        public static Material WetMaterial { get; private set; }
+
+        static void BlockPass(BlockInfo b, Transform parent, Marks marks)
+        {
+            if (parent == null) return;
+            PassModels();
+            var r = new System.Random(8101);   // its own dice: the rest of the town is dealt as before
+            float J(float a) => (float)(r.NextDouble() * 2 - 1) * a;
+            Quaternion Spin() => Quaternion.Euler(0, J(180), 0);
+            const float Curb = CurbLine + 0.15f;   // 21.9 m: between the walkers' lane and the curb edge
+            for (int k = 0; k < 4; k++)
+            {
+                // trash put out at the curb beside the lamp, a bag fallen into the gutter, a flattened box
+                float lamp = k % 2 == 0 ? -10f : 10f;
+                for (int i = 0; i < 3; i++)
+                    Place("trashbag", "junk", b.id, At(b, k, Curb + J(0.1f), lamp - 1.3f - i * 0.56f + J(0.08f), SidewalkTop), Spin(), parent, Col.None, 0.02f);
+                Place("trashbag", "junk", b.id, At(b, k, 22.55f, lamp - 1.9f, 0f), Spin(), parent, Col.None, 0.02f);
+                Place("cardboard-box", "junk", b.id, At(b, k, 22.6f, lamp - 3.1f, 0f), Spin(), parent, Col.None, 0.02f);
+                PassGround(b, k, marks, r);
+            }
+            Vector3 n = N(0), t = T(0);
+            // east side, the one a new game looks at: a rusty bin, newspaper boxes at the curb, pallets by the lot
+            // fence, cones round a patch in the parking lane, milk crates by the corner
+            Place("trash-can-rust", "trash can", b.id, At(b, 0, Curb, -8.4f, SidewalkTop), Quaternion.identity, parent, Col.Bounds, 0.012f);
+            Place("newspaper-box", "newspaper box", b.id, At(b, 0, Curb, 11.2f, SidewalkTop), Face(-n), parent, Col.Bounds, 0.012f);
+            Place("newspaper-box", "newspaper box", b.id, At(b, 0, Curb, 11.85f, SidewalkTop), Face(-n), parent, Col.Bounds, 0.012f);
+            for (int i = 0; i < 3; i++)
+                Place("pallet", "pallet", b.id, At(b, 0, 19.58f, 4.3f, SidewalkTop + i * PalletHeight), Face(t) * Quaternion.Euler(0, J(5f), 0), parent, i == 0 ? Col.Bounds : Col.None, 0.012f);
+            Place("pallet", "pallet", b.id, At(b, 0, 18.82f, 2.3f, SidewalkTop), Face(n) * Quaternion.Euler(74f, 0, 0), parent, Col.None, 0.012f, lift: 0.5f);   // stood against the lot fence
+            foreach (var (d, s2) in new[] { (22.75f, 8.1f), (23.75f, 9.4f), (23.7f, 11.2f), (22.7f, 12.3f) })
+                Place("traffic-cone", "cone", b.id, At(b, 0, d, s2, 0f), Spin(), parent, Col.None, 0.02f);
+            Place("traffic-cone", "cone", b.id, At(b, 0, 22.5f, 13.4f, 0f), Quaternion.Euler(0, 40f, 0) * Quaternion.Euler(84f, 0, 0), parent, Col.None, 0.02f, lift: 0.13f);
+            marks.Pad("PassPatch0", At(b, 0, 23.4f, 10.2f, 0), t, n, 3.4f, 1.9f, 0.006f);
+            marks.Decal("PassPuddle0", At(b, 0, 23.0f, 9.9f, 0.012f), t, n, Vector3.up, 2.3f, 1.25f, WetPuddle2);
+            Place("milk-crate", "milk crate", b.id, At(b, 0, Curb, 17.0f, SidewalkTop), Quaternion.Euler(0, 8f, 0), parent, Col.None, 0.02f, lift: 0.14f, variant: "blue");
+            Place("milk-crate", "milk crate", b.id, At(b, 0, Curb, 17.02f, SidewalkTop), Quaternion.Euler(0, 31f, 0), parent, Col.None, 0.02f, lift: 0.42f, variant: "red");
+            Place("milk-crate", "milk crate", b.id, At(b, 0, Curb + 0.03f, 16.5f, SidewalkTop), Quaternion.Euler(0, -12f, 0) * Quaternion.Euler(90f, 0, 0), parent, Col.None, 0.02f, lift: 0.17f, variant: "black");
+            // north side: a bench in the gap, a tyre against the lamp, a barrel, boxes by the newspaper boxes, a cone
+            n = N(2); t = T(2);
+            Place("bench", "bench", b.id, At(b, 2, InnerLine, 4.5f, SidewalkTop), Face(n), parent, Col.Bounds, 0.012f);
+            Place("tyre", "junk", b.id, At(b, 2, Curb + 0.05f, -9.1f, SidewalkTop), Quaternion.Euler(90, J(180), 0), parent, Col.None, 0.02f, lift: 0.08f);
+            Place("barrel", "junk", b.id, At(b, 2, Curb, 8.6f, SidewalkTop), Spin(), parent, Col.Bounds, 0.02f);
+            Place("cardboard-box", "junk", b.id, At(b, 2, 19.5f, -2.7f, SidewalkTop), Quaternion.Euler(0, 14f, 0), parent, Col.None, 0.02f);
+            Place("cardboard-box", "junk", b.id, At(b, 2, 19.45f, -3.35f, SidewalkTop), Quaternion.Euler(0, -22f, 0), parent, Col.None, 0.02f);
+            Place("traffic-cone", "cone", b.id, At(b, 2, Curb, 12.2f, SidewalkTop), Spin(), parent, Col.None, 0.02f);
+            Place("milk-crate", "milk crate", b.id, At(b, 2, Curb, -16.4f, SidewalkTop), Quaternion.Euler(0, 25f, 0), parent, Col.None, 0.02f, lift: 0.14f, variant: "black");
+            // west side: tyres and a plastic crate at the curb
+            Place("tyre", "junk", b.id, At(b, 1, Curb + 0.05f, -4.2f, SidewalkTop), Quaternion.Euler(90, J(180), 0), parent, Col.None, 0.02f, lift: 0.08f);
+            Place("crate", "junk", b.id, At(b, 1, Curb, -5.3f, SidewalkTop), Spin(), parent, Col.None, 0.02f);
+            Place("pallet", "pallet", b.id, At(b, 1, 22.95f, -12.2f, 0f), Face(T(1)) * Quaternion.Euler(0, J(8f), 0), parent, Col.None, 0.012f);
+            // south side, the bus stop: a bin and a newspaper box at the curb for the people waiting
+            Place("trash-can", "trash can", b.id, At(b, 3, Curb, 2.7f, SidewalkTop), Quaternion.identity, parent, Col.Bounds, 0.012f);
+            Place("newspaper-box", "newspaper box", b.id, At(b, 3, Curb, 4.3f, SidewalkTop), Face(-N(3)), parent, Col.Bounds, 0.012f);
+            Place("traffic-cone", "cone", b.id, At(b, 3, 22.6f, -6.4f, 0f), Spin(), parent, Col.None, 0.02f);
+        }
+
+        /// <summary>The wear on one side of the pass block: grime the length of the gutter and along the inside of
+        /// the walk, cracks and oil on the road, cracks, stains and litter on the walk, two asphalt patches, puddles
+        /// in the gutter and one out under the lamp.</summary>
+        static void PassGround(BlockInfo b, int k, Marks marks, System.Random r)
+        {
+            var n = N(k); var t = T(k);
+            string dec = $"PassDecal{k}", wet = $"PassWet{k}", patch = $"PassPatch{k}", puddle = $"PassPuddle{k}";
+            float U() => (float)r.NextDouble();
+            (Vector3 right, Vector3 up) Turn() { float a = U() * Mathf.PI * 2f; var rt = Mathf.Cos(a) * t + Mathf.Sin(a) * n; return (rt, Vector3.Cross(Vector3.up, rt) * -1f); }
+            for (int i = 0; i < 4; i++)
+            {
+                float s = -16.5f + i * 11f;
+                // dark against the curb, fading out into the lane; every other piece is turned end for end
+                marks.Decal(wet, At(b, k, 22.15f + 0.6f, s, 0.007f), i % 2 == 0 ? t : -t, n, Vector3.up, 11.3f, 1.2f, WetDust);
+                marks.Decal(wet, At(b, k, 19.34f, s, SidewalkTop + 0.005f), i % 2 == 0 ? -t : t, n, Vector3.up, 11.3f, 0.68f, WetStrip);
+            }
+            for (int i = 0; i < 6; i++)
+            {
+                float s = -15f + i * 6f + (U() - 0.5f) * 3f;
+                var (rt, up) = Turn(); float size = 2.4f + U() * 1.4f;
+                marks.Decal(dec, At(b, k, 23.4f + U() * 4.6f, s, 0.008f), rt, up, Vector3.up, size, size, Tile(Cracks[r.Next(3)]));
+                if (i % 2 == 0) { (rt, up) = Turn(); size = 1.5f + U() * 1.1f; marks.Decal(dec, At(b, k, ParkLine + (U() - 0.5f) * 1.2f, s + 2.5f, 0.009f), rt, up, Vector3.up, size, size, Tile(Oils[r.Next(3)])); }
+                if (i % 2 == 1) { (rt, up) = Turn(); marks.Decal(dec, At(b, k, 22.7f + U() * 0.4f, s - 1.6f, 0.01f), rt, up, Vector3.up, 1.3f, 1.3f, Tile(Litters[r.Next(2)])); }
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                float s = -16f + i * 8f + (U() - 0.5f) * 4f;
+                var (rt, up) = Turn(); float size = 1.3f + U() * 0.7f;
+                marks.Decal(dec, At(b, k, 20.1f + U() * 1.2f, s, SidewalkTop + 0.006f), rt, up, Vector3.up, size, size, Tile(i == 3 ? Litters[1] : Cracks[r.Next(3)]));
+                (rt, up) = Turn(); size = 1.1f + U() * 1.0f;
+                marks.Decal(wet, At(b, k, 19.9f + U() * 1.6f, s + 3.5f, SidewalkTop + 0.007f), rt, up, Vector3.up, size, size, i % 2 == 0 ? WetStain : WetStain2);
+            }
+            for (int i = 0; i < 2; i++)
+                marks.Pad(patch, At(b, k, 25.2f + U() * 2.2f, (i == 0 ? -9f : 5f) + (U() - 0.5f) * 6f, 0), t, n, 2.4f + U() * 1.8f, 1.3f + U() * 0.9f, 0.006f);
+            foreach (float s in new[] { -3.5f + (U() - 0.5f) * 3f, 14.5f - U() * 2f })
+                marks.Decal(puddle, At(b, k, 22.15f + 0.72f, s, 0.012f), U() < 0.5f ? t : -t, n, Vector3.up, 2.0f + U() * 1.2f, 1.2f + U() * 0.3f, U() < 0.5f ? WetPuddle1 : WetPuddle2);
+            float lamp = k % 2 == 0 ? -10f : 10f;
+            marks.Decal(puddle, At(b, k, 23.9f, lamp + 1.2f, 0.012f), t, n, Vector3.up, 3.0f, 1.9f, WetPuddle1);
+            // tyre marks where somebody pulled away hard
+            marks.Decal(wet, At(b, k, 25.6f + U() * 1.6f, -4f + U() * 12f, 0.009f), U() < 0.5f ? t : -t, n, Vector3.up, 8f, 2.3f, WetSkid);
+        }
+
+        public const float PalletHeight = 0.144f;
+
+        /// <summary>The props of the block pass that are built here, not modeled: a traffic cone, a wood pallet and
+        /// the milk crate (the card table's seats, SceneBuilder.MilkCrateMesh) in three colors. Each is one merged
+        /// mesh in the instancer like every other prop. Their materials are named prop__part like the manifest's.</summary>
+        static void PassModels()
+        {
+            if (!batches.ContainsKey("traffic-cone"))
+            {
+                var orange = Plain("traffic-cone__orange", new Color(0.93f, 0.34f, 0.07f), 0.3f); var band = Plain("traffic-cone__band", new Color(0.88f, 0.88f, 0.85f), 0.45f);
+                var temp = new GameObject("traffic-cone parts");
+                Part(temp, orange, new Vector3(0, 0.015f, 0), new Vector3(0.36f, 0.03f, 0.36f));
+                Part(temp, orange, new Vector3(0, 0.03f, 0), Vector3.one, Frustum(0.125f, 0.028f, 0.52f, 10));
+                Part(temp, band, new Vector3(0, 0.03f + 0.26f, 0), Vector3.one, Frustum(0.083f, 0.062f, 0.11f, 10));
+                Built("traffic-cone", temp, 50f, true);
+            }
+            if (!batches.ContainsKey("pallet"))
+            {
+                var wood = Textured("pallet__wood", $"{Tex}/wood-fence__fence_boards_basecolor.jpg", $"{Tex}/wood-fence__fence_boards_normal.jpg", 1f, 0.08f, new Color(0.82f, 0.76f, 0.66f));
+                wood.SetTextureScale("_BaseMap", new Vector2(0.12f, 1f)); wood.SetTextureOffset("_BaseMap", new Vector2(0.13f, 0f));   // one board of the fence map, not all eight
+                var temp = new GameObject("pallet parts");
+                // 1.2 m by 1.0 m: five deck boards on three stringers, three boards underneath
+                for (int i = 0; i < 5; i++) Part(temp, wood, new Vector3(0, 0.133f, -0.45f + i * 0.225f), new Vector3(1.2f, 0.022f, 0.1f + (i % 2) * 0.02f));
+                for (int i = 0; i < 3; i++) Part(temp, wood, new Vector3(-0.56f + i * 0.56f, 0.072f, 0), new Vector3(0.045f, 0.1f, 1.0f));
+                for (int i = 0; i < 3; i++) Part(temp, wood, new Vector3(0, 0.011f, -0.45f + i * 0.45f), new Vector3(1.2f, 0.022f, 0.1f));
+                Built("pallet", temp, 60f, true);
+            }
+            foreach (var (variant, color) in new[] { ("blue", new Color(0.13f, 0.25f, 0.44f)), ("red", new Color(0.52f, 0.13f, 0.1f)), ("black", new Color(0.07f, 0.07f, 0.08f)) })
+            {
+                if (batches.ContainsKey("milk-crate#" + variant)) continue;
+                var nb = NewBatch("milk-crate#" + variant, SceneBuilder.MilkCrateMesh(), null, new List<Material> { Plain("milk-crate__" + variant, color, 0.32f) }, 99999f, 45f, true);
+                nb.shadowDistance = 20f;
+            }
+        }
+
+        static GameObject Part(GameObject parent, Material mat, Vector3 at, Vector3 size, Mesh mesh = null)
+        {
+            GameObject go;
+            if (mesh == null) { go = GameObject.CreatePrimitive(PrimitiveType.Cube); Object.DestroyImmediate(go.GetComponent<Collider>()); }
+            else { go = new GameObject("Part"); go.AddComponent<MeshFilter>().sharedMesh = mesh; go.AddComponent<MeshRenderer>(); }
+            go.transform.SetParent(parent.transform, false); go.transform.localPosition = at; go.transform.localScale = size;
+            go.GetComponent<MeshRenderer>().sharedMaterial = mat;
+            return go;
+        }
+
+        /// <summary>The parts under <paramref name="temp"/> as one instanced model named <paramref name="model"/>.</summary>
+        static PropBatch Built(string model, GameObject temp, float cull, bool shadows)
+        {
+            var order = new List<Material>();
+            var mesh = MeshMerge.Merge(temp, m => m, order, Vector3.one, $"{MeshDir}/Props/{model}.asset");
+            Object.DestroyImmediate(temp);
+            var nb = NewBatch(model, mesh, null, order, 99999f, cull, shadows);
+            nb.shadowDistance = 25f;
+            return nb;
+        }
+
+        /// <summary>A cone with its top cut off, standing on y = 0: radius r0 at the foot, r1 at the top.</summary>
+        static Mesh Frustum(float r0, float r1, float h, int seg)
+        {
+            var v = new List<Vector3>(); var nr = new List<Vector3>(); var uv = new List<Vector2>(); var tri = new List<int>();
+            float slope = (r0 - r1) / h;
+            for (int i = 0; i <= seg; i++)
+            {
+                float a = i * Mathf.PI * 2f / seg; var d = new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a));
+                v.Add(d * r0); v.Add(d * r1 + Vector3.up * h);
+                var nn = (d + Vector3.up * slope).normalized; nr.Add(nn); nr.Add(nn);
+                uv.Add(new Vector2(i / (float)seg, 0)); uv.Add(new Vector2(i / (float)seg, 1));
+            }
+            for (int i = 0; i < seg; i++) { int q = i * 2; tri.Add(q); tri.Add(q + 1); tri.Add(q + 3); tri.Add(q); tri.Add(q + 3); tri.Add(q + 2); }
+            int c = v.Count; v.Add(Vector3.up * h); nr.Add(Vector3.up); uv.Add(new Vector2(0.5f, 0.5f));
+            for (int i = 0; i <= seg; i++) { float a = i * Mathf.PI * 2f / seg; v.Add(new Vector3(Mathf.Cos(a) * r1, h, Mathf.Sin(a) * r1)); nr.Add(Vector3.up); uv.Add(new Vector2(0.5f, 0.5f)); }
+            for (int i = 0; i < seg; i++) { tri.Add(c); tri.Add(c + 2 + i); tri.Add(c + 1 + i); }
+            var m = new Mesh { name = "Frustum" }; m.SetVertices(v); m.SetNormals(nr); m.SetUVs(0, uv); m.SetTriangles(tri, 0); m.RecalculateBounds(); m.RecalculateTangents();
+            return m;
+        }
+
+        // the wet atlas tiles by column and row (four across, two up, row 0 at the bottom of the texture), two texels in
+        // from each tile's edge, as the rectangle Marks.Decal takes (measured from the top left)
+        const int WetTilePx = 128, WetCols = 4, WetRows = 2;
+        static Rect WetTile(int x, int y)
+        {
+            float w = 1f / WetCols, h = 1f / WetRows, ix = 2f / (WetTilePx * WetCols), iy = 2f / (WetTilePx * WetRows);
+            return new Rect(x * w + ix, 1f - (y + 1) * h + iy, w - 2f * ix, h - 2f * iy);
+        }
+        static readonly Rect WetStrip = WetTile(0, 0), WetDust = WetTile(1, 0), WetStain = WetTile(2, 0), WetSkid = WetTile(3, 0),
+            WetPuddle1 = WetTile(0, 1), WetPuddle2 = WetTile(1, 1), WetStain2 = WetTile(2, 1);
+
+        /// <summary>The gutter dust, sidewalk grime, stain, tyre mark and puddle materials, drawn here (no file): one
+        /// atlas of 128 px tiles for both. The dirt material is matte. The puddle material is a mirror (metal): by day
+        /// it shows a dull piece of sky, and NightLook turns its smoothness and reflectance up at night, so the
+        /// puddles shine paler than the dark road round them.</summary>
+        static (Material dirt, Material puddle) WetMats()
+        {
+            const int tw = WetTilePx, W = tw * WetCols, H = tw * WetRows; const string dir = "Assets/Art/Textures/Generated";
+            var col = new Color[W * H];
+            float Noise(float x, float y) => Mathf.PerlinNoise(x + 31.3f, y + 7.9f);
+            Color dark = new Color(0.07f, 0.062f, 0.055f), dust = new Color(0.36f, 0.32f, 0.26f), rubber = new Color(0.025f, 0.025f, 0.028f);
+            Color damp = new Color(0.03f, 0.035f, 0.045f), water = new Color(0.36f, 0.4f, 0.46f);
+            for (int y = 0; y < H; y++) for (int x = 0; x < W; x++)
+            {
+                int tx = x / tw, ty = y / tw; float u = (x % tw + 0.5f) / tw, v = (y % tw + 0.5f) / tw;
+                float cu = u - 0.5f, cv = v - 0.5f, rad = Mathf.Sqrt(cu * cu + cv * cv), ang = Mathf.Atan2(cv, cu);
+                // fades to nothing at every tile edge, so no tile bleeds into its neighbor
+                float edge = Mathf.Clamp01(Mathf.Min(Mathf.Min(u, 1f - u), Mathf.Min(v, 1f - v)) * 14f);
+                float ends = Mathf.Clamp01(Mathf.Min(u, 1f - u) * 12f);
+                Color c = dark; float a = 0f;
+                if (ty == 0 && tx == 0)        // grime along a wall or fence: v = 0 is the dark edge
+                {
+                    a = Mathf.Clamp01(Mathf.Pow(1f - v, 1.6f) * (0.55f + 0.75f * Noise(u * 9f, v * 3f))) * 0.8f * ends * Mathf.Clamp01((1f - v) * 14f);
+                }
+                else if (ty == 0 && tx == 1)   // gutter dust: pale silt washed against the curb (v = 0), grainy, in drifts
+                {
+                    float drift = 0.35f + 0.65f * Noise(u * 5f + 9f, 0.5f);
+                    a = Mathf.Clamp01(Mathf.Pow(Mathf.Clamp01(1f - v / drift), 1.3f) * (0.5f + 0.7f * Noise(u * 40f, v * 14f))) * 0.62f * ends * Mathf.Clamp01((1f - v) * 14f);
+                    c = dust;
+                }
+                else if (tx == 2)              // stains: a mottled blot, two of them
+                {
+                    float ph = ty * 2.3f;
+                    float reach = 0.3f + 0.06f * Mathf.Sin(ang * 2f + 1f + ph) + 0.05f * Mathf.Sin(ang * 3f + 4f + ph) + 0.03f * Mathf.Sin(ang * 7f);
+                    a = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((1f - rad / reach) * 2.2f)) * (0.25f + 0.75f * Noise(u * 12f + 40f * ty, v * 12f)) * (ty == 0 ? 0.5f : 0.62f) * edge;
+                }
+                else if (ty == 0 && tx == 3)   // two tyre marks along u, broken up
+                {
+                    float band = Mathf.Max(Mathf.Clamp01(1f - Mathf.Abs(v - 0.33f) / 0.05f), Mathf.Clamp01(1f - Mathf.Abs(v - 0.67f) / 0.05f));
+                    a = band * Mathf.Clamp01(0.2f + 0.9f * Noise(u * 7f, v * 2f)) * 0.55f * Mathf.Clamp01(Mathf.Min(u * 3f, (1f - u) * 8f));
+                    c = rubber;
+                }
+                else if (ty == 1 && tx <= 1)   // the puddles: a round one and a long one with two lobes
+                {
+                    float reach = tx == 1
+                        ? 0.2f + 0.2f * Mathf.Abs(Mathf.Cos(ang)) + 0.04f * Mathf.Sin(ang * 3f + 2f) + 0.025f * Mathf.Sin(ang * 5f + 1f)
+                        : 0.33f + 0.06f * Mathf.Sin(ang * 2f + 0.6f) + 0.045f * Mathf.Sin(ang * 3f + 3.1f) + 0.03f * Mathf.Sin(ang * 5f + 5f);
+                    float inside = Mathf.Clamp01((1f - rad / reach) * 5f), deep = Mathf.Clamp01((inside - 0.35f) / 0.4f);
+                    a = Mathf.SmoothStep(0f, 1f, inside) * 0.85f * edge;
+                    // standing water in the middle (pale: the puddle material is a mirror, this is how much it reflects),
+                    // a dark damp rim round it
+                    c = Color.Lerp(damp, water, deep);
+                }
+                c.a = a; col[y * W + x] = c;
+            }
+            string path = $"{dir}/wet-atlas.asset";
+            var tex = new Texture2D(W, H, TextureFormat.RGBA32, true) { name = "wet-atlas", wrapMode = TextureWrapMode.Clamp };
+            tex.SetPixels(col); tex.Apply(true);
+            Directory.CreateDirectory(dir);
+            if (AssetDatabase.LoadAssetAtPath<Texture2D>(path) != null) AssetDatabase.DeleteAsset(path);
+            AssetDatabase.CreateAsset(tex, path);
+            var dirt = DecalMat("Decal Wet");
+            dirt.SetTexture("_BaseMap", tex); dirt.SetFloat("_Smoothness", 0.08f); EditorUtility.SetDirty(dirt);
+            var puddle = DecalMat("Decal Puddle");
+            puddle.SetTexture("_BaseMap", tex); puddle.SetFloat("_Metallic", 1f);
+            puddle.SetFloat("_Smoothness", NightLook.DayWet); puddle.SetColor("_BaseColor", NightLook.DayWetColor);
+            EditorUtility.SetDirty(puddle);
+            WetMaterial = puddle;
+            return (dirt, puddle);
+        }
+
         // ---------------------------------------------------------------- flat markings, one mesh per material
 
         // ---------------------------------------------------------------- decals (cracks, oil, litter, graffiti)
@@ -1012,7 +1278,9 @@ namespace StreetEmpire.EditorTools
             if (m == null) { Directory.CreateDirectory(MatDir); m = new Material(lit); AssetDatabase.CreateAsset(m, path); } else m.shader = lit;
             m.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>($"{Tex}/decal-set__decals_basecolor.png"));
             m.SetColor("_BaseColor", Color.white); m.SetFloat("_Smoothness", 0.1f); m.SetFloat("_Metallic", 0f);
-            m.SetFloat("_Surface", 1); m.SetFloat("_Blend", 0); m.SetFloat("_AlphaClip", 0); m.DisableKeyword("_ALPHATEST_ON"); m.SetFloat("_AlphaToMask", 0f);
+            // block pass: the atlas is never quite clear (alpha 6 of 255 over a pale color), so every decal showed as
+            // a faint pale square on the asphalt, worst in sunlight. Anything under 3.5% is cut away.
+            m.SetFloat("_Surface", 1); m.SetFloat("_Blend", 0); m.SetFloat("_AlphaClip", 1); m.SetFloat("_Cutoff", 0.035f); m.EnableKeyword("_ALPHATEST_ON"); m.SetFloat("_AlphaToMask", 0f);
             m.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha); m.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha); m.SetFloat("_ZWrite", 0);
             m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT"); m.SetOverrideTag("RenderType", "Transparent");
             m.renderQueue = (int)RenderQueue.Transparent - 100; m.SetFloat("_Cull", 2f);
@@ -1076,6 +1344,13 @@ namespace StreetEmpire.EditorTools
                     ["Graffiti"] = DecalMat("Decal Graffiti"),
                     ["Dirt"] = Textured("LotDirt", "Assets/Art/Textures/Ground/park_dirt_basecolor.jpg", "Assets/Art/Textures/Ground/park_dirt_normal.jpg", 1f, 0.05f, Color.white),
                 };
+                // block pass: that block's ground wear, a mesh per side and kind so each is in reach of its own lamps
+                if (sets.Keys.Any(key => key.StartsWith("Pass")))
+                {
+                    var patch = Textured("AsphaltPatch", "Assets/Art/Textures/Ground/worn_asphalt_basecolor.jpg", "Assets/Art/Textures/Ground/worn_asphalt_normal.jpg", 1f, 0.2f, new Color(0.46f, 0.46f, 0.48f));
+                    var (wet, puddle) = WetMats();
+                    for (int k = 0; k < 4; k++) { look[$"PassDecal{k}"] = look["Decal"]; look[$"PassPatch{k}"] = patch; look[$"PassWet{k}"] = wet; look[$"PassPuddle{k}"] = puddle; }
+                }
                 foreach (var kv in sets)
                 {
                     string path = $"{MeshDir}/Markings-{kv.Key}.asset";

@@ -84,7 +84,7 @@ namespace StreetEmpire.City
                 var rp = new RenderParams(mat)
                 {
                     shadowCastingMode = shadows ? ShadowCastingMode.On : ShadowCastingMode.Off,
-                    receiveShadows = true, worldBounds = bounds, layer = gameObject.layer,
+                    receiveShadows = true, worldBounds = bounds, layer = gameObject.layer, renderingLayerMask = b.renderingLayers,
                 };
                 for (int start = 0; start < list.Count; start += Chunk)
                 {

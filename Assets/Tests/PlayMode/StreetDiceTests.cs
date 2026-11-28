@@ -96,7 +96,7 @@ namespace StreetEmpire.Tests
 
             // the other corners: a card table on block 1, a boombox on block 2, both props only
             var scenes = CornerScenes.Instance; Assert.IsNotNull(scenes, "corner scenes");
-            Assert.AreEqual(20, scenes.cards.GetComponentsInChildren<MeshRenderer>(true).Length, "a table, four legs, six cards, seven chips and two crates");
+            Assert.AreEqual(17, scenes.cards.GetComponentsInChildren<MeshRenderer>(true).Length, "a table top and its frame (one mesh), six cards, seven chips and two milk crates");
             Assert.AreEqual(7, scenes.stoop.GetComponentsInChildren<MeshRenderer>(true).Length, "a crate, the box with two speakers and a handle, a cooler and its lid");
             Assert.AreEqual(0, scenes.cards.GetComponentsInChildren<Collider>(true).Length + scenes.stoop.GetComponentsInChildren<Collider>(true).Length, "nothing to trip over");
             Assert.AreEqual("dice", CornerScenes.Kind(9)); Assert.AreEqual("cards", CornerScenes.Kind(1)); Assert.AreEqual("stoop", CornerScenes.Kind(2));

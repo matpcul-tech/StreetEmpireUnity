@@ -13,6 +13,12 @@ namespace StreetEmpire.City
         /// <summary>The asphalt tile material (an asset): its smoothness goes up at night and back by day.</summary>
         public Material road;
         public const float NightSheen = 0.42f;
+        /// <summary>Block pass: the puddle material (an asset, PropBuilder.WetMaterial), a mirror. By day it is dull and
+        /// part clear, a damp patch with some sky in it. At night it turns smooth and reflects more than a real mirror
+        /// would (the color above 1): the night sky reflection is too dim to show against the road otherwise.</summary>
+        public Material wet;
+        public const float DayWet = 0.5f, NightWet = 0.86f;
+        public static readonly Color DayWetColor = new(1f, 1f, 1f, 0.8f), NightWetColor = new(2.4f, 2.5f, 2.8f, 1f);
         /// <summary>0 by day, 1 at full night.</summary>
         public float Level { get; private set; }
         /// <summary>The night volume's weight and whether it has a profile (the tests read these).</summary>
@@ -24,6 +30,7 @@ namespace StreetEmpire.City
         void OnDisable()
         {
             if (road != null && daySheen >= 0f) road.SetFloat("_Smoothness", daySheen);
+            if (wet != null) { wet.SetFloat("_Smoothness", DayWet); wet.SetColor("_BaseColor", DayWetColor); }
             daySheen = -1f; last = -1f;
         }
 
@@ -38,6 +45,7 @@ namespace StreetEmpire.City
                 if (daySheen < 0f) daySheen = road.GetFloat("_Smoothness");
                 road.SetFloat("_Smoothness", Mathf.Lerp(daySheen, NightSheen, Level));
             }
+            if (wet != null) { wet.SetFloat("_Smoothness", Mathf.Lerp(DayWet, NightWet, Level)); wet.SetColor("_BaseColor", Color.Lerp(DayWetColor, NightWetColor, Level)); }
         }
     }
 }
