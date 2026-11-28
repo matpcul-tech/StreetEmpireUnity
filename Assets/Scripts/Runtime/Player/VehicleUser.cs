@@ -22,6 +22,12 @@ namespace StreetEmpire.Player
         /// <summary>Where his feet-level root sits on a bike, from the bike's own origin on the road (the seated clip
         /// drops his hips to chair height, so the root rides above the ground), and the camera distance.</summary>
         public Vector3 bikeSeat = new Vector3(0f, 0.3f, -0.14f);   // first photos: at -0.3 he sat on the tail, short of the bars
+        /// <summary>How far he tips forward from the seat on a sport bike, in degrees, and how far forward of bikeSeat
+        /// he sits there. The seated clip is a car driver's: upright with the arms straight out, which on the sport bike
+        /// left him on the tail with his hands a forearm short of the bars (phone, build 001608c).</summary>
+        public float sportTuck = 20f, sportForward = 0.1f;
+        /// <summary>The forward tip in use on the bike he is riding.</summary>
+        public float Tuck { get; private set; }
         public float bikeRadius = 5.4f;
         public static readonly int RidingId = Animator.StringToHash("Riding");
         BikeLean lean;
@@ -48,7 +54,8 @@ namespace StreetEmpire.Player
             {
                 // in the saddle, leaning with the bike about the line its tyres stand on
                 var ct = Car.transform; var roll = Quaternion.Euler(0f, 0f, lean != null ? lean.Roll : 0f);
-                transform.SetPositionAndRotation(ct.position + ct.rotation * (roll * bikeSeat), ct.rotation * roll);
+                var seat = bikeSeat + Vector3.forward * (Tuck > 0f ? sportForward : 0f);
+                transform.SetPositionAndRotation(ct.position + ct.rotation * (roll * seat), ct.rotation * roll * Quaternion.Euler(Tuck, 0f, 0f));
             }
             else transform.SetPositionAndRotation(Car.transform.position, Car.transform.rotation);
         }
@@ -71,6 +78,7 @@ namespace StreetEmpire.Player
             motor.enabled = false; cc.enabled = false;
             // in a car he is out of sight; on a motorcycle he is on show, seated with his hands out on the bars
             Riding = Car.bike; lean = Riding ? Car.GetComponent<BikeLean>() : null;
+            Tuck = Riding && Car.stats != null && Car.stats.id == "sport-bike" ? sportTuck : 0f;
             if (!Riding) foreach (var r in renderers) r.enabled = false;
             if (motor.animator != null) motor.animator.SetBool(RidingId, Riding);
             // the camera backs off for a long vehicle
@@ -83,7 +91,7 @@ namespace StreetEmpire.Player
         {
             var car = Car; if (car == null) return;
             car.hasDriver = false; Car = null;
-            Riding = false; lean = null; if (motor.animator != null) motor.animator.SetBool(RidingId, false);
+            Riding = false; Tuck = 0f; lean = null; if (motor.animator != null) motor.animator.SetBool(RidingId, false);
             var t = car.transform;
             Vector3 pos = t.position - t.right * exitOffset;
             if (Blocked(pos)) pos = t.position + t.right * exitOffset;
