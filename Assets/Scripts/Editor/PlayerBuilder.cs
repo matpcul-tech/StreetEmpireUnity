@@ -20,7 +20,9 @@ namespace StreetEmpire.EditorTools
     public static class PlayerBuilder
     {
         public const string PlayerFbx = "Assets/Art/Models/Characters/Player/player.fbx";
-        const string ClipsFbx = "Assets/Art/Animations/ual-clips.fbx";
+        // the pack's clips baked onto the Mixamo skeleton the characters use (tools/bake_to_mixamo.py), so the clips and
+        // the bodies share one set of bones and nothing is converted between two rest poses
+        const string ClipsFbx = "Assets/Art/Animations/mixamo-clips.fbx";
         public const string ControllerPath = "Assets/Art/Animations/Player.controller";
 
         public static GameObject Build(WorldFile w, Block start)
