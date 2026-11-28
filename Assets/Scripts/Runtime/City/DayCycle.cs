@@ -48,6 +48,9 @@ namespace StreetEmpire.City
         public const float SunriseHour = 6.5f, SunsetHour = 18.67f;
         /// <summary>Full night: the moon, the fill light on people and the sky reflection (see BuildKeys).</summary>
         public const float NightMoon = 0.17f, NightFill = 0.46f, NightReflection = 0.20f;
+        /// <summary>Where the people's fill comes from at night, off the camera's heading: down from above, and round to one side.</summary>
+        public const float NightFillPitch = 30f, NightFillYaw = -35f;
+        bool fillAimed; Quaternion fillDay;
         float lastGlow = -1, lastSky = -1;
         Color[] windowBase = new Color[0], signBase = new Color[0];
 
@@ -92,7 +95,8 @@ namespace StreetEmpire.City
             // night look: the night ambient a step up and bluer, so cars and people between lamps keep their shape
             // block pass: the sky term up again (0.16, 0.18, 0.29 before) and the sides a little (0.13, 0.135, 0.20),
             // the ground left alone: tops read lighter than sides, so shapes hold between the lamp pools without
-            // the whole street lifting. With it the moon 0.12 to 0.17, the people's fill 0.30 to 0.46 and the sky
+            // the whole street lifting. With it the moon 0.12 to 0.17, the people's fill 0.30 to 0.46 (and aimed from the
+            // camera's side at night, see Update) and the sky
             // reflection 0.15 to 0.20 (the keys below).
             Color nSky = new(0.19f, 0.215f, 0.34f), nEq = new(0.142f, 0.15f, 0.222f), nGr = new(0.10f, 0.085f, 0.10f);
             Color bSky = new(0.22f, 0.26f, 0.38f), bEq = new(0.17f, 0.18f, 0.25f), bGr = new(0.12f, 0.10f, 0.10f);
@@ -182,7 +186,23 @@ namespace StreetEmpire.City
             RenderSettings.ambientEquatorColor = Color.Lerp(a.aEq, b.aEq, t);
             RenderSettings.ambientGroundColor = Color.Lerp(a.aGround, b.aGround, t);
             RenderSettings.reflectionIntensity = L(a.refl, b.refl);
-            if (fill) fill.intensity = L(a.fill, b.fill);
+            if (fill)
+            {
+                fill.intensity = L(a.fill, b.fill);
+                // block pass: by day the fill stays where the scene builder aimed it (the side away from the sun). At
+                // night it swings round to come from over the camera's shoulder, so whoever is on screen has the
+                // side that faces the player lit: faces and clothes read between the lamp pools. It lights people
+                // only (rendering layer 2), so the street keeps its dark.
+                if (!fillAimed) { fillAimed = true; fillDay = fill.transform.rotation; }
+                var cam = Night > 0.01f ? Camera.main : null;
+                if (cam != null)
+                {
+                    var look = cam.transform.forward; look.y = 0f; if (look.sqrMagnitude < 1e-4f) look = Vector3.forward;
+                    var shoulder = Quaternion.LookRotation(look.normalized) * Quaternion.Euler(NightFillPitch, NightFillYaw, 0f);
+                    fill.transform.rotation = Quaternion.Slerp(fillDay, shoulder, Night);
+                }
+                else fill.transform.rotation = fillDay;
+            }
             float glow = WindowRamp(h), sky2 = L(a.skyline, b.skyline);
             if (dimBase == null || dimBase.Length != nightDimMaterials.Length) { dimBase = new Color[nightDimMaterials.Length]; for (int k = 0; k < dimBase.Length; k++) dimBase[k] = nightDimMaterials[k] ? nightDimMaterials[k].GetColor("_BaseColor") : Color.white; }
             float dim = Mathf.Lerp(1f, NightDim, Mathf.Max(Night, glow * 0.8f));

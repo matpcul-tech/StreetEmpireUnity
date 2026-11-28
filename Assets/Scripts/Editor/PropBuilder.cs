@@ -936,14 +936,14 @@ namespace StreetEmpire.EditorTools
             // north side: a bench in the gap, a tyre against the lamp, a barrel, boxes by the newspaper boxes, a cone
             n = N(2); t = T(2);
             Place("bench", "bench", b.id, At(b, 2, InnerLine, 4.5f, SidewalkTop), Face(n), parent, Col.Bounds, 0.012f);
-            Place("tyre", "junk", b.id, At(b, 2, Curb + 0.05f, -9.1f, SidewalkTop), Spin(), parent, Col.None, 0.02f);
+            Place("tyre", "junk", b.id, At(b, 2, Curb + 0.05f, -9.1f, SidewalkTop), Quaternion.Euler(90, J(180), 0), parent, Col.None, 0.02f, lift: 0.08f);
             Place("barrel", "junk", b.id, At(b, 2, Curb, 8.6f, SidewalkTop), Spin(), parent, Col.Bounds, 0.02f);
             Place("cardboard-box", "junk", b.id, At(b, 2, 19.5f, -2.7f, SidewalkTop), Quaternion.Euler(0, 14f, 0), parent, Col.None, 0.02f);
             Place("cardboard-box", "junk", b.id, At(b, 2, 19.45f, -3.35f, SidewalkTop), Quaternion.Euler(0, -22f, 0), parent, Col.None, 0.02f);
             Place("traffic-cone", "cone", b.id, At(b, 2, Curb, 12.2f, SidewalkTop), Spin(), parent, Col.None, 0.02f);
             Place("milk-crate", "milk crate", b.id, At(b, 2, Curb, -16.4f, SidewalkTop), Quaternion.Euler(0, 25f, 0), parent, Col.None, 0.02f, lift: 0.14f, variant: "black");
             // west side: tyres and a plastic crate at the curb
-            Place("tyre", "junk", b.id, At(b, 1, Curb + 0.05f, -4.2f, SidewalkTop), Spin(), parent, Col.None, 0.02f);
+            Place("tyre", "junk", b.id, At(b, 1, Curb + 0.05f, -4.2f, SidewalkTop), Quaternion.Euler(90, J(180), 0), parent, Col.None, 0.02f, lift: 0.08f);
             Place("crate", "junk", b.id, At(b, 1, Curb, -5.3f, SidewalkTop), Spin(), parent, Col.None, 0.02f);
             Place("pallet", "pallet", b.id, At(b, 1, 22.95f, -12.2f, 0f), Face(T(1)) * Quaternion.Euler(0, J(8f), 0), parent, Col.None, 0.012f);
             // south side, the bus stop: a bin and a newspaper box at the curb for the people waiting
@@ -965,7 +965,7 @@ namespace StreetEmpire.EditorTools
             {
                 float s = -16.5f + i * 11f;
                 // dark against the curb, fading out into the lane; every other piece is turned end for end
-                marks.Decal(wet, At(b, k, 22.15f + 0.55f, s, 0.007f), i % 2 == 0 ? t : -t, n, Vector3.up, 11.3f, 1.1f, WetStrip);
+                marks.Decal(wet, At(b, k, 22.15f + 0.6f, s, 0.007f), i % 2 == 0 ? t : -t, n, Vector3.up, 11.3f, 1.2f, WetDust);
                 marks.Decal(wet, At(b, k, 19.34f, s, SidewalkTop + 0.005f), i % 2 == 0 ? -t : t, n, Vector3.up, 11.3f, 0.68f, WetStrip);
             }
             for (int i = 0; i < 6; i++)
@@ -982,7 +982,7 @@ namespace StreetEmpire.EditorTools
                 var (rt, up) = Turn(); float size = 1.3f + U() * 0.7f;
                 marks.Decal(dec, At(b, k, 20.1f + U() * 1.2f, s, SidewalkTop + 0.006f), rt, up, Vector3.up, size, size, Tile(i == 3 ? Litters[1] : Cracks[r.Next(3)]));
                 (rt, up) = Turn(); size = 1.1f + U() * 1.0f;
-                marks.Decal(wet, At(b, k, 19.9f + U() * 1.6f, s + 3.5f, SidewalkTop + 0.007f), rt, up, Vector3.up, size, size, WetStain);
+                marks.Decal(wet, At(b, k, 19.9f + U() * 1.6f, s + 3.5f, SidewalkTop + 0.007f), rt, up, Vector3.up, size, size, i % 2 == 0 ? WetStain : WetStain2);
             }
             for (int i = 0; i < 2; i++)
                 marks.Pad(patch, At(b, k, 25.2f + U() * 2.2f, (i == 0 ? -9f : 5f) + (U() - 0.5f) * 6f, 0), t, n, 2.4f + U() * 1.8f, 1.3f + U() * 0.9f, 0.006f);
@@ -990,6 +990,8 @@ namespace StreetEmpire.EditorTools
                 marks.Decal(wet, At(b, k, 22.15f + 0.72f, s, 0.012f), U() < 0.5f ? t : -t, n, Vector3.up, 2.0f + U() * 1.2f, 1.2f + U() * 0.3f, U() < 0.5f ? WetPuddle1 : WetPuddle2);
             float lamp = k % 2 == 0 ? -10f : 10f;
             marks.Decal(wet, At(b, k, 23.9f, lamp + 1.2f, 0.012f), t, n, Vector3.up, 3.0f, 1.9f, WetPuddle1);
+            // tyre marks where somebody pulled away hard
+            marks.Decal(wet, At(b, k, 25.6f + U() * 1.6f, -4f + U() * 12f, 0.009f), U() < 0.5f ? t : -t, n, Vector3.up, 8f, 2.3f, WetSkid);
         }
 
         public const float PalletHeight = 0.144f;
@@ -1011,6 +1013,7 @@ namespace StreetEmpire.EditorTools
             if (!batches.ContainsKey("pallet"))
             {
                 var wood = Textured("pallet__wood", $"{Tex}/wood-fence__fence_boards_basecolor.jpg", $"{Tex}/wood-fence__fence_boards_normal.jpg", 1f, 0.08f, new Color(0.82f, 0.76f, 0.66f));
+                wood.SetTextureScale("_BaseMap", new Vector2(0.12f, 1f)); wood.SetTextureOffset("_BaseMap", new Vector2(0.13f, 0f));   // one board of the fence map, not all eight
                 var temp = new GameObject("pallet parts");
                 // 1.2 m by 1.0 m: five deck boards on three stringers, three boards underneath
                 for (int i = 0; i < 5; i++) Part(temp, wood, new Vector3(0, 0.133f, -0.45f + i * 0.225f), new Vector3(1.2f, 0.022f, 0.1f + (i % 2) * 0.02f));
@@ -1067,54 +1070,75 @@ namespace StreetEmpire.EditorTools
             return m;
         }
 
-        // the wet atlas tiles by column and row (row 0 at the bottom of the texture), two texels in from each tile's edge,
-        // as the rectangle Marks.Decal takes (measured from the top left)
-        static Rect WetTile(int x, int y) => new Rect(x * 0.5f + 2f / 256f, 1f - (y + 1) * 0.5f + 2f / 256f, 0.5f - 4f / 256f, 0.5f - 4f / 256f);
-        static readonly Rect WetStrip = WetTile(0, 0), WetPuddle2 = WetTile(1, 0), WetPuddle1 = WetTile(0, 1), WetStain = WetTile(1, 1);
+        // the wet atlas tiles by column and row (four across, two up, row 0 at the bottom of the texture), two texels in
+        // from each tile's edge, as the rectangle Marks.Decal takes (measured from the top left)
+        const int WetTilePx = 128, WetCols = 4, WetRows = 2;
+        static Rect WetTile(int x, int y)
+        {
+            float w = 1f / WetCols, h = 1f / WetRows, ix = 2f / (WetTilePx * WetCols), iy = 2f / (WetTilePx * WetRows);
+            return new Rect(x * w + ix, 1f - (y + 1) * h + iy, w - 2f * ix, h - 2f * iy);
+        }
+        static readonly Rect WetStrip = WetTile(0, 0), WetDust = WetTile(1, 0), WetStain = WetTile(2, 0), WetSkid = WetTile(3, 0),
+            WetPuddle1 = WetTile(0, 1), WetPuddle2 = WetTile(1, 1), WetStain2 = WetTile(2, 1);
 
-        /// <summary>The gutter grime, sidewalk stain and puddle material, drawn here (no file): a 256 px atlas of four
-        /// tiles (two puddles, a mottled stain, a strip that is dark along one edge) and a second map with each
-        /// tile's smoothness in alpha, so the puddles shine and the grime stays matte in one material.</summary>
+        /// <summary>The gutter dust, sidewalk grime, stain, tyre mark and puddle material, drawn here (no file): an atlas
+        /// of 128 px tiles and a second map with each tile's metal in red and smoothness in alpha, so the puddles
+        /// mirror the sky and the lamps while the dirt stays matte, all in one material.</summary>
         static Material WetMat()
         {
-            const int n = 256, h = 128; const string dir = "Assets/Art/Textures/Generated";
-            var col = new Color[n * n]; var gloss = new Color[n * n];
+            const int tw = WetTilePx, W = tw * WetCols, H = tw * WetRows; const string dir = "Assets/Art/Textures/Generated";
+            var col = new Color[W * H]; var gloss = new Color[W * H];
             float Noise(float x, float y) => Mathf.PerlinNoise(x + 31.3f, y + 7.9f);
-            for (int y = 0; y < n; y++) for (int x = 0; x < n; x++)
+            Color dark = new Color(0.07f, 0.062f, 0.055f), dust = new Color(0.36f, 0.32f, 0.26f), rubber = new Color(0.025f, 0.025f, 0.028f);
+            Color damp = new Color(0.03f, 0.035f, 0.045f), water = new Color(0.5f, 0.56f, 0.66f);
+            for (int y = 0; y < H; y++) for (int x = 0; x < W; x++)
             {
-                int tx = x / h, ty = y / h; float u = (x % h + 0.5f) / h, v = (y % h + 0.5f) / h;
+                int tx = x / tw, ty = y / tw; float u = (x % tw + 0.5f) / tw, v = (y % tw + 0.5f) / tw;
                 float cu = u - 0.5f, cv = v - 0.5f, rad = Mathf.Sqrt(cu * cu + cv * cv), ang = Mathf.Atan2(cv, cu);
                 // fades to nothing at every tile edge, so no tile bleeds into its neighbor
                 float edge = Mathf.Clamp01(Mathf.Min(Mathf.Min(u, 1f - u), Mathf.Min(v, 1f - v)) * 14f);
-                Color c; float a, g;
-                if (ty == 0 && tx == 0)        // the strip: v = 0 is the dark edge
+                float ends = Mathf.Clamp01(Mathf.Min(u, 1f - u) * 12f);
+                Color c = dark; float a = 0f, g = 0.1f, metal = 0f;
+                if (ty == 0 && tx == 0)        // grime along a wall or fence: v = 0 is the dark edge
                 {
-                    float fall = Mathf.Pow(1f - v, 1.6f) * (0.55f + 0.75f * Noise(u * 9f, v * 3f));
-                    a = Mathf.Clamp01(fall) * 0.8f * Mathf.Clamp01(Mathf.Min(u, 1f - u) * 12f) * Mathf.Clamp01((1f - v) * 14f);
-                    c = new Color(0.07f, 0.062f, 0.055f); g = 0.12f;
+                    a = Mathf.Clamp01(Mathf.Pow(1f - v, 1.6f) * (0.55f + 0.75f * Noise(u * 9f, v * 3f))) * 0.8f * ends * Mathf.Clamp01((1f - v) * 14f);
+                    g = 0.12f;
                 }
-                else if (ty == 1 && tx == 1)   // the stain: a mottled blot
+                else if (ty == 0 && tx == 1)   // gutter dust: pale silt washed against the curb (v = 0), grainy, in drifts
                 {
-                    float reach = 0.3f + 0.06f * Mathf.Sin(ang * 2f + 1f) + 0.05f * Mathf.Sin(ang * 3f + 4f) + 0.03f * Mathf.Sin(ang * 7f);
-                    a = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((1f - rad / reach) * 2.2f)) * (0.25f + 0.75f * Noise(u * 12f + 40f, v * 12f)) * 0.5f * edge;
-                    c = new Color(0.075f, 0.065f, 0.055f); g = 0.06f;
+                    float drift = 0.35f + 0.65f * Noise(u * 5f + 9f, 0.5f);
+                    a = Mathf.Clamp01(Mathf.Pow(Mathf.Clamp01(1f - v / drift), 1.3f) * (0.5f + 0.7f * Noise(u * 40f, v * 14f))) * 0.62f * ends * Mathf.Clamp01((1f - v) * 14f);
+                    c = dust; g = 0.04f;
                 }
-                else                           // the puddles: a round one and a long one with two lobes
+                else if (tx == 2)              // stains: a mottled blot, two of them
                 {
-                    bool longOne = tx == 1;
-                    float reach = longOne
+                    float ph = ty * 2.3f;
+                    float reach = 0.3f + 0.06f * Mathf.Sin(ang * 2f + 1f + ph) + 0.05f * Mathf.Sin(ang * 3f + 4f + ph) + 0.03f * Mathf.Sin(ang * 7f);
+                    a = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((1f - rad / reach) * 2.2f)) * (0.25f + 0.75f * Noise(u * 12f + 40f * ty, v * 12f)) * (ty == 0 ? 0.5f : 0.62f) * edge;
+                    g = 0.06f;
+                }
+                else if (ty == 0 && tx == 3)   // two tyre marks along u, broken up
+                {
+                    float band = Mathf.Max(Mathf.Clamp01(1f - Mathf.Abs(v - 0.33f) / 0.05f), Mathf.Clamp01(1f - Mathf.Abs(v - 0.67f) / 0.05f));
+                    a = band * Mathf.Clamp01(0.2f + 0.9f * Noise(u * 7f, v * 2f)) * 0.55f * Mathf.Clamp01(Mathf.Min(u * 3f, (1f - u) * 8f));
+                    c = rubber; g = 0.2f;
+                }
+                else if (ty == 1 && tx <= 1)   // the puddles: a round one and a long one with two lobes
+                {
+                    float reach = tx == 1
                         ? 0.2f + 0.2f * Mathf.Abs(Mathf.Cos(ang)) + 0.04f * Mathf.Sin(ang * 3f + 2f) + 0.025f * Mathf.Sin(ang * 5f + 1f)
                         : 0.33f + 0.06f * Mathf.Sin(ang * 2f + 0.6f) + 0.045f * Mathf.Sin(ang * 3f + 3.1f) + 0.03f * Mathf.Sin(ang * 5f + 5f);
-                    float inside = Mathf.Clamp01((1f - rad / reach) * 5f);
-                    a = Mathf.SmoothStep(0f, 1f, inside) * 0.78f * edge;
-                    c = new Color(0.03f, 0.035f, 0.045f); g = Mathf.Lerp(0.5f, 0.97f, inside);   // a damp rim round the water
+                    float inside = Mathf.Clamp01((1f - rad / reach) * 5f), deep = Mathf.Clamp01((inside - 0.35f) / 0.4f);
+                    a = Mathf.SmoothStep(0f, 1f, inside) * 0.85f * edge;
+                    // standing water in the middle (it mirrors: metal, pale), a damp dark rim round it
+                    c = Color.Lerp(damp, water, deep); metal = deep; g = Mathf.Lerp(0.5f, 0.95f, deep);
                 }
-                c.a = a; col[y * n + x] = c; gloss[y * n + x] = new Color(0f, 0f, 0f, g);
+                c.a = a; col[y * W + x] = c; gloss[y * W + x] = new Color(metal, 0f, 0f, g);
             }
             Texture2D Save(string name, Color[] px, bool linear)
             {
                 string path = $"{dir}/{name}.asset";
-                var tex = new Texture2D(n, n, TextureFormat.RGBA32, true, linear) { name = name, wrapMode = TextureWrapMode.Clamp };
+                var tex = new Texture2D(W, H, TextureFormat.RGBA32, true, linear) { name = name, wrapMode = TextureWrapMode.Clamp };
                 tex.SetPixels(px); tex.Apply(true);
                 Directory.CreateDirectory(dir);
                 if (AssetDatabase.LoadAssetAtPath<Texture2D>(path) != null) AssetDatabase.DeleteAsset(path);
@@ -1258,7 +1282,9 @@ namespace StreetEmpire.EditorTools
             if (m == null) { Directory.CreateDirectory(MatDir); m = new Material(lit); AssetDatabase.CreateAsset(m, path); } else m.shader = lit;
             m.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>($"{Tex}/decal-set__decals_basecolor.png"));
             m.SetColor("_BaseColor", Color.white); m.SetFloat("_Smoothness", 0.1f); m.SetFloat("_Metallic", 0f);
-            m.SetFloat("_Surface", 1); m.SetFloat("_Blend", 0); m.SetFloat("_AlphaClip", 0); m.DisableKeyword("_ALPHATEST_ON"); m.SetFloat("_AlphaToMask", 0f);
+            // block pass: the atlas is never quite clear (alpha 6 of 255 over a pale color), so every decal showed as
+            // a faint pale square on the asphalt, worst in sunlight. Anything under 3.5% is cut away.
+            m.SetFloat("_Surface", 1); m.SetFloat("_Blend", 0); m.SetFloat("_AlphaClip", 1); m.SetFloat("_Cutoff", 0.035f); m.EnableKeyword("_ALPHATEST_ON"); m.SetFloat("_AlphaToMask", 0f);
             m.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha); m.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha); m.SetFloat("_ZWrite", 0);
             m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT"); m.SetOverrideTag("RenderType", "Transparent");
             m.renderQueue = (int)RenderQueue.Transparent - 100; m.SetFloat("_Cull", 2f);
