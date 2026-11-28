@@ -61,6 +61,8 @@ namespace StreetEmpire.Tests
                 ("walk", c + new Vector3(20.6f, 1.7f, -17f), c + new Vector3(20.4f, 0.9f, 8f)),
                 // the same curb from the corner end, looking south: the parking lane and the gutter
                 ("curb", c + new Vector3(25.6f, 1.8f, 18.5f), c + new Vector3(22.2f, 0.3f, 9f)),
+                // the car parked at that curb, between the lamps
+                ("car", c + new Vector3(28.6f, 1.5f, 5.6f), c + new Vector3(24.4f, 0.7f, 0.2f)),
                 // the north curb from its corner end, looking west past the lamp
                 ("north", c + new Vector3(17.5f, 1.8f, 24.6f), c + new Vector3(8f, 0.5f, 21.4f)),
                 // the whole corner from above the crossing
