@@ -31,6 +31,7 @@ namespace StreetEmpire.EditorTools
 
         public static UniversalRenderPipelineAsset Ensure()
         {
+            RenderingLayers();
             var ultra = Pipeline(UltraPath, UltraRendererPath, out var ultraRenderer);
             Tier(ultra, msaa: 4, distance: 120f, cascades: 4, map: 4096, softQuality: 2, scale: 1f, lights: 6);
             Ssao(ultraRenderer, true);
@@ -39,6 +40,23 @@ namespace StreetEmpire.EditorTools
             Ssao(highRenderer, false);
             AssetDatabase.SaveAssets();
             return ultra;
+        }
+
+        /// <summary>Block pass: Unity 6 ignores any rendering layer that has no name in the Tag Manager, on lights and
+        /// on meshes alike, and a new project names only the first ("Default"). The second is named here, so a light
+        /// set to it (the night fill, SceneBuilder) reaches the people and cars that carry it and nothing else.</summary>
+        static void RenderingLayers()
+        {
+            var assets = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset");
+            var so = assets != null && assets.Length > 0 ? new SerializedObject(assets[0]) : null;
+            var layers = so?.FindProperty("m_RenderingLayers");
+            if (layers == null || !layers.isArray) { Debug.LogWarning("[GraphicsSetup] no rendering layer names in the Tag Manager: the night fill will light nothing"); return; }
+            if (layers.arraySize < 2) layers.arraySize = 2;
+            if (string.IsNullOrEmpty(layers.GetArrayElementAtIndex(0).stringValue)) layers.GetArrayElementAtIndex(0).stringValue = "Default";
+            layers.GetArrayElementAtIndex(1).stringValue = "People and cars";
+            so.ApplyModifiedPropertiesWithoutUndo();
+            AssetDatabase.SaveAssets();
+            Debug.Log($"[GraphicsSetup] rendering layers named: {layers.arraySize}");
         }
 
         static UniversalRenderPipelineAsset Pipeline(string path, string rendererPath, out UniversalRendererData renderer)
