@@ -23,7 +23,7 @@ namespace StreetEmpire.Tests
             foreach (var p in peds) p.GetComponent<NpcBody>().animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             var start = peds.Select(p => p.transform.position).ToArray();
             yield return new WaitForSeconds(3f);
-            float minRing = 99, maxRing = 0, maxLean = 0, maxHover = 0, minParam = 99; int samples = 0;
+            float minRing = 99, maxRing = 0, maxLean = 0, maxHover = 0, minParam = 99; int samples = 0; string leanWho = "";
             for (int k = 0; k < 24; k++)
             {
                 yield return new WaitForSeconds(0.25f);
@@ -40,13 +40,13 @@ namespace StreetEmpire.Tests
                     maxHover = Mathf.Max(maxHover, Mathf.Abs(pos.y - hit.point.y));
                     if (body.Speed > 1f)
                     {
-                        maxLean = Mathf.Max(maxLean, body.Lean);
+                        if (body.Lean > maxLean) { maxLean = body.Lean; leanWho = $"{p.name} at {body.Speed:0.0} m/s, sample {k}"; }
                         minParam = Mathf.Min(minParam, body.animator.GetFloat("Speed"));
                         samples++;
                     }
                 }
             }
-            Debug.Log($"[PedTests] ring {minRing:0.00} to {maxRing:0.00}, max lean {maxLean:0.0} deg, max hover {maxHover:0.000} m, min walk blend {minParam:0.00}, walking samples {samples}");
+            Debug.Log($"[PedTests] ring {minRing:0.00} to {maxRing:0.00}, max lean {maxLean:0.0} deg ({leanWho}), max hover {maxHover:0.000} m, min walk blend {minParam:0.00}, walking samples {samples}");
             Assert.Greater(samples, 40, "peds keep walking");
             Assert.Less(maxLean, 10f, "upright, not hunched forward");
             Assert.Less(maxHover, 0.05f, "feet on the sidewalk, not floating or sunk");
