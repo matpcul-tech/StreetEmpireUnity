@@ -103,6 +103,10 @@ for r in report: print(f'[bake] {r[0]:22s} {r[1]:3d} frames  lean {r[2]:6.1f} de
 bpy.data.objects.remove(src)
 tgt.animation_data.action = None
 for pb in tgt.pose.bones: pb.matrix_basis = Matrix.Identity(4)
+# the file's own standing pose must be the rest pose, not whatever frame was evaluated last
+scene.frame_set(0); bpy.context.view_layer.update()
+worst = max((pb.matrix.to_quaternion().rotation_difference(tgt.data.bones[pb.name].matrix_local.to_quaternion()).angle for pb in tgt.pose.bones))
+print(f'[bake] exported standing pose is off the rest pose by at most {math.degrees(worst):.3f} deg')
 bpy.ops.object.select_all(action='DESELECT'); tgt.select_set(True); bpy.context.view_layer.objects.active = tgt
 bpy.ops.export_scene.fbx(filepath=out_path, use_selection=True, object_types={'ARMATURE'}, add_leaf_bones=False, bake_anim=True,
     bake_anim_use_all_actions=True, bake_anim_use_nla_strips=False, bake_anim_use_all_bones=True, bake_anim_force_startend_keying=True, bake_anim_simplify_factor=0.4)
