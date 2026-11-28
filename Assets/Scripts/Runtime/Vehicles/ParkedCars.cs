@@ -1,6 +1,7 @@
 // Every parked car, van, truck and bus can be driven. Parked vehicles are drawn by PropInstancer as copies of one
 // mesh with only a collider and a PropMarker of their own, so taking one swaps it: its copy leaves the instancer,
-// and the same mesh and materials go on the parked object with a CarController. Bikes and the semi trailer stay put.
+// and the same mesh and materials go on the parked object with a CarController. Motorcycles are ridden the same
+// way, with the rider in the open; only the semi trailer stays put.
 using StreetEmpire.City;
 using StreetEmpire.Sim.Data;
 using UnityEngine;
@@ -9,7 +10,10 @@ namespace StreetEmpire.Vehicles
 {
     public static class ParkedCars
     {
-        static readonly string[] Fixed = { "cruiser", "dirt-bike", "sport-bike", "semi-trailer" };
+        static readonly string[] Fixed = { "semi-trailer" };
+        static readonly string[] Bikes = { "cruiser", "dirt-bike", "sport-bike" };
+        /// <summary>A motorcycle: ridden in the open, leaning into its turns (BikeLean), not driven from inside.</summary>
+        public static bool IsBike(string model) => System.Array.IndexOf(Bikes, model) >= 0;
 
         public static bool Drivable(PropMarker m) => m != null && m.kind == "parked car" && System.Array.IndexOf(Fixed, m.model) < 0 && m.GetComponent<CarController>() == null;
 
@@ -63,6 +67,13 @@ namespace StreetEmpire.Vehicles
             var car = go.AddComponent<CarController>();
             // heavier and slower with length: a sedan near 28 m/s, a bus near 19
             car.stats = new VehicleData { id = kind, maxSpeed = big ? Mathf.Lerp(23f, 18f, Mathf.InverseLerp(6.2f, 13f, len)) : 28f, accel = big ? 9f : 16f, hp = big ? 220f : 100f, wheelbase = Mathf.Clamp(len * 0.6f, 2.4f, 7.5f) };
+            if (IsBike(kind))
+            {
+                // light and quick off the line; the sport bike is the fastest thing at the curb, the dirt bike the slowest
+                car.bike = true;
+                car.stats = new VehicleData { id = kind, maxSpeed = kind == "sport-bike" ? 34f : kind == "dirt-bike" ? 27f : 30f, accel = 21f, hp = 60f, wheelbase = Mathf.Clamp(len * 0.62f, 1.2f, 1.7f) };
+                go.AddComponent<BikeLean>();
+            }
             car.hp = car.stats.hp;
             return car;
         }
