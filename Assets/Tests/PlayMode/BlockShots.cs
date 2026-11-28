@@ -56,11 +56,13 @@ namespace StreetEmpire.Tests
             var views = new (string name, Vector3 eye, Vector3 look)[]
             {
                 // down the east curb from the street: the gutter, the walk, the lamp pool and what stands on them
-                ("street", c + new Vector3(26.5f, 2.2f, -27f), c + new Vector3(21f, 0.6f, 2f)),
+                ("street", c + new Vector3(25.2f, 1.9f, -19f), c + new Vector3(21.6f, 0.5f, 2f)),
                 // on the east sidewalk at eye height, looking north toward the corner
                 ("walk", c + new Vector3(20.6f, 1.7f, -17f), c + new Vector3(20.4f, 0.9f, 8f)),
-                // the north curb from across the street
-                ("north", c + new Vector3(-6f, 3.2f, 33f), c + new Vector3(4f, 0.8f, 20f)),
+                // the same curb from the corner end, looking south: the parking lane and the gutter
+                ("curb", c + new Vector3(25.6f, 1.8f, 18.5f), c + new Vector3(22.2f, 0.3f, 9f)),
+                // the north curb from its corner end, looking west past the lamp
+                ("north", c + new Vector3(17.5f, 1.8f, 24.6f), c + new Vector3(8f, 0.5f, 21.4f)),
                 // the whole corner from above the crossing
                 ("air", c + new Vector3(41f, 21f, 41f), c + new Vector3(13f, 0f, 13f)),
                 // the card table corner from the crossing, and close
@@ -71,6 +73,15 @@ namespace StreetEmpire.Tests
             };
             var rt = new RenderTexture(W, H, 24); var tex = new Texture2D(W, H, TextureFormat.RGB24, false);
             int shots = 0;
+            // one frame thrown away: the first one taken after the scene loads came out with the ground unlit
+            {
+                cam.transform.position = views[0].eye; cam.transform.LookAt(views[0].look);
+                yield return new WaitForSecondsRealtime(0.5f);
+                var warm = cam.gameObject.AddComponent<LateSnap>(); warm.cam = cam; warm.rt = rt;
+                while (!warm.done) yield return null;
+                Object.Destroy(warm);
+                for (int f = 0; f < 10; f++) yield return null;
+            }
             foreach (var (hour, tag) in new[] { (14f, "day"), (18.9f, "dusk"), (22f, "night") })
             {
                 GameClock.FrozenHour = hour;
