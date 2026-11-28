@@ -18,5 +18,8 @@ namespace StreetEmpire.City
         public float shadowDistance = 35f;
         public Matrix4x4[] matrices;
         public Vector3 center; public float radius = 1f;   // bounding sphere in mesh space
+        /// <summary>Rendering layers of the drawn copies: 1 for props, 3 for the parked cars (layer 2 is what the
+        /// night fill light reaches, DayCycle.nightFill).</summary>
+        public uint renderingLayers = 1;
     }
 }

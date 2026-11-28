@@ -47,10 +47,11 @@ namespace StreetEmpire.City
         static readonly Color MoonColor = new(0.55f, 0.64f, 0.86f);
         public const float SunriseHour = 6.5f, SunsetHour = 18.67f;
         /// <summary>Full night: the moon, the fill light on people and the sky reflection (see BuildKeys).</summary>
-        public const float NightMoon = 0.17f, NightFill = 0.46f, NightReflection = 0.20f;
-        /// <summary>Where the people's fill comes from at night, off the camera's heading: down from above, and round to one side.</summary>
-        public const float NightFillPitch = 30f, NightFillYaw = -35f;
-        bool fillAimed; Quaternion fillDay;
+        public const float NightMoon = 0.17f, NightReflection = 0.20f;
+        /// <summary>The night fill on people and cars (SceneBuilder's "Night Fill" light): its brightness at full night, and
+        /// where it comes from, off the camera's heading: down from above, and round to one side.</summary>
+        public Light nightFill;
+        public const float NightFill = 0.42f, NightFillPitch = 30f, NightFillYaw = -35f;
         float lastGlow = -1, lastSky = -1;
         Color[] windowBase = new Color[0], signBase = new Color[0];
 
@@ -95,9 +96,8 @@ namespace StreetEmpire.City
             // night look: the night ambient a step up and bluer, so cars and people between lamps keep their shape
             // block pass: the sky term up again (0.16, 0.18, 0.29 before) and the sides a little (0.13, 0.135, 0.20),
             // the ground left alone: tops read lighter than sides, so shapes hold between the lamp pools without
-            // the whole street lifting. With it the moon 0.12 to 0.17, the people's fill 0.30 to 0.46 (and aimed from the
-            // camera's side at night, see Update) and the sky
-            // reflection 0.15 to 0.20 (the keys below).
+            // the whole street lifting. With it the moon 0.12 to 0.17 and the sky reflection 0.15 to 0.20 (the keys
+            // below), and a night fill on people and cars alone (nightFill, see Update).
             Color nSky = new(0.19f, 0.215f, 0.34f), nEq = new(0.142f, 0.15f, 0.222f), nGr = new(0.10f, 0.085f, 0.10f);
             Color bSky = new(0.22f, 0.26f, 0.38f), bEq = new(0.17f, 0.18f, 0.25f), bGr = new(0.12f, 0.10f, 0.10f);
             Color dSky = new(0.60f, 0.68f, 0.85f), dEq = new(0.58f, 0.60f, 0.62f), dGr = new(0.38f, 0.35f, 0.31f);
@@ -105,8 +105,8 @@ namespace StreetEmpire.City
             var N = new Vector3(0, 0, 1); var D = new Vector3(1, 0, 0); var G = new Vector3(0, 1, 0);
             return new[]
             {
-                K(0f, 0f, daySun, nSky, nEq, nGr, N, 1f, NightMoon, 1f, 1f, NightReflection, NightFill, 70f, 420f),
-                K(4.6f, 0f, daySun, nSky, nEq, nGr, N, 1f, NightMoon, 1f, 1f, NightReflection, NightFill, 70f, 420f),
+                K(0f, 0f, daySun, nSky, nEq, nGr, N, 1f, NightMoon, 1f, 1f, NightReflection, 0.30f, 70f, 420f),
+                K(4.6f, 0f, daySun, nSky, nEq, nGr, N, 1f, NightMoon, 1f, 1f, NightReflection, 0.30f, 70f, 420f),
                 K(5.8f, 0f, daySun, bSky, bEq, bGr, new Vector3(0, 0.1f, 0.9f), 3f, 0.07f, 1f, 0.7f, 0.25f, 0.40f, 90f, 440f),
                 K(6.7f, 0.55f, duskSun, Color.Lerp(duskAmbSky, bSky, 0.3f), Color.Lerp(duskAmbEq, bEq, 0.3f), Color.Lerp(duskAmbGround, bGr, 0.3f), new Vector3(0.1f, 0.9f, 0f), 0.9f, 0f, 0f, 0.2f, 0.3f, 0.5f, 110f, 440f),   // v75c: lamps off once the sun is up
                 K(8.2f, 1.2f, lateSun, Color.Lerp(duskAmbSky, dSky, 0.6f), Color.Lerp(duskAmbEq, dEq, 0.6f), Color.Lerp(duskAmbGround, dGr, 0.6f), new Vector3(0.65f, 0.35f, 0f), 1f, 0f, 0f, 0f, 0.38f, 0.5f, 130f, 500f),
@@ -117,8 +117,8 @@ namespace StreetEmpire.City
                 K(18.13f, duskSunIntensity, duskSun, duskAmbSky, duskAmbEq, duskAmbGround, G, 1f, 0f, 0f, 0f, reflection, fillIntensity, 120f, 460f),   // v75c: lamps not on before sunset
                 K(18.67f, 0f, duskSun, Color.Lerp(duskAmbSky, bSky, 0.5f), Color.Lerp(duskAmbEq, bEq, 0.5f), Color.Lerp(duskAmbGround, bGr, 0.5f), new Vector3(0, 0.6f, 0.4f), 1.2f, 0f, 0.7f, 0.3f, 0.3f, 0.45f, 100f, 420f),
                 K(19.1f, 0f, duskSun, bSky, bEq, bGr, new Vector3(0, 0.1f, 0.9f), 3f, 0.07f, 1f, 0.75f, 0.25f, 0.40f, 90f, 440f),
-                K(20.6f, 0f, daySun, nSky, nEq, nGr, N, 1f, NightMoon, 1f, 1f, NightReflection, NightFill, 70f, 420f),
-                K(24f, 0f, daySun, nSky, nEq, nGr, N, 1f, NightMoon, 1f, 1f, NightReflection, NightFill, 70f, 420f),
+                K(20.6f, 0f, daySun, nSky, nEq, nGr, N, 1f, NightMoon, 1f, 1f, NightReflection, 0.30f, 70f, 420f),
+                K(24f, 0f, daySun, nSky, nEq, nGr, N, 1f, NightMoon, 1f, 1f, NightReflection, 0.30f, 70f, 420f),
             };
         }
 
@@ -186,22 +186,21 @@ namespace StreetEmpire.City
             RenderSettings.ambientEquatorColor = Color.Lerp(a.aEq, b.aEq, t);
             RenderSettings.ambientGroundColor = Color.Lerp(a.aGround, b.aGround, t);
             RenderSettings.reflectionIntensity = L(a.refl, b.refl);
-            if (fill)
+            if (fill) fill.intensity = L(a.fill, b.fill);
+            if (nightFill)
             {
-                fill.intensity = L(a.fill, b.fill);
-                // block pass: by day the fill stays where the scene builder aimed it (the side away from the sun). At
-                // night it swings round to come from over the camera's shoulder, so whoever is on screen has the
-                // side that faces the player lit: faces and clothes read between the lamp pools. It lights people
-                // only (rendering layer 2), so the street keeps its dark.
-                if (!fillAimed) { fillAimed = true; fillDay = fill.transform.rotation; }
-                var cam = Night > 0.01f ? Camera.main : null;
+                // block pass: a dim cool light on people and cars only (rendering layer 2), from over the camera's
+                // shoulder, up with the night. Whoever is on screen has the side that faces the player lit, so faces,
+                // clothes and car bodies read between the lamp pools while the street and the walls keep their dark.
+                float level = NightFill * Night;
+                var cam = level > 0.005f ? Camera.main : null;
+                nightFill.enabled = cam != null;
                 if (cam != null)
                 {
                     var look = cam.transform.forward; look.y = 0f; if (look.sqrMagnitude < 1e-4f) look = Vector3.forward;
-                    var shoulder = Quaternion.LookRotation(look.normalized) * Quaternion.Euler(NightFillPitch, NightFillYaw, 0f);
-                    fill.transform.rotation = Quaternion.Slerp(fillDay, shoulder, Night);
+                    nightFill.transform.rotation = Quaternion.LookRotation(look.normalized) * Quaternion.Euler(NightFillPitch, NightFillYaw, 0f);
+                    nightFill.intensity = level;
                 }
-                else fill.transform.rotation = fillDay;
             }
             float glow = WindowRamp(h), sky2 = L(a.skyline, b.skyline);
             if (dimBase == null || dimBase.Length != nightDimMaterials.Length) { dimBase = new Color[nightDimMaterials.Length]; for (int k = 0; k < dimBase.Length; k++) dimBase[k] = nightDimMaterials[k] ? nightDimMaterials[k].GetColor("_BaseColor") : Color.white; }

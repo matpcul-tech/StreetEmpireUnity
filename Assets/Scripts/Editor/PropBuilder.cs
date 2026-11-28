@@ -528,7 +528,7 @@ namespace StreetEmpire.EditorTools
                 var mats = color == null ? cm.order
                     : cm.order.Select(m => m != null && m.name.EndsWith("_body") ? VehicleBuilder.Painted(m, kind, color) : m).ToList();
                 batch = NewBatch(key, cm.lod0, cm.lod1, mats, 15f, 150f, true);
-                batch.shadowDistance = 40f;
+                batch.shadowDistance = 40f; batch.renderingLayers = 3;   // block pass: the night fill reaches cars
             }
             var car = new GameObject($"Parked {kind}");
             car.transform.SetParent(parent, false);
@@ -895,7 +895,7 @@ namespace StreetEmpire.EditorTools
         /// Everything goes through Place and the instancer like the rest of the props; the ground wear is flat
         /// quads in the Marks meshes. Nothing with a collider stands in the walkers' lane (20.4 to 21.6 m).</summary>
         public const int PassBlock = 1;
-        /// <summary>The gutter grime and puddle material (PropBuilder makes it, NightLook wets it at night).</summary>
+        /// <summary>The puddle material (PropBuilder makes it, NightLook gives it its sheen at night).</summary>
         public static Material WetMaterial { get; private set; }
 
         static void BlockPass(BlockInfo b, Transform parent, Marks marks)
@@ -929,7 +929,7 @@ namespace StreetEmpire.EditorTools
                 Place("traffic-cone", "cone", b.id, At(b, 0, d, s2, 0f), Spin(), parent, Col.None, 0.02f);
             Place("traffic-cone", "cone", b.id, At(b, 0, 22.5f, 13.4f, 0f), Quaternion.Euler(0, 40f, 0) * Quaternion.Euler(84f, 0, 0), parent, Col.None, 0.02f, lift: 0.13f);
             marks.Pad("PassPatch0", At(b, 0, 23.4f, 10.2f, 0), t, n, 3.4f, 1.9f, 0.006f);
-            marks.Decal("PassWet0", At(b, 0, 23.0f, 9.9f, 0.012f), t, n, Vector3.up, 2.3f, 1.25f, WetPuddle2);
+            marks.Decal("PassPuddle0", At(b, 0, 23.0f, 9.9f, 0.012f), t, n, Vector3.up, 2.3f, 1.25f, WetPuddle2);
             Place("milk-crate", "milk crate", b.id, At(b, 0, Curb, 17.0f, SidewalkTop), Quaternion.Euler(0, 8f, 0), parent, Col.None, 0.02f, lift: 0.14f, variant: "blue");
             Place("milk-crate", "milk crate", b.id, At(b, 0, Curb, 17.02f, SidewalkTop), Quaternion.Euler(0, 31f, 0), parent, Col.None, 0.02f, lift: 0.42f, variant: "red");
             Place("milk-crate", "milk crate", b.id, At(b, 0, Curb + 0.03f, 16.5f, SidewalkTop), Quaternion.Euler(0, -12f, 0) * Quaternion.Euler(90f, 0, 0), parent, Col.None, 0.02f, lift: 0.17f, variant: "black");
@@ -958,7 +958,7 @@ namespace StreetEmpire.EditorTools
         static void PassGround(BlockInfo b, int k, Marks marks, System.Random r)
         {
             var n = N(k); var t = T(k);
-            string dec = $"PassDecal{k}", wet = $"PassWet{k}", patch = $"PassPatch{k}";
+            string dec = $"PassDecal{k}", wet = $"PassWet{k}", patch = $"PassPatch{k}", puddle = $"PassPuddle{k}";
             float U() => (float)r.NextDouble();
             (Vector3 right, Vector3 up) Turn() { float a = U() * Mathf.PI * 2f; var rt = Mathf.Cos(a) * t + Mathf.Sin(a) * n; return (rt, Vector3.Cross(Vector3.up, rt) * -1f); }
             for (int i = 0; i < 4; i++)
@@ -987,9 +987,9 @@ namespace StreetEmpire.EditorTools
             for (int i = 0; i < 2; i++)
                 marks.Pad(patch, At(b, k, 25.2f + U() * 2.2f, (i == 0 ? -9f : 5f) + (U() - 0.5f) * 6f, 0), t, n, 2.4f + U() * 1.8f, 1.3f + U() * 0.9f, 0.006f);
             foreach (float s in new[] { -3.5f + (U() - 0.5f) * 3f, 14.5f - U() * 2f })
-                marks.Decal(wet, At(b, k, 22.15f + 0.72f, s, 0.012f), U() < 0.5f ? t : -t, n, Vector3.up, 2.0f + U() * 1.2f, 1.2f + U() * 0.3f, U() < 0.5f ? WetPuddle1 : WetPuddle2);
+                marks.Decal(puddle, At(b, k, 22.15f + 0.72f, s, 0.012f), U() < 0.5f ? t : -t, n, Vector3.up, 2.0f + U() * 1.2f, 1.2f + U() * 0.3f, U() < 0.5f ? WetPuddle1 : WetPuddle2);
             float lamp = k % 2 == 0 ? -10f : 10f;
-            marks.Decal(wet, At(b, k, 23.9f, lamp + 1.2f, 0.012f), t, n, Vector3.up, 3.0f, 1.9f, WetPuddle1);
+            marks.Decal(puddle, At(b, k, 23.9f, lamp + 1.2f, 0.012f), t, n, Vector3.up, 3.0f, 1.9f, WetPuddle1);
             // tyre marks where somebody pulled away hard
             marks.Decal(wet, At(b, k, 25.6f + U() * 1.6f, -4f + U() * 12f, 0.009f), U() < 0.5f ? t : -t, n, Vector3.up, 8f, 2.3f, WetSkid);
         }
@@ -1081,16 +1081,17 @@ namespace StreetEmpire.EditorTools
         static readonly Rect WetStrip = WetTile(0, 0), WetDust = WetTile(1, 0), WetStain = WetTile(2, 0), WetSkid = WetTile(3, 0),
             WetPuddle1 = WetTile(0, 1), WetPuddle2 = WetTile(1, 1), WetStain2 = WetTile(2, 1);
 
-        /// <summary>The gutter dust, sidewalk grime, stain, tyre mark and puddle material, drawn here (no file): an atlas
-        /// of 128 px tiles and a second map with each tile's metal in red and smoothness in alpha, so the puddles
-        /// mirror the sky and the lamps while the dirt stays matte, all in one material.</summary>
-        static Material WetMat()
+        /// <summary>The gutter dust, sidewalk grime, stain, tyre mark and puddle materials, drawn here (no file): one
+        /// atlas of 128 px tiles for both. The dirt material is matte. The puddle material is a mirror (metal): by day
+        /// it shows a dull piece of sky, and NightLook turns its smoothness and reflectance up at night, so the
+        /// puddles shine paler than the dark road round them.</summary>
+        static (Material dirt, Material puddle) WetMats()
         {
             const int tw = WetTilePx, W = tw * WetCols, H = tw * WetRows; const string dir = "Assets/Art/Textures/Generated";
-            var col = new Color[W * H]; var gloss = new Color[W * H];
+            var col = new Color[W * H];
             float Noise(float x, float y) => Mathf.PerlinNoise(x + 31.3f, y + 7.9f);
             Color dark = new Color(0.07f, 0.062f, 0.055f), dust = new Color(0.36f, 0.32f, 0.26f), rubber = new Color(0.025f, 0.025f, 0.028f);
-            Color damp = new Color(0.03f, 0.035f, 0.045f), water = new Color(0.5f, 0.56f, 0.66f);
+            Color damp = new Color(0.03f, 0.035f, 0.045f), water = new Color(0.36f, 0.4f, 0.46f);
             for (int y = 0; y < H; y++) for (int x = 0; x < W; x++)
             {
                 int tx = x / tw, ty = y / tw; float u = (x % tw + 0.5f) / tw, v = (y % tw + 0.5f) / tw;
@@ -1098,30 +1099,28 @@ namespace StreetEmpire.EditorTools
                 // fades to nothing at every tile edge, so no tile bleeds into its neighbor
                 float edge = Mathf.Clamp01(Mathf.Min(Mathf.Min(u, 1f - u), Mathf.Min(v, 1f - v)) * 14f);
                 float ends = Mathf.Clamp01(Mathf.Min(u, 1f - u) * 12f);
-                Color c = dark; float a = 0f, g = 0.1f, metal = 0f;
+                Color c = dark; float a = 0f;
                 if (ty == 0 && tx == 0)        // grime along a wall or fence: v = 0 is the dark edge
                 {
                     a = Mathf.Clamp01(Mathf.Pow(1f - v, 1.6f) * (0.55f + 0.75f * Noise(u * 9f, v * 3f))) * 0.8f * ends * Mathf.Clamp01((1f - v) * 14f);
-                    g = 0.12f;
                 }
                 else if (ty == 0 && tx == 1)   // gutter dust: pale silt washed against the curb (v = 0), grainy, in drifts
                 {
                     float drift = 0.35f + 0.65f * Noise(u * 5f + 9f, 0.5f);
                     a = Mathf.Clamp01(Mathf.Pow(Mathf.Clamp01(1f - v / drift), 1.3f) * (0.5f + 0.7f * Noise(u * 40f, v * 14f))) * 0.62f * ends * Mathf.Clamp01((1f - v) * 14f);
-                    c = dust; g = 0.04f;
+                    c = dust;
                 }
                 else if (tx == 2)              // stains: a mottled blot, two of them
                 {
                     float ph = ty * 2.3f;
                     float reach = 0.3f + 0.06f * Mathf.Sin(ang * 2f + 1f + ph) + 0.05f * Mathf.Sin(ang * 3f + 4f + ph) + 0.03f * Mathf.Sin(ang * 7f);
                     a = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((1f - rad / reach) * 2.2f)) * (0.25f + 0.75f * Noise(u * 12f + 40f * ty, v * 12f)) * (ty == 0 ? 0.5f : 0.62f) * edge;
-                    g = 0.06f;
                 }
                 else if (ty == 0 && tx == 3)   // two tyre marks along u, broken up
                 {
                     float band = Mathf.Max(Mathf.Clamp01(1f - Mathf.Abs(v - 0.33f) / 0.05f), Mathf.Clamp01(1f - Mathf.Abs(v - 0.67f) / 0.05f));
                     a = band * Mathf.Clamp01(0.2f + 0.9f * Noise(u * 7f, v * 2f)) * 0.55f * Mathf.Clamp01(Mathf.Min(u * 3f, (1f - u) * 8f));
-                    c = rubber; g = 0.2f;
+                    c = rubber;
                 }
                 else if (ty == 1 && tx <= 1)   // the puddles: a round one and a long one with two lobes
                 {
@@ -1130,29 +1129,26 @@ namespace StreetEmpire.EditorTools
                         : 0.33f + 0.06f * Mathf.Sin(ang * 2f + 0.6f) + 0.045f * Mathf.Sin(ang * 3f + 3.1f) + 0.03f * Mathf.Sin(ang * 5f + 5f);
                     float inside = Mathf.Clamp01((1f - rad / reach) * 5f), deep = Mathf.Clamp01((inside - 0.35f) / 0.4f);
                     a = Mathf.SmoothStep(0f, 1f, inside) * 0.85f * edge;
-                    // standing water in the middle (it mirrors: metal, pale), a damp dark rim round it
-                    c = Color.Lerp(damp, water, deep); metal = deep; g = Mathf.Lerp(0.5f, 0.95f, deep);
+                    // standing water in the middle (pale: the puddle material is a mirror, this is how much it reflects),
+                    // a dark damp rim round it
+                    c = Color.Lerp(damp, water, deep);
                 }
-                c.a = a; col[y * W + x] = c; gloss[y * W + x] = new Color(metal, 0f, 0f, g);
+                c.a = a; col[y * W + x] = c;
             }
-            Texture2D Save(string name, Color[] px, bool linear)
-            {
-                string path = $"{dir}/{name}.asset";
-                var tex = new Texture2D(W, H, TextureFormat.RGBA32, true, linear) { name = name, wrapMode = TextureWrapMode.Clamp };
-                tex.SetPixels(px); tex.Apply(true);
-                Directory.CreateDirectory(dir);
-                if (AssetDatabase.LoadAssetAtPath<Texture2D>(path) != null) AssetDatabase.DeleteAsset(path);
-                AssetDatabase.CreateAsset(tex, path);
-                return tex;
-            }
-            var m = DecalMat("Decal Wet");
-            m.SetTexture("_BaseMap", Save("wet-atlas", col, false));
-            m.SetTexture("_MetallicGlossMap", Save("wet-atlas-gloss", gloss, true)); m.EnableKeyword("_METALLICSPECGLOSSMAP");
-            m.SetFloat("_Metallic", 1f); m.SetFloat("_SmoothnessTextureChannel", 0f);
-            m.SetFloat("_Smoothness", StreetEmpire.City.NightLook.DayWet);   // with a map this scales it: half dry by day
-            EditorUtility.SetDirty(m);
-            WetMaterial = m;
-            return m;
+            string path = $"{dir}/wet-atlas.asset";
+            var tex = new Texture2D(W, H, TextureFormat.RGBA32, true) { name = "wet-atlas", wrapMode = TextureWrapMode.Clamp };
+            tex.SetPixels(col); tex.Apply(true);
+            Directory.CreateDirectory(dir);
+            if (AssetDatabase.LoadAssetAtPath<Texture2D>(path) != null) AssetDatabase.DeleteAsset(path);
+            AssetDatabase.CreateAsset(tex, path);
+            var dirt = DecalMat("Decal Wet");
+            dirt.SetTexture("_BaseMap", tex); dirt.SetFloat("_Smoothness", 0.08f); EditorUtility.SetDirty(dirt);
+            var puddle = DecalMat("Decal Puddle");
+            puddle.SetTexture("_BaseMap", tex); puddle.SetFloat("_Metallic", 1f);
+            puddle.SetFloat("_Smoothness", NightLook.DayWet); puddle.SetColor("_BaseColor", NightLook.DayWetColor);
+            EditorUtility.SetDirty(puddle);
+            WetMaterial = puddle;
+            return (dirt, puddle);
         }
 
         // ---------------------------------------------------------------- flat markings, one mesh per material
@@ -1352,8 +1348,8 @@ namespace StreetEmpire.EditorTools
                 if (sets.Keys.Any(key => key.StartsWith("Pass")))
                 {
                     var patch = Textured("AsphaltPatch", "Assets/Art/Textures/Ground/worn_asphalt_basecolor.jpg", "Assets/Art/Textures/Ground/worn_asphalt_normal.jpg", 1f, 0.2f, new Color(0.46f, 0.46f, 0.48f));
-                    var wet = WetMat();
-                    for (int k = 0; k < 4; k++) { look[$"PassDecal{k}"] = look["Decal"]; look[$"PassPatch{k}"] = patch; look[$"PassWet{k}"] = wet; }
+                    var (wet, puddle) = WetMats();
+                    for (int k = 0; k < 4; k++) { look[$"PassDecal{k}"] = look["Decal"]; look[$"PassPatch{k}"] = patch; look[$"PassWet{k}"] = wet; look[$"PassPuddle{k}"] = puddle; }
                 }
                 foreach (var kv in sets)
                 {

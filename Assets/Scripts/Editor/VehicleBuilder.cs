@@ -44,6 +44,7 @@ namespace StreetEmpire.EditorTools
         /// near and far car share one copy. No normal map (see tools/car_v2.mjs for why).</summary>
         public static void BindV2(GameObject model, string kind)
         {
+            foreach (var r in model.GetComponentsInChildren<Renderer>(true)) r.renderingLayerMask |= 2u;   // block pass: layer 2, what the night fill reaches
             foreach (var r in model.GetComponentsInChildren<Renderer>(true))
                 foreach (var m in r.sharedMaterials)
                 {
