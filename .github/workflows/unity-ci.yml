@@ -15,6 +15,10 @@ on:
         description: "Android bisect variant (gles3, lz4hc, or both); empty for a normal build"
         required: false
         default: ""
+      tests:
+        description: "Quick check: run only the PlayMode tests whose name matches this (for example LegTests), and skip the builds. Empty for the full run."
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -22,7 +26,7 @@ permissions:
   issues: write # the Android build posts its memory samples to issue #38 (see Watch memory)
 
 concurrency:
-  group: unity-ci-${{ github.ref }}-${{ inputs.variant || 'main' }}
+  group: unity-ci-${{ github.ref }}-${{ inputs.variant || 'main' }}-${{ inputs.tests || 'all' }}
   cancel-in-progress: true
 
 env:
@@ -62,7 +66,9 @@ jobs:
       - uses: game-ci/unity-test-runner@v4
         id: tests
         with:
-          testMode: all
+          # a quick check (the tests input) runs the named PlayMode tests alone: about 10 minutes, not 25
+          testMode: ${{ inputs.tests && 'playmode' || 'all' }}
+          customParameters: ${{ inputs.tests && format('-testFilter {0}', inputs.tests) || '' }}
           cliVersion: v0.1.76 # pinned: the "latest" lookup can hit a GitHub API 403
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           checkName: Test results
@@ -76,6 +82,7 @@ jobs:
     name: Build ${{ matrix.targetPlatform }}
     # no "needs: test": the builds start with the tests, not after them, so a run is done in about 30 minutes, not 55.
     # A build can finish on a commit whose tests fail; the Tests job is still what says a change is good.
+    if: ${{ !inputs.tests }}   # a quick check builds nothing
     runs-on: ubuntu-latest
     timeout-minutes: 120
     strategy:
