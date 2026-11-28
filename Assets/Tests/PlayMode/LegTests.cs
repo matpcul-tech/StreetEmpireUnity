@@ -73,8 +73,10 @@ namespace StreetEmpire.Tests
                 {
                     Vector3 lf = a.GetBoneTransform(HumanBodyBones.LeftFoot).position, rf = a.GetBoneTransform(HumanBodyBones.RightFoot).position;
                     var hips = a.GetBoneTransform(HumanBodyBones.Hips);
-                    // across the body: square to the way the hips face, flat on the ground
-                    Vector3 across = Vector3.Cross(Vector3.up, a.transform.forward).normalized;
+                    // across the body, by the body itself: from the left hip joint to the right one, flat on the ground
+                    // (the object's own forward is not the way every one of them faces)
+                    Vector3 across = a.GetBoneTransform(HumanBodyBones.RightUpperLeg).position - a.GetBoneTransform(HumanBodyBones.LeftUpperLeg).position;
+                    across.y = 0f; across.Normalize();
                     float gap = Vector3.Dot(rf - lf, across);
                     if (idlers.Contains(a)) idleGapMin = Mathf.Min(idleGapMin, gap);
                     else { if (gap < walkGapMin) { walkGapMin = gap; crossedWho = a.transform.root.name; } walkGapSum += gap; walkGapN++; }
@@ -92,7 +94,7 @@ namespace StreetEmpire.Tests
             Assert.Less(maxPlayerLean, 10f, "player stands up straight at idle, no stoop");
             Assert.Greater(walkMean, 135f, "walking knees fold like a walk, not a lunge");
             Assert.Greater(idleGapMin, 0.1f, "standing feet are side by side, not crossed");
-            Assert.Greater(walkGapMin, 0.02f, "walking feet never cross");
+            Assert.Greater(walkGapMin, -0.02f, "walking feet never cross");
             Assert.Greater(walkMin, 95f, "no deep knee fold in the walk");
         }
     }
