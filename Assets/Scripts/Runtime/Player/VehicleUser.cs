@@ -21,7 +21,7 @@ namespace StreetEmpire.Player
         public bool Riding { get; private set; }
         /// <summary>Where his feet-level root sits on a bike, from the bike's own origin on the road (the seated clip
         /// drops his hips to chair height, so the root rides above the ground), and the camera distance.</summary>
-        public Vector3 bikeSeat = new Vector3(0f, 0.3f, -0.3f);
+        public Vector3 bikeSeat = new Vector3(0f, 0.3f, -0.14f);   // first photos: at -0.3 he sat on the tail, short of the bars
         public float bikeRadius = 5.4f;
         public static readonly int RidingId = Animator.StringToHash("Riding");
         BikeLean lean;

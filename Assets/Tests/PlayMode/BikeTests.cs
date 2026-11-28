@@ -70,7 +70,7 @@ namespace StreetEmpire.Tests
             cam.fieldOfView = 45f;
             var rt = new RenderTexture(640, 360, 24); var tex = new Texture2D(640, 360, TextureFormat.RGB24, false);
             var bt = bike.transform; Vector3 mid = bt.position + Vector3.up * 0.95f;
-            foreach (var (name, eye) in new[] { ("bike-side", mid + bt.right * 3.6f + Vector3.up * 0.2f), ("bike-behind", mid - bt.forward * 3.6f + bt.right * 1.2f + Vector3.up * 0.7f), ("bike-ahead", mid + bt.forward * 3.4f - bt.right * 1.4f + Vector3.up * 0.3f) })
+            foreach (var (name, eye) in new[] { ("bike-side", mid - bt.right * 3.6f + Vector3.up * 0.2f), ("bike-side-b", mid + bt.right * 3.6f + Vector3.up * 0.2f), ("bike-behind", mid - bt.forward * 3.6f + bt.right * 1.2f + Vector3.up * 0.7f), ("bike-ahead", mid + bt.forward * 3.4f - bt.right * 1.4f + Vector3.up * 0.3f) })
             {
                 cam.transform.position = eye; cam.transform.LookAt(mid);
                 for (int f = 0; f < 3; f++) yield return null;
