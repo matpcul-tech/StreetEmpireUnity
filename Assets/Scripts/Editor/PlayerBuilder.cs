@@ -95,6 +95,7 @@ namespace StreetEmpire.EditorTools
             ac.AddParameter("PunchKind", AnimatorControllerParameterType.Int);
             ac.AddParameter("Hit", AnimatorControllerParameterType.Trigger);
             ac.AddParameter("Down", AnimatorControllerParameterType.Bool);
+            ac.AddParameter("Riding", AnimatorControllerParameterType.Bool);
             var sm = ac.layers[0].stateMachine;
             var loco = ac.CreateBlendTreeInController("Locomotion", out var tree, 0);
             tree.blendType = BlendTreeType.Simple1D; tree.blendParameter = "Speed"; tree.useAutomaticThresholds = false;
@@ -125,6 +126,10 @@ namespace StreetEmpire.EditorTools
             var down = sm.AddState("Down"); down.motion = C("Death01");
             var fall = sm.AddAnyStateTransition(down); fall.AddCondition(AnimatorConditionMode.If, 0, "Down"); fall.duration = 0.1f; fall.canTransitionToSelf = false;
             var up = down.AddTransition(loco); up.AddCondition(AnimatorConditionMode.IfNot, 0, "Down"); up.duration = 0.3f;
+            // on a motorcycle: seated with the hands out front (the pack's driving clip), until he gets off
+            var riding = sm.AddState("Riding"); riding.motion = C("Driving_Loop");
+            var mount = sm.AddAnyStateTransition(riding); mount.AddCondition(AnimatorConditionMode.If, 0, "Riding"); mount.AddCondition(AnimatorConditionMode.IfNot, 0, "Down"); mount.duration = 0.15f; mount.canTransitionToSelf = false;
+            var dismount = riding.AddTransition(loco); dismount.AddCondition(AnimatorConditionMode.IfNot, 0, "Riding"); dismount.duration = 0.15f;
             AssetDatabase.SaveAssets();
             return ac;
         }

@@ -15,6 +15,8 @@ namespace StreetEmpire.Vehicles
         public Transform cameraTarget;
         public float hp;
         public bool hasDriver;
+        /// <summary>A motorcycle: its rider sits in the open (VehicleUser) and it leans into turns (BikeLean).</summary>
+        public bool bike;
 
         // scripted input for tests; null means read the player's controls while someone drives
         public float? scriptThrottle, scriptSteer;

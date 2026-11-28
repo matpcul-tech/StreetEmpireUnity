@@ -17,6 +17,14 @@ namespace StreetEmpire.Player
         public float footRadius = CameraRig.FootRadius, carRadius = 8.5f;
 
         public CarController Car { get; private set; }
+        /// <summary>On a motorcycle: seated in the open, not hidden inside.</summary>
+        public bool Riding { get; private set; }
+        /// <summary>Where his feet-level root sits on a bike, from the bike's own origin on the road (the seated clip
+        /// drops his hips to chair height, so the root rides above the ground), and the camera distance.</summary>
+        public Vector3 bikeSeat = new Vector3(0f, 0.3f, -0.14f);   // first photos: at -0.3 he sat on the tail, short of the bars
+        public float bikeRadius = 5.4f;
+        public static readonly int RidingId = Animator.StringToHash("Riding");
+        BikeLean lean;
         public bool scriptUse;
 
         PlayerMotor motor; CharacterController cc; Renderer[] renderers;
@@ -35,7 +43,14 @@ namespace StreetEmpire.Player
 
         void LateUpdate()
         {
-            if (Car != null) transform.SetPositionAndRotation(Car.transform.position, Car.transform.rotation);
+            if (Car == null) return;
+            if (Riding)
+            {
+                // in the saddle, leaning with the bike about the line its tyres stand on
+                var ct = Car.transform; var roll = Quaternion.Euler(0f, 0f, lean != null ? lean.Roll : 0f);
+                transform.SetPositionAndRotation(ct.position + ct.rotation * (roll * bikeSeat), ct.rotation * roll);
+            }
+            else transform.SetPositionAndRotation(Car.transform.position, Car.transform.rotation);
         }
 
         public bool TryEnter()
@@ -54,10 +69,13 @@ namespace StreetEmpire.Player
             if (best == null) return false;
             Car = best; Car.hasDriver = true;
             motor.enabled = false; cc.enabled = false;
-            foreach (var r in renderers) r.enabled = false;
+            // in a car he is out of sight; on a motorcycle he is on show, seated with his hands out on the bars
+            Riding = Car.bike; lean = Riding ? Car.GetComponent<BikeLean>() : null;
+            if (!Riding) foreach (var r in renderers) r.enabled = false;
+            if (motor.animator != null) motor.animator.SetBool(RidingId, Riding);
             // the camera backs off for a long vehicle
             var body = Car.GetComponent<BoxCollider>();
-            SetCamera(Car.cameraTarget != null ? Car.cameraTarget : Car.transform, Mathf.Max(carRadius, body != null ? body.size.z * 1.25f + 2f : carRadius));
+            SetCamera(Car.cameraTarget != null ? Car.cameraTarget : Car.transform, Riding ? bikeRadius : Mathf.Max(carRadius, body != null ? body.size.z * 1.25f + 2f : carRadius));
             return true;
         }
 
@@ -65,6 +83,7 @@ namespace StreetEmpire.Player
         {
             var car = Car; if (car == null) return;
             car.hasDriver = false; Car = null;
+            Riding = false; lean = null; if (motor.animator != null) motor.animator.SetBool(RidingId, false);
             var t = car.transform;
             Vector3 pos = t.position - t.right * exitOffset;
             if (Blocked(pos)) pos = t.position + t.right * exitOffset;
