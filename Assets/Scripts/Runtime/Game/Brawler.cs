@@ -11,11 +11,13 @@ namespace StreetEmpire.Game
     [RequireComponent(typeof(NpcBody), typeof(Health), typeof(HitReaction))]
     public class Brawler : MonoBehaviour
     {
-        public enum Style { Rush, Flank }
+        public enum Style { Rush, Flank, Retreat }
         public Style style = Style.Rush;
         public bool bat, leave;
         public int Swings { get; private set; }
         public int Hits { get; private set; }
+        /// <summary>Seconds spent backing away from the player (the retreat style).</summary>
+        public float BackOffs { get; private set; }
         public float Reach => bat ? 2.55f : 1.85f;
         /// <summary>Seconds left in the swing being wound up (CombatFx draws the warning ring), 0 when not swinging.</summary>
         public float Windup => windup;
@@ -25,7 +27,7 @@ namespace StreetEmpire.Game
         public bool posted; public Vector3 post; public float aggro = 14f;
         public bool Alerted { get; private set; }
 
-        NpcBody body; Health health; float windup, cd, downT, leaveT; bool flanked;
+        NpcBody body; Health health; float windup, cd, downT, leaveT, backOff, brave; bool flanked;
 
         void OnEnable() => All.Add(this);
         void OnDisable() => All.Remove(this);
@@ -70,10 +72,21 @@ namespace StreetEmpire.Game
                 {
                     Swings++;
                     if (!inCar && d <= Reach + 0.45f) { s.playerHealth.Damage(bat ? 14f : 8f, gameObject); Hits++; }
+                    if (style == Style.Retreat) { backOff = 1.25f; brave = 3.1f; }   // he swings and gets out of reach
                 }
                 return;
             }
             if (inCar) { body.Move(Vector3.zero, dt); return; }
+            // the retreat style: back off after every swing, and when hurt (under 45 percent) with the player close,
+            // then find the nerve to come in again after about three seconds
+            if (brave > 0) brave -= dt;
+            if (backOff <= 0 && style == Style.Retreat && health.hp < health.max * 0.45f && brave <= 0 && d < 5.5f) { backOff = 1.35f; brave = 3.2f; }
+            if (backOff > 0)
+            {
+                backOff -= dt; BackOffs += dt;
+                body.Move(d < 6.8f ? -to / Mathf.Max(d, 0.01f) * 3.6f : Vector3.zero, dt);
+                return;
+            }
             if (!Aggressor(p))
             {
                 // hold a ring round the fight until one of the two in front goes down
@@ -92,14 +105,14 @@ namespace StreetEmpire.Game
             }
             if (dest == p && d <= Reach && cd <= 0)
             {
-                windup = (bat ? 0.08f : 0f) + (style == Style.Rush ? 0.36f : 0.46f);
+                windup = (bat ? 0.08f : 0f) + (style == Style.Rush ? 0.36f : style == Style.Flank ? 0.46f : 0.52f);
                 cd = windup + (bat ? 0.85f : 0.62f);
                 CharacterAnim.Punch(body.animator, Swings % 2);
                 body.Move(Vector3.zero, dt);
                 return;
             }
             var step = Flat(dest - transform.position);
-            if (step.magnitude > 0.45f) body.Move(step.normalized * (dest == p ? (style == Style.Rush ? 5.3f : 4.3f) : 4.2f), dt);
+            if (step.magnitude > 0.45f) body.Move(step.normalized * (dest == p ? (style == Style.Rush ? 5.3f : style == Style.Flank ? 4.3f : 3.7f) : 4.2f), dt);
             else { body.Face(p); body.Move(Vector3.zero, dt); }
         }
 
